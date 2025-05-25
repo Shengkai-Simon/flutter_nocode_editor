@@ -24,4 +24,13 @@ class WidgetNode {
       children: children ?? this.children,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type,
+      'props': props,
+      'children': children.map((child) => child.toJson()).toList(),
+    };
+  }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../core/widget_node.dart';
+
+import '../core/component_registry.dart';
 import '../core/editor_state.dart';
+import '../core/widget_node.dart';
 
 class WidgetRenderer extends ConsumerWidget {
   final WidgetNode node;
@@ -13,58 +15,74 @@ class WidgetRenderer extends ConsumerWidget {
     final selectedId = ref.watch(selectedNodeIdProvider);
     final isSelected = selectedId == node.id;
 
-    Widget rendered;
-
-    switch (node.type) {
-      case 'Text':
-        rendered = Text(
-          node.props['text'] ?? '',
-          style: TextStyle(
-            fontSize: double.tryParse(node.props['fontSize']?.toString() ?? '') ?? 16,
-            color: _parseColor(node.props['color']) ?? Colors.black,
-          ),
-        );
-        break;
-
-      case 'Container':
-        rendered = Container(
-          width: double.tryParse(node.props['width']?.toString() ?? '') ?? 200,
-          height: double.tryParse(node.props['height']?.toString() ?? '') ?? 100,
-          color: _parseColor(node.props['backgroundColor']) ?? Colors.grey[300],
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            children: node.children
-                .map((child) => WidgetRenderer(node: child))
-                .toList(),
-          ),
-        );
-        break;
-
-      default:
-        rendered = const Text('Unsupported');
+    final rc = registeredComponents[node.type];
+    if (rc == null) {
+      return Container(
+        constraints: const BoxConstraints(minWidth: 30, minHeight: 30), // Min size for unknown too
+        padding: const EdgeInsets.all(8),
+        color: Colors.red.withOpacity(0.1),
+        child: Text('Unknown: ${node.type}', style: const TextStyle(color: Colors.red, fontSize: 10)),
+      );
     }
+
+    final actualComponentWidget = rc.builder(
+      node,
+      ref,
+          (WidgetNode childNodeToRender) {
+        return WidgetRenderer(node: childNodeToRender);
+      },
+    );
+
+    const tagBackgroundColor = Colors.blue;
+    const tagTextColor = Colors.white;
+    const double minDimension = 40.0;
 
     return GestureDetector(
       onTap: () {
         ref.read(selectedNodeIdProvider.notifier).state = node.id;
       },
-      child: Container(
-        decoration: isSelected
-            ? BoxDecoration(
-          border: Border.all(color: Colors.blue, width: 2),
-          color: Colors.blue.withValues(alpha: 13),
-        )
-            : null,
-        padding: const EdgeInsets.all(4),
-        child: rendered,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topLeft,
+        children: [
+          Container(
+            margin: const EdgeInsets.all(8.0),
+            constraints: const BoxConstraints(
+              minWidth: minDimension,
+              minHeight: minDimension,
+            ),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isSelected ? Colors.blue : Colors.grey.withOpacity(0.3),
+                width: 1,
+                style: isSelected ? BorderStyle.solid : BorderStyle.solid,
+              ),
+            ),
+            child: actualComponentWidget,
+          ),
+          if (isSelected)
+            Positioned(
+              top: -8,
+              left: -1,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: tagBackgroundColor,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  rc.displayName,
+                  style: const TextStyle(
+                    color: tagTextColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
-  }
-
-  Color? _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return null;
-    final cleanHex = hex.replaceFirst('#', '');
-    if (cleanHex.length != 6) return null;
-    return Color(int.parse('FF$cleanHex', radix: 16));
   }
 }
