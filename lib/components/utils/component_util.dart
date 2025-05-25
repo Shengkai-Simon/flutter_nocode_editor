@@ -27,17 +27,17 @@ class ComponentUtil {
         normalizedValue = normalizedValue.substring(5);
       }
 
-      final RegExp lReg = RegExp(r'l(-?[\d\.]+)');
-      final RegExp tReg = RegExp(r't(-?[\d\.]+)');
-      final RegExp rReg = RegExp(r'r(-?[\d\.]+)');
-      final RegExp bReg = RegExp(r'b(-?[\d\.]+)');
+      final RegExp lReg = RegExp(r'l(-?[\d.]+)');
+      final RegExp tReg = RegExp(r't(-?[\d.]+)');
+      final RegExp rReg = RegExp(r'r(-?[\d.]+)');
+      final RegExp bReg = RegExp(r'b(-?[\d.]+)');
 
       bool hasL = lReg.hasMatch(normalizedValue);
       bool hasT = tReg.hasMatch(normalizedValue);
       bool hasR = rReg.hasMatch(normalizedValue);
       bool hasB = bReg.hasMatch(normalizedValue);
 
-      if (hasL || hasT || hasR || hasB) { // If any LTRB specifier is found
+      if (hasL || hasT || hasR || hasB) {
         double left = double.tryParse(lReg.firstMatch(normalizedValue)?.group(1) ?? '0') ?? 0;
         double top = double.tryParse(tReg.firstMatch(normalizedValue)?.group(1) ?? '0') ?? 0;
         double right = double.tryParse(rReg.firstMatch(normalizedValue)?.group(1) ?? '0') ?? 0;
@@ -60,10 +60,10 @@ class ComponentUtil {
         }
       }
     } catch (e) {
-      print('Error parsing EdgeInsets string "$value" (normalized: "$normalizedValue"): $e');
+      print('Error parsing EdgeInsets string "$value" (normalized: "$normalizedValue"): $e. Falling back to EdgeInsets.zero.');
       return EdgeInsets.zero;
     }
-    print('Warning: Could not parse EdgeInsets string "$value" (normalized: "$normalizedValue") into a known format.');
+    print('Warning: Could not parse EdgeInsets string "$value" (normalized: "$normalizedValue") into a known format. Falling back to EdgeInsets.zero.');
     return EdgeInsets.zero;
   }
 
@@ -89,7 +89,8 @@ class ComponentUtil {
       case 'bottomRight':
         return Alignment.bottomRight;
       default:
-        return Alignment.center; // sensible default
+        print('Warning: Unrecognized alignment string "$alignStr". Falling back to Alignment.center.');
+        return Alignment.center;
     }
   }
 
@@ -108,6 +109,7 @@ class ComponentUtil {
       case 'spaceEvenly':
         return MainAxisAlignment.spaceEvenly;
       default:
+        print('Warning: Unrecognized MainAxisAlignment string "$value". Falling back to MainAxisAlignment.start.');
         return MainAxisAlignment.start;
     }
   }
@@ -125,6 +127,7 @@ class ComponentUtil {
       case 'baseline':
         return CrossAxisAlignment.baseline;
       default:
+        print('Warning: Unrecognized CrossAxisAlignment string "$value". Falling back to CrossAxisAlignment.center.');
         return CrossAxisAlignment.center;
     }
   }
@@ -136,6 +139,7 @@ class ComponentUtil {
       case 'max':
         return MainAxisSize.max;
       default:
+        print('Warning: Unrecognized MainAxisSize string "$value". Falling back to MainAxisSize.max.');
         return MainAxisSize.max;
     }
   }
@@ -144,11 +148,21 @@ class ComponentUtil {
   static Color parseColor(String? hex) {
     if (hex == null || hex.isEmpty) return Colors.black;
     final cleanHex = hex.replaceFirst('#', '');
-    if (cleanHex.length == 6) {
-      return Color(int.parse('FF$cleanHex', radix: 16));
-    } else if (cleanHex.length == 8) {
-      return Color(int.parse(cleanHex, radix: 16));
+    try {
+      if (cleanHex.length == 6) {
+        return Color(int.parse('FF$cleanHex', radix: 16));
+      } else if (cleanHex.length == 8) {
+        return Color(int.parse(cleanHex, radix: 16));
+      } else {
+        print('Warning: Invalid hex color string length for "$hex" (cleaned: "$cleanHex"). Must be 6 or 8 characters after #. Falling back to Colors.black.');
+        return Colors.black;
+      }
+    } on FormatException catch (e) {
+      print('Warning: Malformed hex color string "$hex" (cleaned: "$cleanHex"): $e. Falling back to Colors.black.');
+      return Colors.black;
+    } catch (e) {
+      print('Error parsing hex color string "$hex": $e. Falling back to Colors.black.');
+      return Colors.black;
     }
-    return Colors.black;
   }
 }

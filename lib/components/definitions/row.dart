@@ -14,11 +14,7 @@ final RegisteredComponent rowComponentDefinition = RegisteredComponent(
     'mainAxisSize': 'max',
   },
   propFields: [
-    PropField(
-      name: 'mainAxisAlignment',
-      label: 'Main Axis Align',
-      fieldType: FieldType.select,
-      defaultValue: 'start',
+    PropField(name: 'mainAxisAlignment', label: 'Main Axis Align', fieldType: FieldType.select, defaultValue: 'start',
       options: [
         {'id': 'start', 'name': 'Start'},
         {'id': 'end', 'name': 'End'},
@@ -28,11 +24,7 @@ final RegisteredComponent rowComponentDefinition = RegisteredComponent(
         {'id': 'spaceEvenly', 'name': 'Space Evenly'},
       ],
     ),
-    PropField(
-      name: 'crossAxisAlignment',
-      label: 'Cross Axis Align',
-      fieldType: FieldType.select,
-      defaultValue: 'center',
+    PropField(name: 'crossAxisAlignment', label: 'Cross Axis Align', fieldType: FieldType.select, defaultValue: 'center',
       options: [
         {'id': 'start', 'name': 'Start'},
         {'id': 'end', 'name': 'End'},
@@ -41,17 +33,14 @@ final RegisteredComponent rowComponentDefinition = RegisteredComponent(
         {'id': 'baseline', 'name': 'Baseline (req. textBaseline)'},
       ],
     ),
-    PropField(
-      name: 'mainAxisSize',
-      label: 'Main Axis Size',
-      fieldType: FieldType.select,
-      defaultValue: 'max',
+    PropField(name: 'mainAxisSize', label: 'Main Axis Size', fieldType: FieldType.select, defaultValue: 'max',
       options: [
         {'id': 'min', 'name': 'Min'},
         {'id': 'max', 'name': 'Max'},
       ],
     ),
   ],
+  childPolicy: ChildAcceptancePolicy.multiple,
   builder: (
       WidgetNode node,
       WidgetRef ref,

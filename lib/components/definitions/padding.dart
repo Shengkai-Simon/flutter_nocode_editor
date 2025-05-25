@@ -14,6 +14,7 @@ final RegisteredComponent paddingComponentDefinition = RegisteredComponent(
   propFields: [
     PropField(name: 'padding', label: 'Padding', fieldType: FieldType.edgeInsets, defaultValue: 'all:0'),
   ],
+  childPolicy: ChildAcceptancePolicy.single,
   builder: (
       WidgetNode node,
       WidgetRef ref,

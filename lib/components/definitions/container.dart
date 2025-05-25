@@ -12,7 +12,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
   defaultProps: {
     'width': '200',
     'height': '100',
-    'backgroundColor': '#eeeeee',
+    'backgroundColor': '',
     'alignment': 'center',
     'padding': 'all:0',
     'margin': 'all:0',
@@ -41,6 +41,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
     PropField(name: 'padding', label: 'Padding', fieldType: FieldType.edgeInsets, defaultValue: 'all:0'),
     PropField(name: 'margin', label: 'Margin', fieldType: FieldType.edgeInsets, defaultValue: 'all:0'),
   ],
+  childPolicy: ChildAcceptancePolicy.single,
   builder: (WidgetNode node, WidgetRef ref, Widget Function(WidgetNode childNode) renderChild) {
     final props = node.props;
 

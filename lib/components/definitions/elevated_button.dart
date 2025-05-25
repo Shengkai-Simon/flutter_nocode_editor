@@ -16,37 +16,13 @@ final RegisteredComponent elevatedButtonComponentDefinition = RegisteredComponen
     'padding': 'symmetric:H16,V8',
   },
   propFields: [
-    PropField(
-      name: 'buttonText',
-      label: 'Text',
-      fieldType: FieldType.string,
-      defaultValue: 'Click Me',
-    ),
-    PropField(
-      name: 'backgroundColor',
-      label: 'Background Color',
-      fieldType: FieldType.color,
-      defaultValue: '',
-    ),
-    PropField(
-      name: 'foregroundColor',
-      label: 'Foreground Color',
-      fieldType: FieldType.color,
-      defaultValue: '',
-    ),
-    PropField(
-      name: 'elevation',
-      label: 'Elevation',
-      fieldType: FieldType.number,
-      defaultValue: '2.0',
-    ),
-    PropField(
-      name: 'padding',
-      label: 'Padding (e.g., all:8)',
-      fieldType: FieldType.edgeInsets,
-      defaultValue: 'symmetric:H16,V8',
-    ),
+    PropField(name: 'buttonText', label: 'Text', fieldType: FieldType.string, defaultValue: 'Click Me'),
+    PropField(name: 'backgroundColor', label: 'Background Color', fieldType: FieldType.color, defaultValue: ''),
+    PropField(name: 'foregroundColor', label: 'Foreground Color', fieldType: FieldType.color, defaultValue: ''),
+    PropField(name: 'elevation', label: 'Elevation', fieldType: FieldType.number, defaultValue: '2.0'),
+    PropField(name: 'padding', label: 'Padding (e.g., all:8)', fieldType: FieldType.edgeInsets, defaultValue: 'symmetric:H16,V8'),
   ],
+  childPolicy: ChildAcceptancePolicy.single,
   builder: (
       WidgetNode node,
       WidgetRef ref,
@@ -71,7 +47,6 @@ final RegisteredComponent elevatedButtonComponentDefinition = RegisteredComponen
     final EdgeInsetsGeometry? padding = (paddingString != null && paddingString.isNotEmpty)
         ? ComponentUtil.parseEdgeInsets(paddingString)
         : null;
-
 
     Widget buttonChild;
     if (node.children.isNotEmpty) {

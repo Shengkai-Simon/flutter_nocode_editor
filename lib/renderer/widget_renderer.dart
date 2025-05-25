@@ -26,16 +26,15 @@ class WidgetRenderer extends ConsumerWidget {
     }
 
     final actualComponentWidget = rc.builder(
-      node,
-      ref,
-          (WidgetNode childNodeToRender) {
-        return WidgetRenderer(node: childNodeToRender);
-      },
+      node, ref, (WidgetNode childNodeToRender) {
+      return WidgetRenderer(node: childNodeToRender);
+    },
     );
 
     const tagBackgroundColor = Colors.blue;
     const tagTextColor = Colors.white;
-    const double minDimension = 40.0;
+    const double minVisibleWidth = 30.0;
+    const double minVisibleHeight = 15.0;
 
     return GestureDetector(
       onTap: () {
@@ -47,10 +46,10 @@ class WidgetRenderer extends ConsumerWidget {
         alignment: Alignment.topLeft,
         children: [
           Container(
-            margin: const EdgeInsets.all(8.0),
+            margin: const EdgeInsets.all(6.0),
             constraints: const BoxConstraints(
-              minWidth: minDimension,
-              minHeight: minDimension,
+              minWidth: minVisibleWidth,
+              minHeight: minVisibleHeight,
             ),
             decoration: BoxDecoration(
               border: Border.all(

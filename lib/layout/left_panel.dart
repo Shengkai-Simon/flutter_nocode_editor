@@ -14,14 +14,14 @@ class LeftPanel extends ConsumerWidget {
     final uuid = const Uuid();
     final componentList = registeredComponents.values.toList();
 
-    void addComponent(String type) {
-      final rc = registeredComponents[type];
-      if (rc == null) return;
+    void addComponent(String newComponentType) {
+      final newComponentRc = registeredComponents[newComponentType];
+      if (newComponentRc == null) return;
 
       final newNode = WidgetNode(
         id: uuid.v4(), // Ensure uuid is initialized, e.g., final uuid = Uuid(); at class or file level
-        type: rc.type,
-        props: Map<String, dynamic>.from(rc.defaultProps),
+        type: newComponentRc.type,
+        props: Map<String, dynamic>.from(newComponentRc.defaultProps),
         children: [],
       );
 
@@ -29,22 +29,57 @@ class LeftPanel extends ConsumerWidget {
       final currentTree = ref.read(canvasTreeProvider);
 
       WidgetNode? targetParentNode;
+      RegisteredComponent? targetParentRc;
+
       if (selectedId == null) {
         targetParentNode = currentTree;
+        targetParentRc = registeredComponents[currentTree.type];
       } else {
         targetParentNode = _findNodeInTreeById(currentTree, selectedId);
+        if (targetParentNode != null) {
+          targetParentRc = registeredComponents[targetParentNode.type];
+        }
       }
 
-      if (targetParentNode != null &&
-          targetParentNode.type == 'Container' &&
-          targetParentNode.children.isNotEmpty) {
-
+      if (targetParentNode == null || targetParentRc == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              "'${targetParentNode.type}' (ID: ${targetParentNode.id.substring(0, 8)}) can only hold one child. "
-                  "Please remove the existing child or select a different parent.",
+              "Cannot add component: Target parent not found or is invalid.",
             ),
+            backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      bool canAddChild = false;
+      String restrictionMessage = "";
+
+      switch (targetParentRc.childPolicy) {
+        case ChildAcceptancePolicy.none:
+          restrictionMessage = "'${targetParentRc.displayName}' cannot accept any children.";
+          canAddChild = false;
+          break;
+        case ChildAcceptancePolicy.single:
+          if (targetParentNode.children.isNotEmpty) {
+            restrictionMessage = "'${targetParentRc.displayName}' can only hold one child. "
+                "Please remove the existing child or select a different parent.";
+            canAddChild = false;
+          } else {
+            canAddChild = true;
+          }
+          break;
+        case ChildAcceptancePolicy.multiple:
+          canAddChild = true;
+          break;
+      }
+
+      if (!canAddChild) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(restrictionMessage),
             backgroundColor: Colors.orangeAccent,
             duration: const Duration(seconds: 4),
           ),
@@ -52,20 +87,19 @@ class LeftPanel extends ConsumerWidget {
         return;
       }
 
+      // Original print statements for debugging (consider removing or using a logger)
       print('=========================================================');
-      print('Attempting to add component: ${rc.type} (ID: ${newNode.id})');
-      print('Target Parent ID: $selectedId');
-      if (targetParentNode != null) {
-        print('Actual Parent Node for adding: {id: ${targetParentNode.id}, type: ${targetParentNode.type}, childrenCount: ${targetParentNode.children.length}}');
-      } else if (selectedId != null) {
-        print('Warning: Target Parent ID $selectedId not found in tree. Adding to root.');
-      }
+      print('Attempting to add component: ${newComponentRc.type} (ID: ${newNode.id})');
+      print('Target Parent ID: $selectedId (Actual Type: ${targetParentNode.type})');
+      print('Actual Parent Node for adding: {id: ${targetParentNode.id}, type: ${targetParentNode.type}, childrenCount: ${targetParentNode.children.length}}');
       print('Current Tree BEFORE modification: ${currentTree.toJson()}');
 
-      final newTree = _addChildToTree(currentTree, selectedId, newNode);
+
+      final newTree = _addChildToTree(currentTree, targetParentNode.id, newNode);
 
       print('New Tree AFTER modification: ${newTree.toJson()}');
       print('=========================================================');
+
 
       ref.read(canvasTreeProvider.notifier).state = newTree;
       ref.read(selectedNodeIdProvider.notifier).state = newNode.id;
@@ -143,13 +177,13 @@ class LeftPanel extends ConsumerWidget {
     return null;
   }
 
-  WidgetNode _addChildToTree(WidgetNode root, String? parentId, WidgetNode newChild) {
-    if (parentId == null || root.id == parentId) {
+  WidgetNode _addChildToTree(WidgetNode root, String actualParentId, WidgetNode newChild) {
+    if (root.id == actualParentId) {
       return root.copyWith(children: [...root.children, newChild]);
     }
 
     return root.copyWith(
-      children: root.children.map((c) => _addChildToTree(c, parentId, newChild)).toList(),
+      children: root.children.map((c) => _addChildToTree(c, actualParentId, newChild)).toList(),
     );
   }
 }

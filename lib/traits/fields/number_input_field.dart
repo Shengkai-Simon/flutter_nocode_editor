@@ -36,12 +36,26 @@ class _NumberInputFieldState extends State<NumberInputField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: _controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-      decoration: InputDecoration(labelText: widget.label),
-      onChanged: widget.onChanged,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: _controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+        decoration: InputDecoration(
+          labelText: widget.label,
+          border: const OutlineInputBorder(),
+          errorMaxLines: 2,
+        ),
+        onChanged: widget.onChanged,
+        autovalidateMode: AutovalidateMode.onUserInteraction, // Validate on user interaction
+        validator: (value) {
+          if (value == null || value.isEmpty) return null;
+          final double? numValue = double.tryParse(value);
+          if (numValue == null) return 'Invalid number format (e.g., 12.34)';
+          return null;
+        },
+      ),
     );
   }
 
