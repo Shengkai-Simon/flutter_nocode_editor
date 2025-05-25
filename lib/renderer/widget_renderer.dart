@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/component_registry.dart';
+import '../core/constants.dart';
 import '../core/editor_state.dart';
 import '../core/widget_node.dart';
 
@@ -31,11 +32,6 @@ class WidgetRenderer extends ConsumerWidget {
     },
     );
 
-    const tagBackgroundColor = Colors.blue;
-    const tagTextColor = Colors.white;
-    const double minVisibleWidth = 30.0;
-    const double minVisibleHeight = 15.0;
-
     return GestureDetector(
       onTap: () {
         ref.read(selectedNodeIdProvider.notifier).state = node.id;
@@ -46,16 +42,16 @@ class WidgetRenderer extends ConsumerWidget {
         alignment: Alignment.topLeft,
         children: [
           Container(
-            margin: const EdgeInsets.all(6.0),
+            margin: const EdgeInsets.all(kRendererWrapperMargin),
             constraints: const BoxConstraints(
-              minWidth: minVisibleWidth,
-              minHeight: minVisibleHeight,
+              minWidth: kRendererMinVisibleWidth,
+              minHeight: kRendererMinInteractiveHeight,
             ),
             decoration: BoxDecoration(
               border: Border.all(
-                color: isSelected ? Colors.blue : Colors.grey.withOpacity(0.3),
+                color: isSelected ? kRendererSelectedBorderColor : kRendererUnselectedBorderColor,
                 width: 1,
-                style: isSelected ? BorderStyle.solid : BorderStyle.solid,
+                style: BorderStyle.solid,
               ),
             ),
             child: actualComponentWidget,
@@ -65,16 +61,16 @@ class WidgetRenderer extends ConsumerWidget {
               top: -8,
               left: -1,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: kRendererTagPadding,
                 decoration: BoxDecoration(
-                  color: tagBackgroundColor,
-                  borderRadius: BorderRadius.circular(3),
+                  color: kRendererTagBackgroundColor,
+                  borderRadius: BorderRadius.circular(kRendererTagBorderRadius),
                 ),
                 child: Text(
                   rc.displayName,
                   style: const TextStyle(
-                    color: tagTextColor,
-                    fontSize: 10,
+                    color: kRendererTagTextColor,
+                    fontSize: kRendererTagFontSize,
                     fontWeight: FontWeight.normal,
                   ),
                 ),
