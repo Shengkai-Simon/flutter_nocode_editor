@@ -68,8 +68,6 @@ class RightPanel extends ConsumerWidget {
         ...rc.propFields.map((field) {
           final value = node.props[field.name]?.toString() ?? field.defaultValue?.toString() ?? '';
 
-          print('field.fieldType: ${field.fieldType}, Field Name: ${field.name}, Value: $value');
-
           onChanged(String newVal) {
             final updatedProps = {...node.props, field.name: newVal};
             final updatedNode = node.copyWith(props: updatedProps);

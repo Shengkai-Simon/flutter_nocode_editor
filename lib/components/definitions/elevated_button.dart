@@ -63,9 +63,7 @@ final RegisteredComponent elevatedButtonComponentDefinition = RegisteredComponen
     );
 
     final actualButton = ElevatedButton(
-      onPressed: () {
-        print('Button (ID: ${node.id}) action triggered in editor context (should be absorbed).');
-      },
+      onPressed: () {},
       style: buttonStyle,
       child: buttonChild,
     );

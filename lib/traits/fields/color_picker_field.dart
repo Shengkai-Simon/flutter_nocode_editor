@@ -18,8 +18,11 @@ class ColorPickerField extends StatelessWidget {
       } else if (cleanHex.length == 6) {
         return Color(int.parse('FF$cleanHex', radix: 16));
       }
+      print('Warning: Invalid hex color string length for "$hex" (cleaned: "$cleanHex"). Falling back to default color.');
+    } on FormatException catch (e) {
+      print('Warning: Malformed hex color string "$hex" (cleaned: "$cleanHex"): $e. Falling back to default color.');
     } catch (e) {
-      print("Error parsing hex color '$hex': $e");
+      print('Error parsing hex color string "$hex": $e. Falling back to default color.');
     }
     return defaultColor;
   }

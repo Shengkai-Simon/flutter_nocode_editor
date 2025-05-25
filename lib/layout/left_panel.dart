@@ -87,19 +87,7 @@ class LeftPanel extends ConsumerWidget {
         return;
       }
 
-      // Original print statements for debugging (consider removing or using a logger)
-      print('=========================================================');
-      print('Attempting to add component: ${newComponentRc.type} (ID: ${newNode.id})');
-      print('Target Parent ID: $selectedId (Actual Type: ${targetParentNode.type})');
-      print('Actual Parent Node for adding: {id: ${targetParentNode.id}, type: ${targetParentNode.type}, childrenCount: ${targetParentNode.children.length}}');
-      print('Current Tree BEFORE modification: ${currentTree.toJson()}');
-
-
       final newTree = _addChildToTree(currentTree, targetParentNode.id, newNode);
-
-      print('New Tree AFTER modification: ${newTree.toJson()}');
-      print('=========================================================');
-
 
       ref.read(canvasTreeProvider.notifier).state = newTree;
       ref.read(selectedNodeIdProvider.notifier).state = newNode.id;
