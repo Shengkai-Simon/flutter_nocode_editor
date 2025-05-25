@@ -54,14 +54,9 @@ class ColorPickerField extends StatelessWidget {
               color: swatchDisplayColor,
               border: Border.all(color: theme.dividerColor),
               borderRadius: BorderRadius.circular(4),
-              image: !isValueSet
-                  ? DecorationImage(
-                  image: AssetImage('assets/images/transparent_pattern.png'), // Placeholder: you'd need this asset
-                  repeat: ImageRepeat.repeat,
-                  opacity: 0.3
-              )
-                  : null,
             ),
+            child: !isValueSet ? Icon(Icons.grid_on, size: 18,
+              color: theme.disabledColor.withOpacity(0.5),) : null,
           ),
         ],
       ),
