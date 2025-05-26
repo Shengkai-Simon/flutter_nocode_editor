@@ -8,6 +8,7 @@ import '../traits/fields/color_picker_field.dart';
 import '../traits/fields/dropdown_field.dart';
 import '../traits/fields/edge_insets_field.dart';
 import '../traits/fields/number_input_field.dart';
+import '../traits/fields/switch_field.dart';
 import '../traits/fields/text_input_field.dart';
 
 class RightPanel extends ConsumerWidget {
@@ -79,29 +80,25 @@ class RightPanel extends ConsumerWidget {
         ...rc.propFields.map((field) {
           final dynamic rawPropValue = node.props[field.name];
           final dynamic rawDefaultValue = field.defaultValue;
-          String displayValue;
 
-          if (rawPropValue != null) {
-            displayValue = rawPropValue.toString();
-          } else if (rawDefaultValue != null) {
-            displayValue = rawDefaultValue.toString();
-          } else {
-            displayValue = '';
-          }
-
-          onChanged(String newVal) {
+          onChanged(dynamic newValueFromField) {
             final Map<String, dynamic> updatedProps = {...node.props};
             dynamic processedValue;
 
             if (field.fieldType == FieldType.number) {
-              processedValue = double.tryParse(newVal);
-              if (newVal.isEmpty || processedValue == null) {
+              String newValStr = newValueFromField as String;
+              processedValue = double.tryParse(newValStr);
+              if (newValStr.isEmpty || processedValue == null) {
                 updatedProps.remove(field.name);
               } else {
                 updatedProps[field.name] = processedValue;
               }
-            } else {
-              processedValue = newVal;
+            } else if (field.fieldType == FieldType.boolean) {
+              processedValue = newValueFromField as bool;
+              updatedProps[field.name] = processedValue;
+            }
+            else {
+              processedValue = newValueFromField as String;
               updatedProps[field.name] = processedValue;
             }
 
@@ -113,18 +110,34 @@ class RightPanel extends ConsumerWidget {
 
           switch (field.fieldType) {
             case FieldType.string:
-              return TextInputField(label: field.label, value: displayValue, onChanged: onChanged);
+              String displayStr = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
+              return TextInputField(label: field.label, value: displayStr, onChanged: onChanged);
             case FieldType.number:
-              return NumberInputField(label: field.label, value: displayValue, onChanged: onChanged);
+              String displayNumStr = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
+              return NumberInputField(label: field.label, value: displayNumStr, onChanged: onChanged);
             case FieldType.color:
-              return ColorPickerField(label: field.label, value: displayValue, onChanged: onChanged);
+              String displayColorStr = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
+              return ColorPickerField(label: field.label, value: displayColorStr, onChanged: onChanged);
             case FieldType.select:
-            case FieldType.alignment:
-              return DropdownField(label: field.label, value: displayValue, options: field.options ?? [], onChanged: onChanged);
+              String currentId = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
+              if (field.options != null && field.options!.isNotEmpty && !field.options!.any((opt) => opt['id'] == currentId)) {
+                currentId = field.options!.first['id'] ?? '';
+              }
+              return DropdownField(label: field.label, value: currentId, options: field.options ?? [], onChanged: onChanged,);
             case FieldType.boolean:
-              return SwitchListTile(title: Text(field.label), value: displayValue == 'true', onChanged: (bool checked) => onChanged(checked.toString()),);
+              bool currentValue = false;
+              if (rawPropValue is bool) {
+                currentValue = rawPropValue;
+              } else if (rawDefaultValue is bool) {
+                currentValue = rawDefaultValue;
+              }
+              return SwitchField(label: field.label, value: currentValue, onChanged: onChanged);
+            case FieldType.alignment:
+              String displayStr = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
+              return DropdownField(label: field.label, value: displayStr, options: field.options ?? [], onChanged: onChanged);
             case FieldType.edgeInsets:
-              return EdgeInsetsField(label: field.label, value: displayValue, onChanged: onChanged);
+              String displayStr = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
+              return EdgeInsetsField(label: field.label, value: displayStr, onChanged: onChanged);
           }
         }),
       ],

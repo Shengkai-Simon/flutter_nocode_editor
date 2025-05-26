@@ -9,21 +9,24 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
   type: 'Text',
   displayName: 'Text',
   icon: Icons.text_fields,
-  defaultProps: {'text': 'Hello World', 'fontSize': 16.0, 'color': ''},
+  defaultProps: {'text': 'Hello World', 'fontSize': 16.0, 'color': '', 'softWrap': true},
   propFields: [
     PropField(name: 'text', label: 'Text', fieldType: FieldType.string, defaultValue: 'Hello World'),
     PropField(name: 'fontSize', label: 'Font Size', fieldType: FieldType.number, defaultValue: 16.0),
     PropField(name: 'color', label: 'Text Color', fieldType: FieldType.color, defaultValue: ''),
+    PropField(name: 'softWrap', label: 'Soft Wrap', fieldType: FieldType.boolean, defaultValue: true),
   ],
   childPolicy: ChildAcceptancePolicy.none,
   builder: (WidgetNode node, WidgetRef ref, Widget Function(WidgetNode childNode) renderChild) {
     final props = node.props;
     final double fontSize = (props['fontSize'] as num?)?.toDouble() ?? 16.0;
     final color = ComponentUtil.parseColor(props['color']?.toString());
+    final bool softWrap = props['softWrap'] as bool;
+
     return Text(
       props['text']?.toString() ?? '',
       style: TextStyle(fontSize: fontSize, color: color),
-      softWrap: true,
+      softWrap: softWrap,
       overflow: TextOverflow.visible,
     );
   },
