@@ -12,14 +12,14 @@ final RegisteredComponent elevatedButtonComponentDefinition = RegisteredComponen
     'buttonText': 'Click Me',
     'backgroundColor': '',
     'foregroundColor': '',
-    'elevation': '2.0',
+    'elevation': 2.0,
     'padding': 'symmetric:H16,V8',
   },
   propFields: [
     PropField(name: 'buttonText', label: 'Text', fieldType: FieldType.string, defaultValue: 'Click Me'),
     PropField(name: 'backgroundColor', label: 'Background Color', fieldType: FieldType.color, defaultValue: ''),
     PropField(name: 'foregroundColor', label: 'Foreground Color', fieldType: FieldType.color, defaultValue: ''),
-    PropField(name: 'elevation', label: 'Elevation', fieldType: FieldType.number, defaultValue: '2.0'),
+    PropField(name: 'elevation', label: 'Elevation', fieldType: FieldType.number, defaultValue: 2.0),
     PropField(name: 'padding', label: 'Padding (e.g., all:8)', fieldType: FieldType.edgeInsets, defaultValue: 'symmetric:H16,V8'),
   ],
   childPolicy: ChildAcceptancePolicy.single,
@@ -41,7 +41,7 @@ final RegisteredComponent elevatedButtonComponentDefinition = RegisteredComponen
         ? ComponentUtil.parseColor(foregroundColorHex)
         : null;
 
-    final double? elevation = double.tryParse(props['elevation']?.toString() ?? '');
+    final double? elevation = (props['elevation'] as num?)?.toDouble();
 
     final String? paddingString = props['padding']?.toString();
     final EdgeInsetsGeometry? padding = (paddingString != null && paddingString.isNotEmpty)

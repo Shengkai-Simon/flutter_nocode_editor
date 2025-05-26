@@ -10,16 +10,16 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
   displayName: 'Container',
   icon: Icons.crop_square,
   defaultProps: {
-    'width': '200',
-    'height': '100',
+    'width': 200.0,
+    'height': 100.0,
     'backgroundColor': '',
     'alignment': 'center',
     'padding': 'all:0',
     'margin': 'all:0',
   },
   propFields: [
-    PropField(name: 'width', label: 'Width', fieldType: FieldType.number, defaultValue: '200'),
-    PropField(name: 'height', label: 'Height', fieldType: FieldType.number, defaultValue: '100'),
+    PropField(name: 'width', label: 'Width', fieldType: FieldType.number, defaultValue: 200.0),
+    PropField(name: 'height', label: 'Height', fieldType: FieldType.number, defaultValue: 100.0),
     PropField(name: 'backgroundColor', label: 'Background', fieldType: FieldType.color, defaultValue: ''),
     PropField(
       name: 'alignment',
@@ -45,8 +45,8 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
   builder: (WidgetNode node, WidgetRef ref, Widget Function(WidgetNode childNode) renderChild) {
     final props = node.props;
 
-    final double? width = double.tryParse(props['width']?.toString() ?? '');
-    final double? height = double.tryParse(props['height']?.toString() ?? '');
+    final double? width = (props['width'] as num?)?.toDouble();
+    final double? height = (props['height'] as num?)?.toDouble();
     final bgColor = ComponentUtil.parseColor(props['backgroundColor']?.toString());
     final alignment = ComponentUtil.parseAlignment(props['alignment']?.toString());
     final padding = ComponentUtil.parseEdgeInsets(props['padding']?.toString());

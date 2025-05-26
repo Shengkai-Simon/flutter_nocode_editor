@@ -18,20 +18,25 @@ class RightPanel extends ConsumerWidget {
       return root;
     }
     final newChildren = <WidgetNode>[];
+    bool childRemoved = false;
     for (final child in root.children) {
       if (child.id == targetId) {
-        continue;
+        childRemoved = true;
+        continue; // Skip adding this child
       }
       newChildren.add(_removeNodeById(child, targetId));
     }
-    return root.copyWith(children: newChildren);
+    if (childRemoved || newChildren.length != root.children.length) {
+      return root.copyWith(children: newChildren);
+    }
+    return root;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedId = ref.watch(selectedNodeIdProvider);
     final tree = ref.watch(canvasTreeProvider);
-    final node = _findNodeById(tree, selectedId);
+    final WidgetNode? node = _findNodeById(tree, selectedId);
 
     if (node == null) {
       return const Center(child: Text("Select a widget to edit its properties."));
@@ -55,10 +60,16 @@ class RightPanel extends ConsumerWidget {
                 tooltip: 'Delete',
                 onPressed: () {
                   final currentTree = ref.read(canvasTreeProvider);
+                  if (currentTree.id == node.id) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Cannot delete the root canvas node."))
+                    );
+                    return;
+                  }
                   final newTree = _removeNodeById(currentTree, node.id);
 
                   ref.read(canvasTreeProvider.notifier).state = newTree;
-                  ref.read(selectedNodeIdProvider.notifier).state = null; // De-select after deleting
+                  ref.read(selectedNodeIdProvider.notifier).state = null;
                 },
               ),
           ],
@@ -66,49 +77,54 @@ class RightPanel extends ConsumerWidget {
         const Divider(),
         const SizedBox(height: 16),
         ...rc.propFields.map((field) {
-          final value = node.props[field.name]?.toString() ?? field.defaultValue?.toString() ?? '';
+          final dynamic rawPropValue = node.props[field.name];
+          final dynamic rawDefaultValue = field.defaultValue;
+          String displayValue;
+
+          if (rawPropValue != null) {
+            displayValue = rawPropValue.toString();
+          } else if (rawDefaultValue != null) {
+            displayValue = rawDefaultValue.toString();
+          } else {
+            displayValue = '';
+          }
 
           onChanged(String newVal) {
-            final updatedProps = {...node.props, field.name: newVal};
+            final Map<String, dynamic> updatedProps = {...node.props};
+            dynamic processedValue;
+
+            if (field.fieldType == FieldType.number) {
+              processedValue = double.tryParse(newVal);
+              if (newVal.isEmpty || processedValue == null) {
+                updatedProps.remove(field.name);
+              } else {
+                updatedProps[field.name] = processedValue;
+              }
+            } else {
+              processedValue = newVal;
+              updatedProps[field.name] = processedValue;
+            }
+
             final updatedNode = node.copyWith(props: updatedProps);
             final currentGlobalTree = ref.read(canvasTreeProvider);
-            final newGlobalTree = _replaceNodeInTree(currentGlobalTree, updatedNode); // Assuming _replaceNodeInTree is correct
+            final newGlobalTree = _replaceNodeInTree(currentGlobalTree, updatedNode);
             ref.read(canvasTreeProvider.notifier).state = newGlobalTree;
           }
 
           switch (field.fieldType) {
             case FieldType.string:
-              return TextInputField(label: field.label, value: value, onChanged: onChanged);
+              return TextInputField(label: field.label, value: displayValue, onChanged: onChanged);
             case FieldType.number:
-              return NumberInputField(label: field.label, value: value, onChanged: onChanged);
+              return NumberInputField(label: field.label, value: displayValue, onChanged: onChanged);
             case FieldType.color:
-              return ColorPickerField(label: field.label, value: value, onChanged: onChanged);
+              return ColorPickerField(label: field.label, value: displayValue, onChanged: onChanged);
             case FieldType.select:
-              return DropdownField(
-                label: field.label,
-                value: value,
-                options: field.options ?? [],
-                onChanged: onChanged,
-              );
-            case FieldType.boolean:
-              return SwitchListTile(
-                title: Text(field.label),
-                value: value == 'true',
-                onChanged: (bool checked) => onChanged(checked.toString()),
-              );
             case FieldType.alignment:
-              return DropdownField(
-                label: field.label,
-                value: value,
-                options: field.options ?? [],
-                onChanged: onChanged,
-              );
+              return DropdownField(label: field.label, value: displayValue, options: field.options ?? [], onChanged: onChanged);
+            case FieldType.boolean:
+              return SwitchListTile(title: Text(field.label), value: displayValue == 'true', onChanged: (bool checked) => onChanged(checked.toString()),);
             case FieldType.edgeInsets:
-              return EdgeInsetsField(
-                label: field.label,
-                value: value,
-                onChanged: onChanged,
-              );
+              return EdgeInsetsField(label: field.label, value: displayValue, onChanged: onChanged);
           }
         }),
       ],
