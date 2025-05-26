@@ -1,0 +1,43 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/component_registry.dart';
+import '../../core/widget_node.dart';
+import '../utils/component_util.dart';
+
+final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
+  type: 'Divider',
+  displayName: 'Divider',
+  icon: Icons.horizontal_rule,
+  defaultProps: {
+    'height': 16.0,
+    'thickness': null,
+    'indent': 0.0,
+    'endIndent': 0.0,
+    'color': null,
+  },
+  propFields: [
+    PropField(name: 'height', label: 'Height (Total Space)', fieldType: FieldType.number, defaultValue: 16.0),
+    PropField(name: 'thickness', label: 'Thickness (Line)', fieldType: FieldType.number, defaultValue: null),
+    PropField(name: 'indent', label: 'Indent (Start Space)', fieldType: FieldType.number, defaultValue: 0.0),
+    PropField(name: 'endIndent', label: 'End Indent (End Space)', fieldType: FieldType.number, defaultValue: 0.0),
+    PropField(name: 'color', label: 'Color', fieldType: FieldType.color, defaultValue: null),
+  ],
+  childPolicy: ChildAcceptancePolicy.none,
+  builder: (
+      WidgetNode node,
+      WidgetRef ref,
+      Widget Function(WidgetNode childNode) renderChild,
+      ) {
+    final props = node.props;
+
+    final double? height = (props['height'] as num?)?.toDouble();
+    final double? thickness = (props['thickness'] as num?)?.toDouble();
+    final double? indent = (props['indent'] as num?)?.toDouble();
+    final double? endIndent = (props['endIndent'] as num?)?.toDouble();
+
+    final String? colorString = props['color'] as String?;
+    final Color? color = (colorString != null && colorString.isNotEmpty) ? ComponentUtil.parseColor(colorString) : null;
+
+    return Divider(height: height, thickness: thickness, indent: indent, endIndent: endIndent, color: color);
+  },
+);

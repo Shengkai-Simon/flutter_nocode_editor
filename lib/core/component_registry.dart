@@ -2,11 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_editor/core/widget_node.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../components/definitions/align.dart';
+import '../components/definitions/aspect_ratio.dart';
+import '../components/definitions/card.dart';
+import '../components/definitions/center.dart';
 import '../components/definitions/column.dart';
 import '../components/definitions/container.dart';
+import '../components/definitions/driver.dart';
 import '../components/definitions/elevated_button.dart';
+import '../components/definitions/icon.dart';
+import '../components/definitions/image.dart';
 import '../components/definitions/padding.dart';
 import '../components/definitions/row.dart';
+import '../components/definitions/spacer.dart';
+import '../components/definitions/stack.dart';
 import '../components/definitions/text.dart';
 
 /// support for field types in editor's right-side properties panel
@@ -67,6 +76,15 @@ final Map<String, RegisteredComponent> registeredComponents = {
   rowComponentDefinition.type: rowComponentDefinition,
   paddingComponentDefinition.type: paddingComponentDefinition,
   elevatedButtonComponentDefinition.type: elevatedButtonComponentDefinition,
+  centerComponentDefinition.type: centerComponentDefinition,
+  iconComponentDefinition.type: iconComponentDefinition,
+  imageComponentDefinition.type: imageComponentDefinition,
+  stackComponentDefinition.type: stackComponentDefinition,
+  dividerComponentDefinition.type: dividerComponentDefinition,
+  cardComponentDefinition.type: cardComponentDefinition,
+  alignComponentDefinition.type: alignComponentDefinition,
+  spacerComponentDefinition.type: spacerComponentDefinition,
+  aspectRatioComponentDefinition.type: aspectRatioComponentDefinition,
 };
 
 
