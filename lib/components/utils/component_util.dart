@@ -144,25 +144,31 @@ class ComponentUtil {
     }
   }
 
-  /// hex color → Flutter Color
+  /// Converts a hex color string to a Flutter Color. Returns a default color if parsing fails or input is empty/null.
   static Color parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return Colors.black;
+    const Color defaultColor = Colors.black;
+
+    if (hex == null || hex.isEmpty) {
+      return defaultColor;
+    }
+
     final cleanHex = hex.replaceFirst('#', '');
+
     try {
       if (cleanHex.length == 6) {
         return Color(int.parse('FF$cleanHex', radix: 16));
       } else if (cleanHex.length == 8) {
         return Color(int.parse(cleanHex, radix: 16));
       } else {
-        print('Warning: Invalid hex color string length for "$hex" (cleaned: "$cleanHex"). Must be 6 or 8 characters after #. Falling back to Colors.black.');
-        return Colors.black;
+        print('Warning: Invalid hex color string length for "$hex" (cleaned: "$cleanHex"). Using default.');
+        return defaultColor;
       }
     } on FormatException catch (e) {
-      print('Warning: Malformed hex color string "$hex" (cleaned: "$cleanHex"): $e. Falling back to Colors.black.');
-      return Colors.black;
+      print('Warning: Malformed hex color string "$hex" (cleaned: "$cleanHex"): $e. Using default.');
+      return defaultColor;
     } catch (e) {
-      print('Error parsing hex color string "$hex": $e. Falling back to Colors.black.');
-      return Colors.black;
+      print('Error parsing hex color string "$hex": $e. Using default.');
+      return defaultColor;
     }
   }
 }
