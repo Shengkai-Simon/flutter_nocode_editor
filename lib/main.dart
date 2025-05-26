@@ -7,7 +7,11 @@ import 'layout/left_panel.dart';
 import 'layout/right_panel.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

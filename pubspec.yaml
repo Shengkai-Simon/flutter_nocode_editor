@@ -37,6 +37,8 @@ dependencies:
   flutter_riverpod: ^2.6.1
   uuid: ^4.5.1
   flutter_colorpicker: ^1.1.0
+  web: ^1.1.1
+  js_interop: any
 
 dev_dependencies:
   flutter_test:
