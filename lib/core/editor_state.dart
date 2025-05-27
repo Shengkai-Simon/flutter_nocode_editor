@@ -4,6 +4,14 @@ import 'package:uuid/uuid.dart';
 
 final uuid = Uuid();
 
+enum LeftPanelMode {
+  addWidgets,
+  widgetTree,
+  pages,
+}
+
+final leftPanelModeProvider = StateProvider<LeftPanelMode>((ref) => LeftPanelMode.addWidgets);
+
 final canvasTreeProvider = StateProvider<WidgetNode>((ref) {
   return WidgetNode(
     id: uuid.v4(),

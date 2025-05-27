@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_editor/layout/widget_tree_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -9,8 +10,7 @@ import '../core/widget_node.dart';
 class LeftPanel extends ConsumerWidget {
   const LeftPanel({super.key});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget _buildAddComponentSection(BuildContext context, WidgetRef ref) {
     final uuid = const Uuid();
     final componentList = registeredComponents.values.toList();
 
@@ -19,7 +19,7 @@ class LeftPanel extends ConsumerWidget {
       if (newComponentRc == null) return;
 
       final newNode = WidgetNode(
-        id: uuid.v4(), // Ensure uuid is initialized, e.g., final uuid = Uuid(); at class or file level
+        id: uuid.v4(),
         type: newComponentRc.type,
         props: Map<String, dynamic>.from(newComponentRc.defaultProps),
         children: [],
@@ -151,6 +151,70 @@ class LeftPanel extends ConsumerWidget {
               );
             }).toList(),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWidgetTreeViewSection(BuildContext context, WidgetRef ref) {
+    return const WidgetTreeView();
+  }
+
+  Widget _buildPagesViewSection(BuildContext context, WidgetRef ref) {
+    return const Center(child: Text("Page Management (Coming Soon!)"));
+  }
+
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentMode = ref.watch(leftPanelModeProvider);
+    final modeNotifier = ref.read(leftPanelModeProvider.notifier);
+
+    return Row(
+      children: [
+        Container(
+          width: 56,
+          color: Theme.of(context).colorScheme.surfaceContainerLowest,
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Column(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.add_box_outlined),
+                tooltip: 'Add Widgets',
+                isSelected: currentMode == LeftPanelMode.addWidgets,
+                selectedIcon: const Icon(Icons.add_box),
+                onPressed: () => modeNotifier.state = LeftPanelMode.addWidgets,
+                color: currentMode == LeftPanelMode.addWidgets ? Theme.of(context).colorScheme.primary : null,
+              ),
+              const SizedBox(height: 8),
+              IconButton(
+                icon: const Icon(Icons.account_tree_outlined),
+                tooltip: 'Widget Tree',
+                isSelected: currentMode == LeftPanelMode.widgetTree,
+                selectedIcon: const Icon(Icons.account_tree),
+                onPressed: () => modeNotifier.state = LeftPanelMode.widgetTree,
+                color: currentMode == LeftPanelMode.widgetTree ? Theme.of(context).colorScheme.primary : null,
+              ),
+              const SizedBox(height: 8),
+              IconButton(
+                icon: const Icon(Icons.layers_outlined),
+                tooltip: 'Pages',
+                isSelected: currentMode == LeftPanelMode.pages,
+                selectedIcon: const Icon(Icons.layers),
+                onPressed: () => modeNotifier.state = LeftPanelMode.pages,
+                color: currentMode == LeftPanelMode.pages ? Theme.of(context).colorScheme.primary : null,
+              ),
+            ],
+          ),
+        ),
+        const VerticalDivider(width: 1, thickness: 1),
+        // Content Area
+        Expanded(
+          child: switch (currentMode) {
+            LeftPanelMode.addWidgets => _buildAddComponentSection(context, ref),
+            LeftPanelMode.widgetTree => _buildWidgetTreeViewSection(context, ref),
+            LeftPanelMode.pages      => _buildPagesViewSection(context, ref),
+          },
         ),
       ],
     );
