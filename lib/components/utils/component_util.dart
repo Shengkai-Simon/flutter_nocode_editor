@@ -2,6 +2,76 @@ import 'package:flutter/material.dart';
 
 class ComponentUtil {
 
+  /// Parses a string into a FontWeight enum value.
+  static FontWeight parseFontWeight(String? weight) {
+    switch (weight?.toLowerCase()) {
+      case 'bold':
+        return FontWeight.bold;
+      case 'normal':
+        return FontWeight.normal;
+      case 'w100':
+        return FontWeight.w100;
+      case 'w200':
+        return FontWeight.w200;
+      case 'w300':
+        return FontWeight.w300;
+      case 'w400': // normal
+        return FontWeight.w400;
+      case 'w500':
+        return FontWeight.w500;
+      case 'w600':
+        return FontWeight.w600;
+      case 'w700': // bold
+        return FontWeight.w700;
+      case 'w800':
+        return FontWeight.w800;
+      case 'w900':
+        return FontWeight.w900;
+      default:
+        return FontWeight.normal;
+    }
+  }
+
+  /// Parses a string into a FontStyle enum value.
+  static FontStyle parseFontStyle(String? style) {
+    switch (style?.toLowerCase()) {
+      case 'italic':
+        return FontStyle.italic;
+      case 'normal':
+        return FontStyle.normal;
+      default:
+        return FontStyle.normal;
+    }
+  }
+
+  /// Parses a string into a TextOverflow enum value.
+  static TextOverflow parseTextOverflow(String? overflow) {
+    switch (overflow?.toLowerCase()) {
+      case 'clip':
+        return TextOverflow.clip;
+      case 'fade':
+        return TextOverflow.fade;
+      case 'ellipsis':
+        return TextOverflow.ellipsis;
+      case 'visible':
+        return TextOverflow.visible;
+      default:
+        return TextOverflow.clip; // Default for Text widget if not specified and constrained
+    }
+  }
+
+  static TextAlign parseTextAlign(String? align) {
+    switch (align) {
+      case 'left': return TextAlign.left;
+      case 'right': return TextAlign.right;
+      case 'center': return TextAlign.center;
+      case 'justify': return TextAlign.justify;
+      case 'start': return TextAlign.start;
+      case 'end': return TextAlign.end;
+      default: return TextAlign.start;
+    }
+  }
+
   static EdgeInsetsGeometry parseEdgeInsets(String? value) {
     if (value == null || value.isEmpty) return EdgeInsets.zero;
     String normalizedValue = value.toLowerCase().replaceAll(' ', '');
