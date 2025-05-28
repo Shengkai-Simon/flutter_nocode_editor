@@ -25,8 +25,15 @@ final RegisteredComponent cardComponentDefinition = RegisteredComponent(
     ...MarginProps.fields,
 
     PropField(name: 'shadowColor', label: 'Shadow Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor),
-    PropField(name: 'elevation', label: 'Elevation', fieldType: FieldType.number, defaultValue: 1.0, editorBuilder: kDefaultNumberInputEditor),
     PropField(name: 'borderRadius', label: 'Border Radius', fieldType: FieldType.number, defaultValue: 4.0, editorBuilder: kDefaultNumberInputEditor),
+    PropField(
+      name: 'elevation',
+      label: 'Elevation',
+      fieldType: FieldType.number,
+      defaultValue: 1.0,
+      editorBuilder: kSliderNumberInputEditor,
+      editorConfig: {'minValue': 0.0, 'maxValue': 24.0, 'divisions': 24, 'decimalPlaces': 1},
+    ),
   ],
   childPolicy: ChildAcceptancePolicy.single,
   builder: (

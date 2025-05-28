@@ -29,6 +29,7 @@ class PropField {
   final dynamic defaultValue;
   final List<Map<String, String>>? options;
   final PropertyEditorBuilder? editorBuilder;
+  final Map<String, dynamic>? editorConfig;
 
   const PropField({
     required this.name,
@@ -37,6 +38,7 @@ class PropField {
     this.defaultValue,
     this.options,
     required this.editorBuilder,
+    this.editorConfig,
   });
 }
 

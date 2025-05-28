@@ -48,11 +48,38 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
     PropField(name: 'borderColor', label: 'Border Color', fieldType: FieldType.color, defaultValue: '#000000', editorBuilder: kDefaultColorPickerEditor),
 
     PropField(name: 'shadowColor', label: 'Shadow Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor),
-    PropField(name: 'shadowOffsetX', label: 'Shadow Offset X', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor),
-    PropField(name: 'shadowOffsetY', label: 'Shadow Offset Y', fieldType: FieldType.number, defaultValue: 2.0, editorBuilder: kDefaultNumberInputEditor),
-    PropField(name: 'shadowBlurRadius', label: 'Shadow Blur Radius', fieldType: FieldType.number, defaultValue: 4.0, editorBuilder: kDefaultNumberInputEditor),
-    PropField(name: 'shadowSpreadRadius', label: 'Shadow Spread Radius', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor),
-
+    PropField(
+      name: 'shadowOffsetX',
+      label: 'Shadow Offset X',
+      fieldType: FieldType.number,
+      defaultValue: 0.0,
+      editorBuilder: kSliderNumberInputEditor,
+      editorConfig: {'minValue': -20.0, 'maxValue': 20.0, 'divisions': 40, 'decimalPlaces': 1},
+    ),
+    PropField(
+      name: 'shadowOffsetY',
+      label: 'Shadow Offset Y',
+      fieldType: FieldType.number,
+      defaultValue: 2.0,
+      editorBuilder: kSliderNumberInputEditor,
+      editorConfig: {'minValue': -20.0, 'maxValue': 20.0, 'divisions': 40, 'decimalPlaces': 1},
+    ),
+    PropField(
+      name: 'shadowBlurRadius',
+      label: 'Shadow Blur Radius',
+      fieldType: FieldType.number,
+      defaultValue: 4.0,
+      editorBuilder: kSliderNumberInputEditor,
+      editorConfig: {'minValue': 0.0, 'maxValue': 50.0, 'divisions': 50, 'decimalPlaces': 1},
+    ),
+    PropField(
+      name: 'shadowSpreadRadius',
+      label: 'Shadow Spread Radius',
+      fieldType: FieldType.number,
+      defaultValue: 0.0,
+      editorBuilder: kSliderNumberInputEditor,
+      editorConfig: {'minValue': -10.0, 'maxValue': 20.0, 'divisions': 30, 'decimalPlaces': 1},
+    ),
     PropField(
       name: 'gradientType',
       label: 'Gradient Type',

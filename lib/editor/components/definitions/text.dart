@@ -28,7 +28,14 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
     ...BasicTextStyleProps.fields,
 
     PropField(name: 'softWrap', label: 'Soft Wrap', fieldType: FieldType.boolean, defaultValue: true, editorBuilder: kDefaultSwitchEditor),
-    PropField(name: 'maxLines', label: 'Max Lines', fieldType: FieldType.number, defaultValue: null, editorBuilder: kPositiveNumberInputEditor),
+    PropField(
+      name: 'maxLines',
+      label: 'Max Lines',
+      fieldType: FieldType.number,
+      defaultValue: null,
+      editorBuilder: kIntegerStepperEditor,
+      editorConfig: {'minValue': 1, 'step': 1},
+    ),
     PropField(
       name: 'overflow',
       label: 'Overflow',

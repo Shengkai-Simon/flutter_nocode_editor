@@ -43,7 +43,8 @@ final RegisteredComponent iconComponentDefinition = RegisteredComponent(
       label: 'Size',
       fieldType: FieldType.number,
       defaultValue: 24.0,
-      editorBuilder: kDefaultNumberInputEditor,
+      editorBuilder: kSliderNumberInputEditor,
+      editorConfig: {'minValue': 8.0, 'maxValue': 128.0, 'divisions': 120, 'decimalPlaces': 0},
     ),
     PropField(
       name: 'color',

@@ -68,7 +68,7 @@ class ChildAlignmentProps {
         {'id': 'bottomCenter', 'name': 'Bottom Center'},
         {'id': 'bottomRight', 'name': 'Bottom Right'},
       ],
-      editorBuilder: kDefaultDropdownEditor,
+      editorBuilder: kAlignmentPickerEditor,
     ),
   ];
 
@@ -96,7 +96,8 @@ class FlexChildProps {
       label: 'Flex Factor',
       fieldType: FieldType.number,
       defaultValue: 1,
-      editorBuilder: kDefaultNumberInputEditor,
+      editorBuilder: kIntegerStepperEditor,
+      editorConfig: {'minValue': 1, 'step': 1},
     ),
     PropField(
       name: 'fit',
@@ -184,7 +185,8 @@ class BasicTextStyleProps {
       label: 'Font Size',
       fieldType: FieldType.number,
       defaultValue: 16.0,
-      editorBuilder: kDefaultNumberInputEditor,
+      editorBuilder: kSliderNumberInputEditor,
+      editorConfig: {'minValue': 6.0, 'maxValue': 96.0, 'divisions': 90, 'decimalPlaces': 0},
     ),
     PropField(
       name: 'textColor',
