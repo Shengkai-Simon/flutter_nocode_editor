@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
+import '../../core/property_editor_builders.dart';
 import '../../core/widget_node.dart';
 
 final RegisteredComponent spacerComponentDefinition = RegisteredComponent(
@@ -16,6 +17,7 @@ final RegisteredComponent spacerComponentDefinition = RegisteredComponent(
       label: 'Flex Factor',
       fieldType: FieldType.number,
       defaultValue: 1,
+      editorBuilder: kPositiveNumberInputEditor,
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

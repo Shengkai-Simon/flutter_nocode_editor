@@ -79,26 +79,14 @@ class RightPanel extends ConsumerWidget {
         const SizedBox(height: 16),
         ...rc.propFields.map((field) {
           final dynamic rawPropValue = node.props[field.name];
-          final dynamic rawDefaultValue = field.defaultValue;
+          final dynamic currentValueForEditor = rawPropValue ?? field.defaultValue;
 
           onChanged(dynamic newValueFromField) {
-            final Map<String, dynamic> updatedProps = {...node.props};
-            dynamic processedValue;
-
-            if (field.fieldType == FieldType.number) {
-              String newValStr = newValueFromField as String;
-              processedValue = double.tryParse(newValStr);
-              if (newValStr.isEmpty || processedValue == null) {
-                updatedProps.remove(field.name);
-              } else {
-                updatedProps[field.name] = processedValue;
-              }
-            } else if (field.fieldType == FieldType.boolean) {
-              processedValue = newValueFromField as bool;
-              updatedProps[field.name] = processedValue;
-            }
-            else {
-              processedValue = newValueFromField as String;
+            final Map<String, dynamic> updatedProps = Map<String, dynamic>.from(node.props);
+            dynamic processedValue = newValueFromField;
+            if (newValueFromField == null && field.defaultValue == null) {
+              updatedProps.remove(field.name);
+            } else {
               updatedProps[field.name] = processedValue;
             }
 
@@ -108,36 +96,19 @@ class RightPanel extends ConsumerWidget {
             ref.read(canvasTreeProvider.notifier).state = newGlobalTree;
           }
 
-          switch (field.fieldType) {
-            case FieldType.string:
-              String displayStr = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
-              return TextInputField(label: field.label, value: displayStr, onChanged: onChanged);
-            case FieldType.number:
-              String displayNumStr = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
-              return NumberInputField(label: field.label, value: displayNumStr, onChanged: onChanged);
-            case FieldType.color:
-              String displayColorStr = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
-              return ColorPickerField(label: field.label, value: displayColorStr, onChanged: onChanged);
-            case FieldType.select:
-              String currentId = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
-              if (field.options != null && field.options!.isNotEmpty && !field.options!.any((opt) => opt['id'] == currentId)) {
-                currentId = field.options!.first['id'] ?? '';
-              }
-              return DropdownField(label: field.label, value: currentId, options: field.options ?? [], onChanged: onChanged,);
-            case FieldType.boolean:
-              bool currentValue = false;
-              if (rawPropValue is bool) {
-                currentValue = rawPropValue;
-              } else if (rawDefaultValue is bool) {
-                currentValue = rawDefaultValue;
-              }
-              return SwitchField(label: field.label, value: currentValue, onChanged: onChanged);
-            case FieldType.alignment:
-              String displayStr = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
-              return DropdownField(label: field.label, value: displayStr, options: field.options ?? [], onChanged: onChanged);
-            case FieldType.edgeInsets:
-              String displayStr = rawPropValue?.toString() ?? rawDefaultValue?.toString() ?? '';
-              return EdgeInsetsField(label: field.label, value: displayStr, onChanged: onChanged);
+          if (field.editorBuilder != null) {
+            return field.editorBuilder!(
+              context,
+              field,
+              currentValueForEditor,
+              onChanged,
+            );
+          } else {
+            print("Warning: No editorBuilder defined for property '${field.name}' of type '${field.fieldType}' in component '${rc.displayName}'.");
+            return ListTile(
+              title: Text(field.label),
+              subtitle: Text(currentValueForEditor?.toString() ?? 'N/A (No editor)'),
+            );
           }
         }),
       ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
+import '../../core/property_editor_builders.dart';
 import '../../core/widget_node.dart';
 import '../utils/component_util.dart';
 import '../../core/common_component_props.dart';
@@ -22,12 +23,14 @@ final RegisteredComponent alignComponentDefinition = RegisteredComponent(
       label: 'Width Factor',
       fieldType: FieldType.number,
       defaultValue: null,
+      editorBuilder: kDefaultNumberInputEditor,
     ),
     PropField(
       name: 'heightFactor',
       label: 'Height Factor',
       fieldType: FieldType.number,
       defaultValue: null,
+      editorBuilder: kDefaultNumberInputEditor,
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

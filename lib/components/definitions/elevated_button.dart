@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/property_editor_builders.dart';
 import '../utils/component_util.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
@@ -19,30 +20,10 @@ final RegisteredComponent elevatedButtonComponentDefinition = RegisteredComponen
     'padding': 'symmetric:H16,V8',
   },
   propFields: [
-    PropField(
-      name: 'buttonText',
-      label: 'Text',
-      fieldType: FieldType.string,
-      defaultValue: 'Click Me',
-    ),
-    PropField(
-      name: 'backgroundColor',
-      label: 'Background Color',
-      fieldType: FieldType.color,
-      defaultValue: null,
-    ),
-    PropField(
-      name: 'foregroundColor',
-      label: 'Foreground Color (Text/Icon)',
-      fieldType: FieldType.color,
-      defaultValue: null,
-    ),
-    PropField(
-      name: 'elevation',
-      label: 'Elevation',
-      fieldType: FieldType.number,
-      defaultValue: 2.0,
-    ),
+    PropField(name: 'buttonText', label: 'Text', fieldType: FieldType.string, defaultValue: 'Click Me', editorBuilder: kDefaultTextInputEditor,),
+    PropField(name: 'backgroundColor', label: 'Background Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor,),
+    PropField(name: 'foregroundColor', label: 'Foreground Color (Text/Icon)', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor,),
+    PropField(name: 'elevation', label: 'Elevation', fieldType: FieldType.number, defaultValue: 2.0, editorBuilder: kDefaultNumberInputEditor,),
     ...PaddingProps.fields,
   ],
   childPolicy: ChildAcceptancePolicy.single,

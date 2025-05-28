@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
+import '../../core/property_editor_builders.dart';
 import '../../core/widget_node.dart';
 import '../utils/component_util.dart';
 
@@ -34,18 +35,21 @@ final RegisteredComponent iconComponentDefinition = RegisteredComponent(
       fieldType: FieldType.select,
       defaultValue: 'Favorite',
       options: _availableIcons.keys.map((name) => {'id': name, 'name': name}).toList(),
+      editorBuilder: kDefaultDropdownEditor,
     ),
     PropField(
       name: 'size',
       label: 'Size',
       fieldType: FieldType.number,
       defaultValue: 24.0,
+      editorBuilder: kDefaultNumberInputEditor,
     ),
     PropField(
       name: 'color',
       label: 'Color',
       fieldType: FieldType.color,
       defaultValue: '#000000',
+      editorBuilder: kDefaultColorPickerEditor,
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

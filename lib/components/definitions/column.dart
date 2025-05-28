@@ -31,7 +31,6 @@ final RegisteredComponent columnComponentDefinition = RegisteredComponent(
       ) {
     final props = node.props;
 
-    // Read common props
     final double? width = (props['width'] as num?)?.toDouble();
     final double? height = (props['height'] as num?)?.toDouble();
     final MainAxisAlignment mainAxisAlignment = ComponentUtil.parseMainAxisAlignment(props['mainAxisAlignment']?.toString());

@@ -28,6 +28,14 @@ enum ChildAcceptancePolicy {
   multiple, // Can have multiple children
 }
 
+typedef PropertyEditorBuilder = Widget Function(
+    BuildContext context,
+    PropField field,
+    dynamic currentValue,
+    void Function(dynamic newValue) onChanged,
+    );
+
+
 /// Support displaying component field a property
 class PropField {
   final String name;
@@ -35,6 +43,7 @@ class PropField {
   final FieldType fieldType;
   final dynamic defaultValue;
   final List<Map<String, String>>? options;
+  final PropertyEditorBuilder? editorBuilder;
 
   const PropField({
     required this.name,
@@ -42,6 +51,7 @@ class PropField {
     required this.fieldType,
     this.defaultValue,
     this.options,
+    required this.editorBuilder,
   });
 }
 

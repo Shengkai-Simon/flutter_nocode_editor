@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_editor/core/property_editor_builders.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
 import '../../core/widget_node.dart';
@@ -34,7 +35,7 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
     'alignment': 'center',
   },
   propFields: [
-    PropField(name: 'src', label: 'Source (URL or Asset Path)', fieldType: FieldType.string, defaultValue: 'https://picsum.photos/seed/flutter_editor/200/300'),
+    PropField(name: 'src', label: 'Source (URL or Asset Path)', fieldType: FieldType.string, defaultValue: 'https://picsum.photos/seed/flutter_editor/200/300', editorBuilder: kDefaultTextInputEditor),
     PropField(
       name: 'imageType',
       label: 'Image Type',
@@ -44,22 +45,27 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
         {'id': 'network', 'name': 'Network URL'},
         {'id': 'asset', 'name': 'Asset Path (requires setup)'},
       ],
+      editorBuilder: kDefaultDropdownEditor,
     ),
 
     ...SizingProps.fields,
     ...ChildAlignmentProps.fields,
 
     PropField(
-      name: 'fit',
-      label: 'Box Fit',
-      fieldType: FieldType.select,
-      defaultValue: 'contain',
-      options: [
-        {'id': 'fill', 'name': 'Fill'}, {'id': 'contain', 'name': 'Contain'},
-        {'id': 'cover', 'name': 'Cover'}, {'id': 'fitWidth', 'name': 'Fit Width'},
-        {'id': 'fitHeight', 'name': 'Fit Height'}, {'id': 'none', 'name': 'None'},
-        {'id': 'scaleDown', 'name': 'Scale Down'},
-      ],
+        name: 'fit',
+        label: 'Box Fit',
+        fieldType: FieldType.select,
+        defaultValue: 'contain',
+        options: [
+          {'id': 'fill', 'name': 'Fill'},
+          {'id': 'contain', 'name': 'Contain'},
+          {'id': 'cover', 'name': 'Cover'},
+          {'id': 'fitWidth', 'name': 'Fit Width'},
+          {'id': 'fitHeight', 'name': 'Fit Height'},
+          {'id': 'none', 'name': 'None'},
+          {'id': 'scaleDown', 'name': 'Scale Down'},
+        ],
+        editorBuilder: kDefaultDropdownEditor
     ),
     PropField(
       name: 'repeat',
@@ -67,11 +73,14 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
       fieldType: FieldType.select,
       defaultValue: 'noRepeat',
       options: [
-        {'id': 'repeat', 'name': 'Repeat'}, {'id': 'repeatX', 'name': 'Repeat X'},
-        {'id': 'repeatY', 'name': 'Repeat Y'}, {'id': 'noRepeat', 'name': 'No Repeat'},
+        {'id': 'repeat', 'name': 'Repeat'},
+        {'id': 'repeatX', 'name': 'Repeat X'},
+        {'id': 'repeatY', 'name': 'Repeat Y'},
+        {'id': 'noRepeat', 'name': 'No Repeat'},
       ],
+      editorBuilder: kDefaultDropdownEditor,
     ),
-    PropField(name: 'semanticLabel', label: 'Semantic Label', fieldType: FieldType.string, defaultValue: ''),
+    PropField(name: 'semanticLabel', label: 'Semantic Label', fieldType: FieldType.string, defaultValue: '', editorBuilder: kDefaultTextInputEditor),
   ],
   childPolicy: ChildAcceptancePolicy.none,
   builder: (
@@ -90,7 +99,7 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
     final AlignmentGeometry alignment = ComponentUtil.parseAlignment(props['alignment'] as String?);
 
     final BoxFit fit = _parseBoxFit(props['fit'] as String?);
-    final ImageRepeat repeat = ComponentUtil.parseImageRepeat(props['repeat'] as String?); // ADDED
+    final ImageRepeat repeat = ComponentUtil.parseImageRepeat(props['repeat'] as String?);
     final String? semanticLabel = props['semanticLabel'] as String?;
 
     if (src.isEmpty) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/component_registry.dart';
+import '../../core/property_editor_builders.dart';
 import '../../core/widget_node.dart';
 import '../utils/component_util.dart';
 import '../../core/common_component_props.dart';
@@ -42,29 +43,36 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
     ...ChildAlignmentProps.fields,
     ...BackgroundColorProp.fields,
 
-    PropField(name: 'borderRadius', label: 'Border Radius', fieldType: FieldType.number, defaultValue: 0.0),
-    PropField(name: 'borderWidth', label: 'Border Width', fieldType: FieldType.number, defaultValue: 0.0),
-    PropField(name: 'borderColor', label: 'Border Color', fieldType: FieldType.color, defaultValue: '#000000'),
+    PropField(name: 'borderRadius', label: 'Border Radius', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor),
+    PropField(name: 'borderWidth', label: 'Border Width', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor),
+    PropField(name: 'borderColor', label: 'Border Color', fieldType: FieldType.color, defaultValue: '#000000', editorBuilder: kDefaultColorPickerEditor),
 
-    PropField(name: 'shadowColor', label: 'Shadow Color', fieldType: FieldType.color, defaultValue: null),
-    PropField(name: 'shadowOffsetX', label: 'Shadow Offset X', fieldType: FieldType.number, defaultValue: 0.0),
-    PropField(name: 'shadowOffsetY', label: 'Shadow Offset Y', fieldType: FieldType.number, defaultValue: 2.0),
-    PropField(name: 'shadowBlurRadius', label: 'Shadow Blur Radius', fieldType: FieldType.number, defaultValue: 4.0),
-    PropField(name: 'shadowSpreadRadius', label: 'Shadow Spread Radius', fieldType: FieldType.number, defaultValue: 0.0),
+    PropField(name: 'shadowColor', label: 'Shadow Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor),
+    PropField(name: 'shadowOffsetX', label: 'Shadow Offset X', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor),
+    PropField(name: 'shadowOffsetY', label: 'Shadow Offset Y', fieldType: FieldType.number, defaultValue: 2.0, editorBuilder: kDefaultNumberInputEditor),
+    PropField(name: 'shadowBlurRadius', label: 'Shadow Blur Radius', fieldType: FieldType.number, defaultValue: 4.0, editorBuilder: kDefaultNumberInputEditor),
+    PropField(name: 'shadowSpreadRadius', label: 'Shadow Spread Radius', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor),
 
     PropField(
-      name: 'gradientType', label: 'Gradient Type', fieldType: FieldType.select, defaultValue: 'none',
-      options: [ {'id': 'none', 'name': 'None'}, {'id': 'linear', 'name': 'Linear'}, ],
+      name: 'gradientType',
+      label: 'Gradient Type',
+      fieldType: FieldType.select,
+      defaultValue: 'none',
+      options: [
+        {'id': 'none', 'name': 'None'},
+        {'id': 'linear', 'name': 'Linear'},
+      ],
+      editorBuilder: kDefaultDropdownEditor,
     ),
-    PropField(name: 'gradientColor1', label: 'Gradient Color 1', fieldType: FieldType.color, defaultValue: '#FFFFFFFF'),
-    PropField(name: 'gradientColor2', label: 'Gradient Color 2', fieldType: FieldType.color, defaultValue: '#FF000000'),
+    PropField(name: 'gradientColor1', label: 'Gradient Color 1', fieldType: FieldType.color, defaultValue: '#FFFFFFFF', editorBuilder: kDefaultColorPickerEditor),
+    PropField(name: 'gradientColor2', label: 'Gradient Color 2', fieldType: FieldType.color, defaultValue: '#FF000000', editorBuilder: kDefaultColorPickerEditor),
     PropField(
         name: 'gradientBeginAlignment', label: 'Gradient Begin Align', fieldType: FieldType.select, defaultValue: 'topLeft',
-        options: ChildAlignmentProps.fields.first.options
+        options: ChildAlignmentProps.fields.first.options, editorBuilder: kDefaultDropdownEditor
     ),
     PropField(
         name: 'gradientEndAlignment', label: 'Gradient End Align', fieldType: FieldType.select, defaultValue: 'bottomRight',
-        options: ChildAlignmentProps.fields.first.options
+        options: ChildAlignmentProps.fields.first.options, editorBuilder: kDefaultDropdownEditor
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

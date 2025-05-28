@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
+import '../../core/property_editor_builders.dart';
 import '../../core/widget_node.dart';
 import '../utils/component_util.dart';
 import '../../core/common_component_props.dart';
@@ -48,6 +49,7 @@ final RegisteredComponent stackComponentDefinition = RegisteredComponent(
         {'id': 'expand', 'name': 'Expand (children expand to fit stack)'},
         {'id': 'passthrough', 'name': 'Passthrough (constraints pass through)'},
       ],
+      editorBuilder: kDefaultDropdownEditor,
     ),
     PropField(
       name: 'clipBehavior',
@@ -60,6 +62,7 @@ final RegisteredComponent stackComponentDefinition = RegisteredComponent(
         {'id': 'antiAliasWithSaveLayer', 'name': 'Anti Alias With SaveLayer'},
         {'id': 'none', 'name': 'None'},
       ],
+      editorBuilder: kDefaultDropdownEditor,
     ),
   ],
   childPolicy: ChildAcceptancePolicy.multiple,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/component_registry.dart';
+import '../../core/property_editor_builders.dart';
 import '../../core/widget_node.dart';
 import '../utils/component_util.dart';
 import '../../core/common_component_props.dart';
@@ -18,12 +19,16 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
     'overflow': 'clip',
   },
   propFields: [
-    PropField(name: 'text', label: 'Text Content', fieldType: FieldType.string, defaultValue: 'Hello World'),
+    PropField(name: 'text',
+        label: 'Text Content',
+        fieldType: FieldType.string,
+        defaultValue: 'Hello World',
+        editorBuilder: kDefaultTextInputEditor),
 
     ...BasicTextStyleProps.fields,
 
-    PropField(name: 'softWrap', label: 'Soft Wrap', fieldType: FieldType.boolean, defaultValue: true),
-    PropField(name: 'maxLines', label: 'Max Lines', fieldType: FieldType.number, defaultValue: null),
+    PropField(name: 'softWrap', label: 'Soft Wrap', fieldType: FieldType.boolean, defaultValue: true, editorBuilder: kDefaultSwitchEditor),
+    PropField(name: 'maxLines', label: 'Max Lines', fieldType: FieldType.number, defaultValue: null, editorBuilder: kPositiveNumberInputEditor),
     PropField(
       name: 'overflow',
       label: 'Overflow',
@@ -35,6 +40,7 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
         {'id': 'fade', 'name': 'Fade'},
         {'id': 'visible', 'name': 'Visible (can overflow bounds)'},
       ],
+      editorBuilder: kDefaultDropdownEditor,
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

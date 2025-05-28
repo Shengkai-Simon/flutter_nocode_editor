@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
+import '../../core/property_editor_builders.dart';
 import '../../core/widget_node.dart';
 import '../utils/component_util.dart';
-import '../../core/common_component_props.dart'; // Import common props
+import '../../core/common_component_props.dart';
 
 final RegisteredComponent cardComponentDefinition = RegisteredComponent(
   type: 'Card',
   displayName: 'Card',
   icon: Icons.credit_card_outlined,
   defaultProps: {
-    // Common props
     ...BackgroundColorProp.defaults,
     ...MarginProps.defaults,
 
@@ -23,9 +23,9 @@ final RegisteredComponent cardComponentDefinition = RegisteredComponent(
     ...BackgroundColorProp.fields,
     ...MarginProps.fields,
 
-    PropField(name: 'shadowColor', label: 'Shadow Color', fieldType: FieldType.color, defaultValue: null),
-    PropField(name: 'elevation', label: 'Elevation', fieldType: FieldType.number, defaultValue: 1.0),
-    PropField(name: 'borderRadius', label: 'Border Radius', fieldType: FieldType.number, defaultValue: 4.0),
+    PropField(name: 'shadowColor', label: 'Shadow Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor),
+    PropField(name: 'elevation', label: 'Elevation', fieldType: FieldType.number, defaultValue: 1.0, editorBuilder: kDefaultNumberInputEditor),
+    PropField(name: 'borderRadius', label: 'Border Radius', fieldType: FieldType.number, defaultValue: 4.0, editorBuilder: kDefaultNumberInputEditor),
   ],
   childPolicy: ChildAcceptancePolicy.single,
   builder: (

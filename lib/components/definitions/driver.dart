@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
+import '../../core/property_editor_builders.dart';
 import '../../core/widget_node.dart';
 import '../utils/component_util.dart';
 
@@ -16,11 +17,11 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
     'color': null,
   },
   propFields: [
-    PropField(name: 'height', label: 'Height (Total Space)', fieldType: FieldType.number, defaultValue: 16.0),
-    PropField(name: 'thickness', label: 'Thickness (Line)', fieldType: FieldType.number, defaultValue: null),
-    PropField(name: 'indent', label: 'Indent (Start Space)', fieldType: FieldType.number, defaultValue: 0.0),
-    PropField(name: 'endIndent', label: 'End Indent (End Space)', fieldType: FieldType.number, defaultValue: 0.0),
-    PropField(name: 'color', label: 'Color', fieldType: FieldType.color, defaultValue: null),
+    PropField(name: 'height', label: 'Height (Total Space)', fieldType: FieldType.number, defaultValue: 16.0, editorBuilder: kDefaultNumberInputEditor),
+    PropField(name: 'thickness', label: 'Thickness (Line)', fieldType: FieldType.number, defaultValue: null, editorBuilder: kDefaultNumberInputEditor),
+    PropField(name: 'indent', label: 'Indent (Start Space)', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor),
+    PropField(name: 'endIndent', label: 'End Indent (End Space)', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor),
+    PropField(name: 'color', label: 'Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor),
   ],
   childPolicy: ChildAcceptancePolicy.none,
   builder: (
