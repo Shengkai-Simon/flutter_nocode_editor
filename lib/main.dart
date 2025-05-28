@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'core/constants.dart';
-import 'layout/canvas_panel.dart';
-import 'layout/left_panel.dart';
-import 'layout/right_panel.dart';
+import 'constants/app_constants.dart';
+import 'ui/canvas/canvas_view.dart';
+import 'ui/left/left_view.dart';
+import 'ui/right/right_view.dart';
 
 void main() {
   runApp(
@@ -25,9 +25,9 @@ class MyApp extends StatelessWidget {
         home: Scaffold(
           body: Row(
             children: [
-              SizedBox(width: kLeftPanelWidth, child: LeftPanel()),
-              Expanded(child: CanvasPanel()),
-              SizedBox(width: kRightPanelWidth, child: RightPanel()),
+              SizedBox(width: kLeftPanelWidth, child: LeftView()),
+              Expanded(child: CanvasView()),
+              SizedBox(width: kRightPanelWidth, child: RightView()),
             ],
           ),
         ),
