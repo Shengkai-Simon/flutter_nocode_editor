@@ -3,32 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
 import '../../core/widget_node.dart';
 import '../utils/component_util.dart';
+import '../../core/common_component_props.dart';
 
 StackFit _parseStackFit(String? fitString) {
   switch (fitString) {
-    case 'loose':
-      return StackFit.loose;
-    case 'expand':
-      return StackFit.expand;
-    case 'passthrough':
-      return StackFit.passthrough;
-    default:
-      return StackFit.loose;
+    case 'loose': return StackFit.loose;
+    case 'expand': return StackFit.expand;
+    case 'passthrough': return StackFit.passthrough;
+    default: return StackFit.loose;
   }
 }
 
 Clip _parseClipBehavior(String? clipString) {
   switch (clipString) {
-    case 'none':
-      return Clip.none;
-    case 'hardEdge':
-      return Clip.hardEdge;
-    case 'antiAlias':
-      return Clip.antiAlias;
-    case 'antiAliasWithSaveLayer':
-      return Clip.antiAliasWithSaveLayer;
-    default:
-      return Clip.hardEdge;
+    case 'none': return Clip.none;
+    case 'hardEdge': return Clip.hardEdge;
+    case 'antiAlias': return Clip.antiAlias;
+    case 'antiAliasWithSaveLayer': return Clip.antiAliasWithSaveLayer;
+    default: return Clip.hardEdge;
   }
 }
 
@@ -37,28 +29,15 @@ final RegisteredComponent stackComponentDefinition = RegisteredComponent(
   displayName: 'Stack',
   icon: Icons.layers,
   defaultProps: {
-    'alignment': 'center',
+    ...ChildAlignmentProps.defaults,
+    'alignment': 'topLeft',
+
     'fit': 'loose',
     'clipBehavior': 'hardEdge',
   },
   propFields: [
-    PropField(
-      name: 'alignment',
-      label: 'Alignment',
-      fieldType: FieldType.select,
-      defaultValue: 'center',
-      options: [
-        {'id': 'topLeft', 'name': 'Top Left'},
-        {'id': 'topCenter', 'name': 'Top Center'},
-        {'id': 'topRight', 'name': 'Top Right'},
-        {'id': 'centerLeft', 'name': 'Center Left'},
-        {'id': 'center', 'name': 'Center'},
-        {'id': 'centerRight', 'name': 'Center Right'},
-        {'id': 'bottomLeft', 'name': 'Bottom Left'},
-        {'id': 'bottomCenter', 'name': 'Bottom Center'},
-        {'id': 'bottomRight', 'name': 'Bottom Right'},
-      ],
-    ),
+    ...ChildAlignmentProps.fields,
+
     PropField(
       name: 'fit',
       label: 'Stack Fit',
@@ -92,6 +71,7 @@ final RegisteredComponent stackComponentDefinition = RegisteredComponent(
     final props = node.props;
 
     final AlignmentGeometry alignment = ComponentUtil.parseAlignment(props['alignment'] as String?);
+
     final StackFit fit = _parseStackFit(props['fit'] as String?);
     final Clip clipBehavior = _parseClipBehavior(props['clipBehavior'] as String?);
 

@@ -32,15 +32,16 @@ final RegisteredComponent centerComponentDefinition = RegisteredComponent(
       Widget Function(WidgetNode childNode) renderChild,
       ) {
     final props = node.props;
-
     final double? widthFactor = (props['widthFactor'] as num?)?.toDouble();
     final double? heightFactor = (props['heightFactor'] as num?)?.toDouble();
-
     Widget? childWidget;
     if (node.children.isNotEmpty) {
       childWidget = renderChild(node.children.first);
     }
-
-    return Center(widthFactor: widthFactor, heightFactor: heightFactor, child: childWidget);
+    return Center(
+      widthFactor: widthFactor,
+      heightFactor: heightFactor,
+      child: childWidget,
+    );
   },
 );

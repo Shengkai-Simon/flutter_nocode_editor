@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
 import '../../core/widget_node.dart';
+import '../utils/component_util.dart';
+import '../../core/common_component_props.dart';
 
 BoxFit _parseBoxFit(String? fitString) {
   switch (fitString) {
@@ -19,14 +21,17 @@ BoxFit _parseBoxFit(String? fitString) {
 final RegisteredComponent imageComponentDefinition = RegisteredComponent(
   type: 'Image',
   displayName: 'Image',
-  icon: Icons.image,
+  icon: Icons.image_outlined,
   defaultProps: {
+    ...SizingProps.defaults,
+    ...ChildAlignmentProps.defaults,
+
     'src': 'https://picsum.photos/seed/flutter_editor/200/300',
     'imageType': 'network',
-    'width': null,
-    'height': null,
     'fit': 'contain',
+    'repeat': 'noRepeat',
     'semanticLabel': '',
+    'alignment': 'center',
   },
   propFields: [
     PropField(name: 'src', label: 'Source (URL or Asset Path)', fieldType: FieldType.string, defaultValue: 'https://picsum.photos/seed/flutter_editor/200/300'),
@@ -40,21 +45,30 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
         {'id': 'asset', 'name': 'Asset Path (requires setup)'},
       ],
     ),
-    PropField(name: 'width', label: 'Width', fieldType: FieldType.number, defaultValue: null),
-    PropField(name: 'height', label: 'Height', fieldType: FieldType.number, defaultValue: null),
+
+    ...SizingProps.fields,
+    ...ChildAlignmentProps.fields,
+
     PropField(
       name: 'fit',
       label: 'Box Fit',
       fieldType: FieldType.select,
       defaultValue: 'contain',
       options: [
-        {'id': 'fill', 'name': 'Fill'},
-        {'id': 'contain', 'name': 'Contain'},
-        {'id': 'cover', 'name': 'Cover'},
-        {'id': 'fitWidth', 'name': 'Fit Width'},
-        {'id': 'fitHeight', 'name': 'Fit Height'},
-        {'id': 'none', 'name': 'None'},
+        {'id': 'fill', 'name': 'Fill'}, {'id': 'contain', 'name': 'Contain'},
+        {'id': 'cover', 'name': 'Cover'}, {'id': 'fitWidth', 'name': 'Fit Width'},
+        {'id': 'fitHeight', 'name': 'Fit Height'}, {'id': 'none', 'name': 'None'},
         {'id': 'scaleDown', 'name': 'Scale Down'},
+      ],
+    ),
+    PropField(
+      name: 'repeat',
+      label: 'Image Repeat',
+      fieldType: FieldType.select,
+      defaultValue: 'noRepeat',
+      options: [
+        {'id': 'repeat', 'name': 'Repeat'}, {'id': 'repeatX', 'name': 'Repeat X'},
+        {'id': 'repeatY', 'name': 'Repeat Y'}, {'id': 'noRepeat', 'name': 'No Repeat'},
       ],
     ),
     PropField(name: 'semanticLabel', label: 'Semantic Label', fieldType: FieldType.string, defaultValue: ''),
@@ -69,36 +83,33 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
 
     final String src = props['src'] as String? ?? '';
     final String imageType = props['imageType'] as String? ?? 'network';
+
     final double? width = (props['width'] as num?)?.toDouble();
     final double? height = (props['height'] as num?)?.toDouble();
+
+    final AlignmentGeometry alignment = ComponentUtil.parseAlignment(props['alignment'] as String?);
+
     final BoxFit fit = _parseBoxFit(props['fit'] as String?);
+    final ImageRepeat repeat = ComponentUtil.parseImageRepeat(props['repeat'] as String?); // ADDED
     final String? semanticLabel = props['semanticLabel'] as String?;
 
     if (src.isEmpty) {
       return Container(
-        width: width ?? 50,
-        height: height ?? 50,
-        color: Colors.grey[300],
-        alignment: Alignment.center,
+        width: width ?? 50, height: height ?? 50, color: Colors.grey[300], alignment: Alignment.center,
         child: Icon(Icons.broken_image, color: Colors.grey[600], size: (width ?? 50) / 2),
       );
     }
 
     ImageProvider? imageProvider;
     if (imageType == 'network') {
-      if (Uri.tryParse(src)?.isAbsolute ?? false) {
-        imageProvider = NetworkImage(src);
-      }
+      if (Uri.tryParse(src)?.isAbsolute ?? false) imageProvider = NetworkImage(src);
     } else if (imageType == 'asset') {
       imageProvider = AssetImage(src);
     }
 
     if (imageProvider == null) {
       return Container(
-        width: width ?? 50,
-        height: height ?? 50,
-        color: Colors.grey[300],
-        alignment: Alignment.center,
+        width: width ?? 50, height: height ?? 50, color: Colors.grey[300], alignment: Alignment.center,
         child: Tooltip(
           message: 'Invalid image source or type: $src ($imageType)',
           child: Icon(Icons.error_outline, color: Colors.red[400], size: (width ?? 50) / 2),
@@ -111,13 +122,12 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
       width: width,
       height: height,
       fit: fit,
+      alignment: alignment,
+      repeat: repeat,
       semanticLabel: semanticLabel,
       errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
         return Container(
-          width: width ?? 50,
-          height: height ?? 50,
-          color: Colors.grey[200],
-          alignment: Alignment.center,
+          width: width ?? 50, height: height ?? 50, color: Colors.grey[200], alignment: Alignment.center,
           child: Tooltip(
             message: 'Error loading image:\n$src\n$error',
             child: Icon(Icons.broken_image_outlined, color: Colors.grey[500], size: (width ?? 50) / 2),

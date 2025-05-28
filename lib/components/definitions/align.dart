@@ -3,34 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/component_registry.dart';
 import '../../core/widget_node.dart';
 import '../utils/component_util.dart';
+import '../../core/common_component_props.dart';
 
 final RegisteredComponent alignComponentDefinition = RegisteredComponent(
   type: 'Align',
   displayName: 'Align',
   icon: Icons.border_outer,
   defaultProps: {
-    'alignment': 'center',
+    ...ChildAlignmentProps.defaults,
     'widthFactor': null,
     'heightFactor': null,
   },
   propFields: [
-    PropField(
-      name: 'alignment',
-      label: 'Alignment',
-      fieldType: FieldType.select,
-      defaultValue: 'center',
-      options: [
-        {'id': 'topLeft', 'name': 'Top Left'},
-        {'id': 'topCenter', 'name': 'Top Center'},
-        {'id': 'topRight', 'name': 'Top Right'},
-        {'id': 'centerLeft', 'name': 'Center Left'},
-        {'id': 'center', 'name': 'Center'},
-        {'id': 'centerRight', 'name': 'Center Right'},
-        {'id': 'bottomLeft', 'name': 'Bottom Left'},
-        {'id': 'bottomCenter', 'name': 'Bottom Center'},
-        {'id': 'bottomRight', 'name': 'Bottom Right'},
-      ],
-    ),
+    ...ChildAlignmentProps.fields,
+
     PropField(
       name: 'widthFactor',
       label: 'Width Factor',
@@ -53,6 +39,7 @@ final RegisteredComponent alignComponentDefinition = RegisteredComponent(
     final props = node.props;
 
     final AlignmentGeometry alignment = ComponentUtil.parseAlignment(props['alignment'] as String?);
+
     final double? widthFactor = (props['widthFactor'] as num?)?.toDouble();
     final double? heightFactor = (props['heightFactor'] as num?)?.toDouble();
 

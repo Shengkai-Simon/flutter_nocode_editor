@@ -2,6 +2,21 @@ import 'package:flutter/material.dart';
 
 class ComponentUtil {
 
+  static ImageRepeat parseImageRepeat(String? repeat) {
+    switch (repeat?.toLowerCase()) {
+      case 'repeat':
+        return ImageRepeat.repeat;
+      case 'repeatx':
+        return ImageRepeat.repeatX;
+      case 'repeaty':
+        return ImageRepeat.repeatY;
+      case 'norepeat':
+        return ImageRepeat.noRepeat;
+      default:
+        return ImageRepeat.noRepeat; // Default
+    }
+  }
+
   /// Parses a string into a FontWeight enum value.
   static FontWeight parseFontWeight(String? weight) {
     switch (weight?.toLowerCase()) {
@@ -139,6 +154,9 @@ class ComponentUtil {
 
   /// Helper function to parse alignment string
   static AlignmentGeometry parseAlignment(String? alignStr) {
+    if (alignStr == null || alignStr.isEmpty) {
+      return Alignment.center;
+    }
     switch (alignStr) {
       case 'topLeft':
         return Alignment.topLeft;
@@ -215,7 +233,7 @@ class ComponentUtil {
   }
 
   /// Converts a hex color string to a Flutter Color. Returns a default color if parsing fails or input is empty/null.
-  static Color parseColor(String? hex) {
+  static Color parseColor(String? hex, {Color defaultColor = Colors.black}) {
     const Color defaultColor = Colors.black;
 
     if (hex == null || hex.isEmpty) {
