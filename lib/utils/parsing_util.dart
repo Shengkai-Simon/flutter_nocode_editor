@@ -2,6 +2,59 @@ import 'package:flutter/material.dart';
 
 class ParsingUtil {
 
+  static TextInputType parseTextInputType(String? inputTypeString, {TextInputType defaultType = TextInputType.text}) {
+    switch (inputTypeString?.toLowerCase()) {
+      case 'text': return TextInputType.text;
+      case 'multiline': return TextInputType.multiline;
+      case 'number': return TextInputType.number;
+      case 'phone': return TextInputType.phone;
+      case 'datetime': return TextInputType.datetime;
+      case 'emailaddress': return TextInputType.emailAddress;
+      case 'url': return TextInputType.url;
+      case 'visiblepassword': return TextInputType.visiblePassword;
+      case 'name': return TextInputType.name;
+      case 'streetaddress': return TextInputType.streetAddress;
+      case 'none': return TextInputType.none;
+      default: return defaultType;
+    }
+  }
+
+  static Clip parseClipBehavior(String? clipString) {
+    switch (clipString?.toLowerCase()) {
+      case 'none': return Clip.none;
+      case 'hardedge': return Clip.hardEdge;
+      case 'antialias': return Clip.antiAlias;
+      case 'antialiaswithsavelayer': return Clip.antiAliasWithSaveLayer;
+      default: return Clip.hardEdge;
+    }
+  }
+
+  static Axis parseAxis(String? axisString, {Axis defaultAxis = Axis.horizontal}) {
+    if (axisString == 'vertical') return Axis.vertical;
+    return defaultAxis;
+  }
+
+  static WrapAlignment parseWrapAlignment(String? alignmentString, {WrapAlignment defaultAlignment = WrapAlignment.start}) {
+    switch (alignmentString?.toLowerCase()) {
+      case 'start': return WrapAlignment.start;
+      case 'end': return WrapAlignment.end;
+      case 'center': return WrapAlignment.center;
+      case 'spacebetween': return WrapAlignment.spaceBetween;
+      case 'spacearound': return WrapAlignment.spaceAround;
+      case 'spaceevenly': return WrapAlignment.spaceEvenly;
+      default: return defaultAlignment;
+    }
+  }
+
+  static WrapCrossAlignment parseWrapCrossAlignment(String? crossAlignmentString, {WrapCrossAlignment defaultAlignment = WrapCrossAlignment.start}) {
+    switch (crossAlignmentString?.toLowerCase()) {
+      case 'start': return WrapCrossAlignment.start;
+      case 'end': return WrapCrossAlignment.end;
+      case 'center': return WrapCrossAlignment.center;
+      default: return defaultAlignment;
+    }
+  }
+
   static ImageRepeat parseImageRepeat(String? repeat) {
     switch (repeat?.toLowerCase()) {
       case 'repeat':
