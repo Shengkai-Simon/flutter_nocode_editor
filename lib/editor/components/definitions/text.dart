@@ -79,4 +79,5 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
       overflow: overflow,
     );
   },
+  category: ComponentCategory.content,
 );

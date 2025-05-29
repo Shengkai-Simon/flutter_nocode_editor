@@ -59,4 +59,5 @@ final RegisteredComponent alignComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
+  category: ComponentCategory.layout,
 );

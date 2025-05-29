@@ -92,4 +92,5 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       inactiveTrackColor: inactiveTrackColor,
     );
   },
+  category: ComponentCategory.input,
 );

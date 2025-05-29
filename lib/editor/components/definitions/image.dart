@@ -146,4 +146,5 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
       },
     );
   },
+  category: ComponentCategory.content,
 );

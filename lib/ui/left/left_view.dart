@@ -11,160 +11,198 @@ import '../../state/editor_state.dart';
 class LeftView extends ConsumerWidget {
   const LeftView({super.key});
 
+  // Helper to get a display name for the category
+  String _getCategoryDisplayName(ComponentCategory category) {
+    switch (category) {
+      case ComponentCategory.layout:
+        return 'Layout Widgets';
+      case ComponentCategory.content:
+        return 'Content & Display';
+      case ComponentCategory.input:
+        return 'Input & Controls';
+      case ComponentCategory.other:
+      return 'Other Widgets';
+    }
+  }
+
   Widget _buildAddComponentSection(BuildContext context, WidgetRef ref) {
     final uuid = const Uuid();
-    final componentList = registeredComponents.values.toList();
+    final allComponents = registeredComponents.values.toList();
 
-    void addComponent(String newComponentType) {
-      final newComponentRc = registeredComponents[newComponentType];
-      if (newComponentRc == null) return;
+    final Map<ComponentCategory, List<RegisteredComponent>> categorizedComponents = {};
+    for (var component in allComponents) {
+      (categorizedComponents[component.category] ??= []).add(component);
+    }
 
-      final newNode = WidgetNode(
-        id: uuid.v4(),
-        type: newComponentRc.type,
-        props: Map<String, dynamic>.from(newComponentRc.defaultProps),
-        children: [],
-      );
+    final List<ComponentCategory> categoryOrder = [
+      ComponentCategory.layout,
+      ComponentCategory.content,
+      ComponentCategory.input,
+      ComponentCategory.other,
+    ];
 
-      final selectedId = ref.read(selectedNodeIdProvider);
-      final currentTree = ref.read(canvasTreeProvider);
+    List<Widget> sectionWidgets = [];
 
-      WidgetNode? targetParentNode;
-      RegisteredComponent? targetParentRc;
-
-      if (selectedId == null) {
-        targetParentNode = currentTree;
-        targetParentRc = registeredComponents[currentTree.type];
-      } else {
-        targetParentNode = _findNodeInTreeById(currentTree, selectedId);
-        if (targetParentNode != null) {
-          targetParentRc = registeredComponents[targetParentNode.type];
-        }
-      }
-
-      if (targetParentNode == null || targetParentRc == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Cannot add component: Target parent not found or is invalid.",
+    for (var category in categoryOrder) {
+      final componentsInCategory = categorizedComponents[category];
+      if (componentsInCategory != null && componentsInCategory.isNotEmpty) {
+        sectionWidgets.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0, left: 12.0, right: 12.0, bottom: 8.0),
+            child: Text(
+              _getCategoryDisplayName(category),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.deepPurple),
             ),
-            backgroundColor: Colors.redAccent,
-            duration: const Duration(seconds: 3),
           ),
         );
-        return;
-      }
 
-      bool canAddChild = false;
-      String restrictionMessage = "";
+        sectionWidgets.add(
+          GridView.count(
+            crossAxisCount: 3,
+            childAspectRatio: 1.0,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: componentsInCategory.map((rc) {
+              return GestureDetector(
+                onTap: () {
+                  final newComponentRc = registeredComponents[rc.type];
+                  if (newComponentRc == null) return;
 
-      switch (targetParentRc.childPolicy) {
-        case ChildAcceptancePolicy.none:
-          restrictionMessage = "'${targetParentRc.displayName}' cannot accept any children.";
-          canAddChild = false;
-          break;
-        case ChildAcceptancePolicy.single:
-          if (targetParentNode.children.isNotEmpty) {
-            restrictionMessage = "'${targetParentRc.displayName}' can only hold one child. "
-                "Please remove the existing child or select a different parent.";
-            canAddChild = false;
-          } else {
-            canAddChild = true;
-          }
-          break;
-        case ChildAcceptancePolicy.multiple:
-          canAddChild = true;
-          break;
-      }
+                  final newNode = WidgetNode(
+                    id: uuid.v4(),
+                    type: newComponentRc.type,
+                    props: Map<String, dynamic>.from(newComponentRc.defaultProps),
+                    children: [],
+                  );
 
-      if (!canAddChild) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(restrictionMessage),
-            backgroundColor: Colors.orangeAccent,
-            duration: const Duration(seconds: 4),
+                  final selectedId = ref.read(selectedNodeIdProvider);
+                  final currentTree = ref.read(canvasTreeProvider);
+
+                  WidgetNode? targetParentNode;
+                  RegisteredComponent? targetParentRc;
+
+                  if (selectedId == null) {
+                    targetParentNode = currentTree;
+                    targetParentRc = registeredComponents[currentTree.type];
+                  } else {
+                    targetParentNode = _findNodeInTreeById(currentTree, selectedId);
+                    if (targetParentNode != null) {
+                      targetParentRc = registeredComponents[targetParentNode.type];
+                    }
+                  }
+
+                  if (targetParentNode == null || targetParentRc == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Cannot add component: Target parent not found or is invalid.",
+                        ),
+                        backgroundColor: Colors.redAccent,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                    return;
+                  }
+
+                  bool canAddChild = true;
+                  String restrictionMessage = "";
+
+                  switch (targetParentRc.childPolicy) {
+                    case ChildAcceptancePolicy.none:
+                      restrictionMessage = "'${targetParentRc.displayName}' cannot accept any children.";
+                      canAddChild = false;
+                      break;
+                    case ChildAcceptancePolicy.single:
+                      if (targetParentNode.children.isNotEmpty) {
+                        restrictionMessage = "'${targetParentRc.displayName}' can only hold one child. "
+                            "Please remove the existing child or select a different parent.";
+                        canAddChild = false;
+                      } else {
+                        canAddChild = true;
+                      }
+                      break;
+                    case ChildAcceptancePolicy.multiple:
+                      canAddChild = true;
+                      break;
+                  }
+                  if (!canAddChild) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(restrictionMessage),
+                        backgroundColor: Colors.orangeAccent,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final newTree = _addChildToTree(currentTree, targetParentNode.id, newNode);
+
+                  ref.read(canvasTreeProvider.notifier).state = newTree;
+                  ref.read(selectedNodeIdProvider.notifier).state = newNode.id;
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: Theme.of(context).cardColor,
+                    border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 3,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(rc.icon ?? Icons.extension, size: 24, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(height: 4),
+                      Text(
+                        rc.displayName,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         );
-        return;
       }
+    }
 
-      final newTree = _addChildToTree(currentTree, targetParentNode.id, newNode);
-
-      ref.read(canvasTreeProvider.notifier).state = newTree;
-      ref.read(selectedNodeIdProvider.notifier).state = newNode.id;
+    if (sectionWidgets.isEmpty) {
+      return const Center(child: Text("No components available."));
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.all(12),
+          padding: EdgeInsets.fromLTRB(12, 16, 12, 8),
           child: Text(
             'Components',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
         ),
+        const Divider(height: 1),
         Expanded(
-          child: GridView.count(
-            crossAxisCount: 3,
-            childAspectRatio: 1,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            padding: const EdgeInsets.all(12),
-            children: componentList.map((rc) {
-              return GestureDetector(
-                onTap: () => addComponent(rc.type),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey[300]!),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 2,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(8),
-                      alignment: Alignment.center,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(rc.icon ?? Icons.extension, size: 24),
-                            const SizedBox(height: 4),
-                            Text(
-                              rc.displayName,
-                              style: const TextStyle(fontSize: 14),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            }).toList(),
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            children: sectionWidgets,
           ),
         ),
       ],
     );
   }
-
-  Widget _buildWidgetTreeViewSection(BuildContext context, WidgetRef ref) {
-    return const WidgetTreeView();
-  }
-
-  Widget _buildPagesViewSection(BuildContext context, WidgetRef ref) {
-    return const Center(child: Text("Page Management (Coming Soon!)"));
-  }
-
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -209,12 +247,11 @@ class LeftView extends ConsumerWidget {
           ),
         ),
         const VerticalDivider(width: 1, thickness: 1),
-        // Content Area
         Expanded(
           child: switch (currentMode) {
             LeftPanelMode.addWidgets => _buildAddComponentSection(context, ref),
-            LeftPanelMode.widgetTree => _buildWidgetTreeViewSection(context, ref),
-            LeftPanelMode.pages      => _buildPagesViewSection(context, ref),
+            LeftPanelMode.widgetTree => const WidgetTreeView(),
+            LeftPanelMode.pages      => const Center(child: Text("Page Management (Coming Soon!)")),
           },
         ),
       ],

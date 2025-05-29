@@ -3,6 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../components/core/component_model.dart';
 
+enum ComponentCategory {
+  layout,
+  content,
+  input,
+  other,
+}
+
 /// support for field types in editor's right-side properties panel
 enum FieldType { string, number, color, select, boolean, alignment, edgeInsets }
 
@@ -19,7 +26,6 @@ typedef PropertyEditorBuilder = Widget Function(
     dynamic currentValue,
     void Function(dynamic newValue) onChanged,
     );
-
 
 /// Support displaying component field a property
 class PropField {
@@ -50,6 +56,7 @@ class RegisteredComponent {
   final List<PropField> propFields;
   final Map<String, dynamic> defaultProps;
   final ChildAcceptancePolicy childPolicy;
+  final ComponentCategory category;
 
   /// return a widget builder based on props
   final Widget Function(WidgetNode node, WidgetRef ref, Widget Function(WidgetNode childNode) renderChild) builder;
@@ -62,5 +69,6 @@ class RegisteredComponent {
     required this.defaultProps,
     required this.builder,
     required this.childPolicy,
+    required this.category,
   });
 }

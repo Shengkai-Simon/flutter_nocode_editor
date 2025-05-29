@@ -48,4 +48,5 @@ final RegisteredComponent centerComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
+  category: ComponentCategory.layout,
 );

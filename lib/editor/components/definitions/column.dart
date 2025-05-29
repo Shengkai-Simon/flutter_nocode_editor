@@ -56,4 +56,5 @@ final RegisteredComponent columnComponentDefinition = RegisteredComponent(
     }
     return columnWidget;
   },
+  category: ComponentCategory.layout,
 );

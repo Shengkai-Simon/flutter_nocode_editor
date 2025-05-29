@@ -135,4 +135,5 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       ),
     );
   },
+  category: ComponentCategory.input,
 );

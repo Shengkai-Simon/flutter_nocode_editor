@@ -84,4 +84,5 @@ final RegisteredComponent elevatedButtonComponentDefinition = RegisteredComponen
       child: actualButton,
     );
   },
+  category: ComponentCategory.input,
 );

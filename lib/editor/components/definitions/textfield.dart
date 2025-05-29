@@ -165,4 +165,5 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       ),
     );
   },
+  category: ComponentCategory.input,
 );

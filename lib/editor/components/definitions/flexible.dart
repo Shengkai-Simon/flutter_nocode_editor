@@ -78,4 +78,5 @@ final RegisteredComponent flexibleComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
+  category: ComponentCategory.layout,
 );

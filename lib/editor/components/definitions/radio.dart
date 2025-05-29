@@ -62,4 +62,5 @@ final RegisteredComponent radioComponentDefinition = RegisteredComponent(
       activeColor: activeColor,
     );
   },
+  category: ComponentCategory.input,
 );

@@ -35,4 +35,5 @@ final RegisteredComponent spacerComponentDefinition = RegisteredComponent(
       flex: flex,
     );
   },
+  category: ComponentCategory.layout,
 );

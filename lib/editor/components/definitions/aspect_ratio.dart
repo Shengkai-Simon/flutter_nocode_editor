@@ -56,4 +56,5 @@ final RegisteredComponent aspectRatioComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
+  category: ComponentCategory.layout,
 );

@@ -55,4 +55,5 @@ final RegisteredComponent rowComponentDefinition = RegisteredComponent(
     }
     return rowWidget;
   },
+  category: ComponentCategory.layout,
 );

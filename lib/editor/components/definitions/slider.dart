@@ -123,4 +123,5 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       onChanged: null,
     );
   },
+  category: ComponentCategory.input,
 );

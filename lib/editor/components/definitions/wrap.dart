@@ -149,4 +149,5 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       children: childrenWidgets,
     );
   },
+  category: ComponentCategory.layout,
 );

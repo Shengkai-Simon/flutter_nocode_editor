@@ -76,4 +76,5 @@ final RegisteredComponent cardComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
+  category: ComponentCategory.content,
 );

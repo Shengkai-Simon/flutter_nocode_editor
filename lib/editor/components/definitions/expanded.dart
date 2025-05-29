@@ -52,4 +52,5 @@ final RegisteredComponent expandedComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
+  category: ComponentCategory.layout,
 );

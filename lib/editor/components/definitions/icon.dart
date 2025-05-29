@@ -74,4 +74,5 @@ final RegisteredComponent iconComponentDefinition = RegisteredComponent(
       color: iconColor,
     );
   },
+  category: ComponentCategory.content,
 );

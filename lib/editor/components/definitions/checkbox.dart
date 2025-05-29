@@ -93,4 +93,5 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       splashRadius: splashRadius,
     );
   },
+  category: ComponentCategory.input,
 );

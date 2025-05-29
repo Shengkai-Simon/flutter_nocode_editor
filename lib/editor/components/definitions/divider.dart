@@ -70,4 +70,5 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
 
     return Divider(height: height, thickness: thickness, indent: indent, endIndent: endIndent, color: color);
   },
+  category: ComponentCategory.content,
 );

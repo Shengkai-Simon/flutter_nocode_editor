@@ -207,4 +207,5 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       child: childWidgetInstance,
     );
   },
+    category: ComponentCategory.layout
 );
