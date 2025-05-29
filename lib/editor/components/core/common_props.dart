@@ -9,6 +9,7 @@ class SizingProps {
       fieldType: FieldType.number,
       defaultValue: null,
       editorBuilder: kDefaultNumberInputEditor,
+      propertyCategory: PropertyCategory.sizing,
     ),
     PropField(
       name: 'height',
@@ -16,6 +17,7 @@ class SizingProps {
       fieldType: FieldType.number,
       defaultValue: null,
       editorBuilder: kDefaultNumberInputEditor,
+      propertyCategory: PropertyCategory.sizing,
     ),
   ];
 
@@ -30,6 +32,7 @@ class MarginProps {
       fieldType: FieldType.edgeInsets,
       defaultValue: 'all:0',
       editorBuilder: kDefaultEdgeInsetsEditor,
+      propertyCategory: PropertyCategory.spacing,
     ),
   ];
 
@@ -44,6 +47,7 @@ class PaddingProps {
       fieldType: FieldType.edgeInsets,
       defaultValue: 'all:0',
       editorBuilder: kDefaultEdgeInsetsEditor,
+      propertyCategory: PropertyCategory.spacing,
     ),
   ];
 
@@ -69,6 +73,7 @@ class ChildAlignmentProps {
         {'id': 'bottomRight', 'name': 'Bottom Right'},
       ],
       editorBuilder: kAlignmentPickerEditor,
+      propertyCategory: PropertyCategory.layout,
     ),
   ];
 
@@ -83,6 +88,7 @@ class BackgroundColorProp {
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.fill,
     ),
   ];
 
@@ -98,6 +104,7 @@ class FlexChildProps {
       defaultValue: 1,
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1, 'step': 1},
+      propertyCategory: PropertyCategory.flexLayout,
     ),
     PropField(
       name: 'fit',
@@ -109,6 +116,7 @@ class FlexChildProps {
         {'id': 'tight', 'name': 'Tight'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.appearance,
     ),
   ];
 
@@ -133,6 +141,7 @@ class MainAxisAlignmentProp {
         {'id': 'spaceEvenly', 'name': 'Space Evenly'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.flexLayout,
     ),
   ];
 
@@ -154,6 +163,7 @@ class CrossAxisAlignmentProp {
         {'id': 'baseline', 'name': 'Baseline (req. textBaseline)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.flexLayout,
     ),
   ];
 
@@ -172,6 +182,7 @@ class MainAxisSizeProp {
         {'id': 'max', 'name': 'Max'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.flexLayout,
     ),
   ];
 
@@ -187,6 +198,7 @@ class BasicTextStyleProps {
       defaultValue: 16.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 6.0, 'maxValue': 96.0, 'divisions': 90, 'decimalPlaces': 0},
+      propertyCategory: PropertyCategory.textStyle,
     ),
     PropField(
       name: 'textColor',
@@ -194,6 +206,7 @@ class BasicTextStyleProps {
       fieldType: FieldType.color,
       defaultValue: '#000000',
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.textStyle,
     ),
     PropField(
       name: 'fontWeight',
@@ -212,6 +225,7 @@ class BasicTextStyleProps {
         {'id': 'w900', 'name': 'Black (w900)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.textStyle,
     ),
     PropField(
       name: 'fontStyle',
@@ -223,6 +237,7 @@ class BasicTextStyleProps {
         {'id': 'italic', 'name': 'Italic'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.textStyle,
     ),
     PropField(
       name: 'textAlign',
@@ -238,6 +253,7 @@ class BasicTextStyleProps {
         {'id': 'end', 'name': 'End (Locale Specific)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.textStyle,
     ),
   ];
 

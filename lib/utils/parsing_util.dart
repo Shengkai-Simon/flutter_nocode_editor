@@ -66,7 +66,7 @@ class ParsingUtil {
       case 'norepeat':
         return ImageRepeat.noRepeat;
       default:
-        return ImageRepeat.noRepeat; // Default
+        return ImageRepeat.noRepeat;
     }
   }
 
@@ -124,7 +124,7 @@ class ParsingUtil {
       case 'visible':
         return TextOverflow.visible;
       default:
-        return TextOverflow.clip; // Default for Text widget if not specified and constrained
+        return TextOverflow.clip;
     }
   }
 
@@ -149,7 +149,7 @@ class ParsingUtil {
         final doubleVal = double.tryParse(normalizedValue.substring(4));
         return EdgeInsets.all(doubleVal ?? 0);
       } else if (normalizedValue.startsWith('symmetric:')) {
-        normalizedValue = normalizedValue.substring(10); // remove "symmetric:"
+        normalizedValue = normalizedValue.substring(10);
         double vertical = 0;
         double horizontal = 0;
         final parts = normalizedValue.split(',');

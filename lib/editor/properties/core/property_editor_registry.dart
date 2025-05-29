@@ -12,8 +12,13 @@ import '../definitions/switch_field.dart';
 import '../definitions/text_input_field.dart';
 
 /// Builds a standard text input field.
-PropertyEditorBuilder kDefaultTextInputEditor =
-    (BuildContext context, PropField field, dynamic currentValue, void Function(dynamic newValue) onChanged) {
+PropertyEditorBuilder kDefaultTextInputEditor = (
+  BuildContext context,
+  Map<String, dynamic> allProps,
+  PropField field,
+  dynamic currentValue,
+  void Function(dynamic newValue) onChanged,
+) {
   return TextInputField(
     label: field.label,
     value: currentValue?.toString() ?? field.defaultValue?.toString() ?? '',
@@ -22,11 +27,19 @@ PropertyEditorBuilder kDefaultTextInputEditor =
 };
 
 /// Builds a standard number input field.
-PropertyEditorBuilder kDefaultNumberInputEditor =
-    (BuildContext context, PropField field, dynamic currentValue, void Function(dynamic newValue) onChanged) {
+PropertyEditorBuilder kDefaultNumberInputEditor = (
+  BuildContext context,
+  Map<String, dynamic> allProps,
+  PropField field,
+  dynamic currentValue,
+  void Function(dynamic newValue) onChanged,
+) {
   return NumberInputField(
     label: field.label,
-    value: (currentValue as num?)?.toString() ?? (field.defaultValue as num?)?.toString() ?? '',
+    value:
+        (currentValue as num?)?.toString() ??
+        (field.defaultValue as num?)?.toString() ??
+        '',
     onChanged: (String newValueString) {
       onChanged(double.tryParse(newValueString));
     },
@@ -34,11 +47,19 @@ PropertyEditorBuilder kDefaultNumberInputEditor =
 };
 
 /// Builds a number input field constrained to positive numbers (or zero).
-PropertyEditorBuilder kPositiveNumberInputEditor =
-    (BuildContext context, PropField field, dynamic currentValue, void Function(dynamic newValue) onChanged) {
+PropertyEditorBuilder kPositiveNumberInputEditor = (
+  BuildContext context,
+  Map<String, dynamic> allProps,
+  PropField field,
+  dynamic currentValue,
+  void Function(dynamic newValue) onChanged,
+) {
   return NumberInputField(
     label: field.label,
-    value: (currentValue as num?)?.toString() ?? (field.defaultValue as num?)?.toString() ?? '0',
+    value:
+        (currentValue as num?)?.toString() ??
+        (field.defaultValue as num?)?.toString() ??
+        '0',
     onChanged: (String newValueString) {
       final num? val = double.tryParse(newValueString);
       if (val != null && val < 0) {
@@ -51,8 +72,13 @@ PropertyEditorBuilder kPositiveNumberInputEditor =
 };
 
 /// Builds a standard color picker field.
-PropertyEditorBuilder kDefaultColorPickerEditor =
-    (BuildContext context, PropField field, dynamic currentValue, void Function(dynamic newValue) onChanged) {
+PropertyEditorBuilder kDefaultColorPickerEditor = (
+  BuildContext context,
+  Map<String, dynamic> allProps,
+  PropField field,
+  dynamic currentValue,
+  void Function(dynamic newValue) onChanged,
+) {
   return ColorPickerField(
     label: field.label,
     value: currentValue?.toString() ?? field.defaultValue?.toString() ?? '',
@@ -61,11 +87,18 @@ PropertyEditorBuilder kDefaultColorPickerEditor =
 };
 
 /// Builds a standard dropdown field.
-PropertyEditorBuilder kDefaultDropdownEditor =
-    (BuildContext context, PropField field, dynamic currentValue, void Function(dynamic newValue) onChanged) {
-  String effectiveValue = currentValue?.toString() ?? field.defaultValue?.toString() ?? '';
+PropertyEditorBuilder kDefaultDropdownEditor = (
+  BuildContext context,
+  Map<String, dynamic> allProps,
+  PropField field,
+  dynamic currentValue,
+  void Function(dynamic newValue) onChanged,
+) {
+  String effectiveValue =
+      currentValue?.toString() ?? field.defaultValue?.toString() ?? '';
   final options = field.options ?? [];
-  if (options.isNotEmpty && !options.any((opt) => opt['id'] == effectiveValue)) {
+  if (options.isNotEmpty &&
+      !options.any((opt) => opt['id'] == effectiveValue)) {
     effectiveValue = options.first['id'] ?? '';
   }
 
@@ -78,8 +111,13 @@ PropertyEditorBuilder kDefaultDropdownEditor =
 };
 
 /// Builds a standard switch field for boolean values.
-PropertyEditorBuilder kDefaultSwitchEditor =
-    (BuildContext context, PropField field, dynamic currentValue, void Function(dynamic newValue) onChanged) {
+PropertyEditorBuilder kDefaultSwitchEditor = (
+  BuildContext context,
+  Map<String, dynamic> allProps,
+  PropField field,
+  dynamic currentValue,
+  void Function(dynamic newValue) onChanged,
+) {
   return SwitchField(
     label: field.label,
     value: (currentValue as bool?) ?? (field.defaultValue as bool?) ?? false,
@@ -88,17 +126,28 @@ PropertyEditorBuilder kDefaultSwitchEditor =
 };
 
 /// Builds a standard EdgeInsets editor field.
-PropertyEditorBuilder kDefaultEdgeInsetsEditor =
-    (BuildContext context, PropField field, dynamic currentValue, void Function(dynamic newValue) onChanged) {
+PropertyEditorBuilder kDefaultEdgeInsetsEditor = (
+  BuildContext context,
+  Map<String, dynamic> allProps,
+  PropField field,
+  dynamic currentValue,
+  void Function(dynamic newValue) onChanged,
+) {
   return EdgeInsetsField(
     label: field.label,
-    value: currentValue?.toString() ?? field.defaultValue?.toString() ?? 'all:0',
+    value:
+        currentValue?.toString() ?? field.defaultValue?.toString() ?? 'all:0',
     onChanged: onChanged,
   );
 };
 
-PropertyEditorBuilder kSliderNumberInputEditor =
-    (BuildContext context, PropField field, dynamic currentValue, void Function(dynamic newValue) onChanged) {
+PropertyEditorBuilder kSliderNumberInputEditor = (
+  BuildContext context,
+  Map<String, dynamic> allProps,
+  PropField field,
+  dynamic currentValue,
+  void Function(dynamic newValue) onChanged,
+) {
   final config = field.editorConfig ?? {};
   final double minValue = (config['minValue'] as num?)?.toDouble() ?? 0.0;
   final double maxValue = (config['maxValue'] as num?)?.toDouble() ?? 100.0;
@@ -127,7 +176,13 @@ PropertyEditorBuilder kSliderNumberInputEditor =
   );
 };
 
-PropertyEditorBuilder kIntegerStepperEditor = (BuildContext context, PropField field, dynamic currentValue, void Function(dynamic newValue) onChanged) {
+PropertyEditorBuilder kIntegerStepperEditor = (
+  BuildContext context,
+  Map<String, dynamic> allProps,
+  PropField field,
+  dynamic currentValue,
+  void Function(dynamic newValue) onChanged,
+) {
   final config = field.editorConfig ?? {};
   final int? minValue = config['minValue'] as int?;
   final int? maxValue = config['maxValue'] as int?;
@@ -138,7 +193,7 @@ PropertyEditorBuilder kIntegerStepperEditor = (BuildContext context, PropField f
     currentIntValue = currentValue.toInt();
   } else if (currentValue is String) {
     currentIntValue = int.tryParse(currentValue);
-  } else if (currentValue == null && field.defaultValue != null){
+  } else if (currentValue == null && field.defaultValue != null) {
     currentIntValue = (field.defaultValue as num?)?.toInt();
   }
 
@@ -154,13 +209,19 @@ PropertyEditorBuilder kIntegerStepperEditor = (BuildContext context, PropField f
   );
 };
 
-PropertyEditorBuilder kAlignmentPickerEditor =
-    (BuildContext context, PropField field, dynamic currentValue, void Function(dynamic newValue) onChanged) {
-
-  String effectiveValue = currentValue?.toString() ?? field.defaultValue?.toString() ?? 'center';
+PropertyEditorBuilder kAlignmentPickerEditor = (
+  BuildContext context,
+  Map<String, dynamic> allProps,
+  PropField field,
+  dynamic currentValue,
+  void Function(dynamic newValue) onChanged,
+) {
+  String effectiveValue =
+      currentValue?.toString() ?? field.defaultValue?.toString() ?? 'center';
   final options = field.options ?? [];
 
-  if (options.isNotEmpty && !options.any((opt) => opt['id'] == effectiveValue)) {
+  if (options.isNotEmpty &&
+      !options.any((opt) => opt['id'] == effectiveValue)) {
     if (options.any((opt) => opt['id'] == 'center')) {
       effectiveValue = 'center';
     } else {

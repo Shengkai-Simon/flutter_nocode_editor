@@ -29,6 +29,7 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       fieldType: FieldType.string,
       defaultValue: _dropdownButtonDefaultProps['itemsString'],
       editorBuilder: kDefaultTextInputEditor,
+      propertyCategory: PropertyCategory.data,
     ),
     PropField(
       name: 'selectedValue',
@@ -36,6 +37,7 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       fieldType: FieldType.string,
       defaultValue: _dropdownButtonDefaultProps['selectedValue'],
       editorBuilder: kDefaultTextInputEditor,
+        propertyCategory: PropertyCategory.value
     ),
     PropField(
       name: 'hintText',
@@ -43,6 +45,7 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       fieldType: FieldType.string,
       defaultValue: _dropdownButtonDefaultProps['hintText'],
       editorBuilder: kDefaultTextInputEditor,
+        propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'isExpanded',
@@ -50,6 +53,7 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       fieldType: FieldType.boolean,
       defaultValue: _dropdownButtonDefaultProps['isExpanded'],
       editorBuilder: kDefaultSwitchEditor,
+        propertyCategory: PropertyCategory.behavior
     ),
     ...BasicTextStyleProps.fields.map((field) {
       String labelPrefix = "Item ";
@@ -66,7 +70,9 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
           fieldType: field.fieldType,
           defaultValue: defaultValue,
           options: field.options,
-          editorBuilder: field.editorBuilder);
+          editorBuilder: field.editorBuilder,
+          propertyCategory: PropertyCategory.appearance
+      );
     }),
   ],
   childPolicy: ChildAcceptancePolicy.none,

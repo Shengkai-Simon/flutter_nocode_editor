@@ -24,6 +24,7 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       fieldType: FieldType.boolean,
       defaultValue: false,
       editorBuilder: kDefaultSwitchEditor,
+      propertyCategory: PropertyCategory.value
     ),
     PropField(
       name: 'activeColor',
@@ -31,6 +32,7 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'activeTrackColor',
@@ -38,6 +40,7 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'inactiveThumbColor',
@@ -45,6 +48,7 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'inactiveTrackColor',
@@ -52,6 +56,7 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

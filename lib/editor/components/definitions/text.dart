@@ -23,11 +23,19 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
         label: 'Text Content',
         fieldType: FieldType.string,
         defaultValue: 'Hello World',
-        editorBuilder: kDefaultTextInputEditor),
+        editorBuilder: kDefaultTextInputEditor,
+        propertyCategory: PropertyCategory.value
+    ),
 
     ...BasicTextStyleProps.fields,
 
-    PropField(name: 'softWrap', label: 'Soft Wrap', fieldType: FieldType.boolean, defaultValue: true, editorBuilder: kDefaultSwitchEditor),
+    PropField(name: 'softWrap',
+        label: 'Soft Wrap',
+        fieldType: FieldType.boolean,
+        defaultValue: true,
+        editorBuilder: kDefaultSwitchEditor,
+        propertyCategory: PropertyCategory.appearance
+    ),
     PropField(
       name: 'maxLines',
       label: 'Max Lines',
@@ -35,6 +43,7 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
       defaultValue: null,
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1, 'step': 1},
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'overflow',
@@ -48,6 +57,7 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
         {'id': 'visible', 'name': 'Visible (can overflow bounds)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

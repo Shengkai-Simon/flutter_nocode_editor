@@ -20,6 +20,7 @@ final RegisteredComponent centerComponentDefinition = RegisteredComponent(
       fieldType: FieldType.number,
       defaultValue: null,
       editorBuilder: kDefaultNumberInputEditor,
+      propertyCategory: PropertyCategory.sizing,
     ),
     PropField(
       name: 'heightFactor',
@@ -27,6 +28,7 @@ final RegisteredComponent centerComponentDefinition = RegisteredComponent(
       fieldType: FieldType.number,
       defaultValue: null,
       editorBuilder: kDefaultNumberInputEditor,
+      propertyCategory: PropertyCategory.sizing,
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

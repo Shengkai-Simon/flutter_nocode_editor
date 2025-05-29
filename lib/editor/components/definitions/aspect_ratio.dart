@@ -20,6 +20,7 @@ final RegisteredComponent aspectRatioComponentDefinition = RegisteredComponent(
       defaultValue: 1.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.1, 'maxValue': 4.0, 'divisions': 39, 'decimalPlaces': 2},
+      propertyCategory: PropertyCategory.sizing,
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

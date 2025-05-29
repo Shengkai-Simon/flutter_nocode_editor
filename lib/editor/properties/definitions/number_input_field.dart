@@ -48,7 +48,7 @@ class _NumberInputFieldState extends State<NumberInputField> {
           errorMaxLines: 2,
         ),
         onChanged: widget.onChanged,
-        autovalidateMode: AutovalidateMode.onUserInteraction, // Validate on user interaction
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         validator: (value) {
           if (value == null || value.isEmpty) return null;
           final double? numValue = double.tryParse(value);

@@ -3,6 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../components/core/component_model.dart';
 
+const List<PropertyCategory> kPropertyCategoryOrder = [
+  PropertyCategory.general,
+  PropertyCategory.sizing,
+  PropertyCategory.spacing,
+  PropertyCategory.layout,
+  PropertyCategory.flexLayout,
+  PropertyCategory.appearance,
+  PropertyCategory.fill,
+  PropertyCategory.border,
+  PropertyCategory.shadow,
+  PropertyCategory.gradient,
+  PropertyCategory.textStyle,
+  PropertyCategory.imageSource,
+  PropertyCategory.imageAppearance,
+  PropertyCategory.behavior,
+  PropertyCategory.value,
+  PropertyCategory.data,
+];
+
 enum ComponentCategory {
   layout,
   content,
@@ -20,12 +39,32 @@ enum ChildAcceptancePolicy {
   multiple, // Can have multiple children
 }
 
+enum PropertyCategory {
+  general,
+  sizing,
+  spacing,
+  layout,
+  flexLayout,
+  appearance,
+  fill,
+  border,
+  shadow,
+  gradient,
+  textStyle,
+  imageSource,
+  imageAppearance,
+  behavior,
+  data,
+  value
+}
+
 typedef PropertyEditorBuilder = Widget Function(
     BuildContext context,
+    Map<String, dynamic> allProps,
     PropField field,
     dynamic currentValue,
     void Function(dynamic newValue) onChanged,
-    );
+);
 
 /// Support displaying component field a property
 class PropField {
@@ -36,6 +75,7 @@ class PropField {
   final List<Map<String, String>>? options;
   final PropertyEditorBuilder? editorBuilder;
   final Map<String, dynamic>? editorConfig;
+  final PropertyCategory propertyCategory;
 
   const PropField({
     required this.name,
@@ -45,6 +85,7 @@ class PropField {
     this.options,
     required this.editorBuilder,
     this.editorConfig,
+    required this.propertyCategory,
   });
 }
 

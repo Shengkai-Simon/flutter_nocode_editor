@@ -43,11 +43,11 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
     ...ChildAlignmentProps.fields,
     ...BackgroundColorProp.fields,
 
-    PropField(name: 'borderRadius', label: 'Border Radius', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor),
-    PropField(name: 'borderWidth', label: 'Border Width', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor),
-    PropField(name: 'borderColor', label: 'Border Color', fieldType: FieldType.color, defaultValue: '#000000', editorBuilder: kDefaultColorPickerEditor),
+    PropField(name: 'borderRadius', label: 'Border Radius', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor, propertyCategory: PropertyCategory.border),
+    PropField(name: 'borderWidth', label: 'Border Width', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor, propertyCategory: PropertyCategory.border),
+    PropField(name: 'borderColor', label: 'Border Color', fieldType: FieldType.color, defaultValue: '#000000', editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.border),
 
-    PropField(name: 'shadowColor', label: 'Shadow Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor),
+    PropField(name: 'shadowColor', label: 'Shadow Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.shadow),
     PropField(
       name: 'shadowOffsetX',
       label: 'Shadow Offset X',
@@ -55,6 +55,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       defaultValue: 0.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': -20.0, 'maxValue': 20.0, 'divisions': 40, 'decimalPlaces': 1},
+      propertyCategory: PropertyCategory.shadow,
     ),
     PropField(
       name: 'shadowOffsetY',
@@ -63,6 +64,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       defaultValue: 2.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': -20.0, 'maxValue': 20.0, 'divisions': 40, 'decimalPlaces': 1},
+        propertyCategory: PropertyCategory.shadow,
     ),
     PropField(
       name: 'shadowBlurRadius',
@@ -71,6 +73,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       defaultValue: 4.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 50.0, 'divisions': 50, 'decimalPlaces': 1},
+      propertyCategory: PropertyCategory.shadow,
     ),
     PropField(
       name: 'shadowSpreadRadius',
@@ -79,6 +82,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       defaultValue: 0.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': -10.0, 'maxValue': 20.0, 'divisions': 30, 'decimalPlaces': 1},
+      propertyCategory: PropertyCategory.shadow,
     ),
     PropField(
       name: 'gradientType',
@@ -90,16 +94,27 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
         {'id': 'linear', 'name': 'Linear'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.gradient,
     ),
-    PropField(name: 'gradientColor1', label: 'Gradient Color 1', fieldType: FieldType.color, defaultValue: '#FFFFFFFF', editorBuilder: kDefaultColorPickerEditor),
-    PropField(name: 'gradientColor2', label: 'Gradient Color 2', fieldType: FieldType.color, defaultValue: '#FF000000', editorBuilder: kDefaultColorPickerEditor),
+    PropField(name: 'gradientColor1', label: 'Gradient Color 1', fieldType: FieldType.color, defaultValue: '#FFFFFFFF', editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.gradient),
+    PropField(name: 'gradientColor2', label: 'Gradient Color 2', fieldType: FieldType.color, defaultValue: '#FF000000', editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.gradient),
     PropField(
-        name: 'gradientBeginAlignment', label: 'Gradient Begin Align', fieldType: FieldType.select, defaultValue: 'topLeft',
-        options: ChildAlignmentProps.fields.first.options, editorBuilder: kDefaultDropdownEditor
+      name: 'gradientBeginAlignment',
+      label: 'Gradient Begin Align',
+      fieldType: FieldType.select,
+      defaultValue: 'topLeft',
+      options: ChildAlignmentProps.fields.first.options,
+      editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.gradient,
     ),
     PropField(
-        name: 'gradientEndAlignment', label: 'Gradient End Align', fieldType: FieldType.select, defaultValue: 'bottomRight',
-        options: ChildAlignmentProps.fields.first.options, editorBuilder: kDefaultDropdownEditor
+      name: 'gradientEndAlignment',
+      label: 'Gradient End Align',
+      fieldType: FieldType.select,
+      defaultValue: 'bottomRight',
+      options: ChildAlignmentProps.fields.first.options,
+      editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.gradient,
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

@@ -36,7 +36,13 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
     'alignment': 'center',
   },
   propFields: [
-    PropField(name: 'src', label: 'Source (URL or Asset Path)', fieldType: FieldType.string, defaultValue: 'https://picsum.photos/seed/flutter_editor/200/300', editorBuilder: kDefaultTextInputEditor),
+    PropField(name: 'src',
+      label: 'Source (URL or Asset Path)',
+      fieldType: FieldType.string,
+      defaultValue: 'https://picsum.photos/seed/flutter_editor/200/300',
+      editorBuilder: kDefaultTextInputEditor,
+      propertyCategory: PropertyCategory.imageSource
+    ),
     PropField(
       name: 'imageType',
       label: 'Image Type',
@@ -47,26 +53,28 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
         {'id': 'asset', 'name': 'Asset Path (requires setup)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.imageSource
     ),
 
     ...SizingProps.fields,
     ...ChildAlignmentProps.fields,
 
     PropField(
-        name: 'fit',
-        label: 'Box Fit',
-        fieldType: FieldType.select,
-        defaultValue: 'contain',
-        options: [
-          {'id': 'fill', 'name': 'Fill'},
-          {'id': 'contain', 'name': 'Contain'},
-          {'id': 'cover', 'name': 'Cover'},
-          {'id': 'fitWidth', 'name': 'Fit Width'},
-          {'id': 'fitHeight', 'name': 'Fit Height'},
-          {'id': 'none', 'name': 'None'},
-          {'id': 'scaleDown', 'name': 'Scale Down'},
-        ],
-        editorBuilder: kDefaultDropdownEditor
+      name: 'fit',
+      label: 'Box Fit',
+      fieldType: FieldType.select,
+      defaultValue: 'contain',
+      options: [
+        {'id': 'fill', 'name': 'Fill'},
+        {'id': 'contain', 'name': 'Contain'},
+        {'id': 'cover', 'name': 'Cover'},
+        {'id': 'fitWidth', 'name': 'Fit Width'},
+        {'id': 'fitHeight', 'name': 'Fit Height'},
+        {'id': 'none', 'name': 'None'},
+        {'id': 'scaleDown', 'name': 'Scale Down'},
+      ],
+      editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'repeat',
@@ -80,8 +88,15 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
         {'id': 'noRepeat', 'name': 'No Repeat'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+        propertyCategory: PropertyCategory.behavior
     ),
-    PropField(name: 'semanticLabel', label: 'Semantic Label', fieldType: FieldType.string, defaultValue: '', editorBuilder: kDefaultTextInputEditor),
+    PropField(name: 'semanticLabel',
+      label: 'Semantic Label',
+      fieldType: FieldType.string,
+      defaultValue: '',
+      editorBuilder: kDefaultTextInputEditor,
+      propertyCategory: PropertyCategory.behavior
+    ),
   ],
   childPolicy: ChildAcceptancePolicy.none,
   builder: (

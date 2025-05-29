@@ -24,6 +24,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       fieldType: FieldType.boolean,
       defaultValue: false,
       editorBuilder: kDefaultSwitchEditor,
+      propertyCategory: PropertyCategory.general,
     ),
     PropField(
       name: 'tristate',
@@ -31,6 +32,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       fieldType: FieldType.boolean,
       defaultValue: false,
       editorBuilder: kDefaultSwitchEditor,
+      propertyCategory: PropertyCategory.behavior,
     ),
     PropField(
       name: 'activeColor',
@@ -38,6 +40,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.appearance,
     ),
     PropField(
       name: 'checkColor',
@@ -45,6 +48,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.appearance,
     ),
     PropField(
       name: 'splashRadius',
@@ -53,6 +57,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       defaultValue: 20.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 50.0, 'decimalPlaces': 0},
+      propertyCategory: PropertyCategory.appearance,
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

@@ -37,6 +37,7 @@ final RegisteredComponent iconComponentDefinition = RegisteredComponent(
       defaultValue: 'Favorite',
       options: _availableIcons.keys.map((name) => {'id': name, 'name': name}).toList(),
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.general
     ),
     PropField(
       name: 'size',
@@ -45,6 +46,7 @@ final RegisteredComponent iconComponentDefinition = RegisteredComponent(
       defaultValue: 24.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 8.0, 'maxValue': 128.0, 'divisions': 120, 'decimalPlaces': 0},
+      propertyCategory: PropertyCategory.sizing
     ),
     PropField(
       name: 'color',
@@ -52,6 +54,7 @@ final RegisteredComponent iconComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: '#000000',
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

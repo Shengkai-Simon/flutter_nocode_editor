@@ -280,7 +280,7 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
             errorStyle: const TextStyle(fontSize: 9, height: 0.8),
             errorMaxLines: 1,
           ),
-          textAlign: TextAlign.center, // Added for better appearance
+          textAlign: TextAlign.center,
           keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: false),
           inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
           autovalidateMode: AutovalidateMode.onUserInteraction,

@@ -22,6 +22,7 @@ final RegisteredComponent radioComponentDefinition = RegisteredComponent(
       fieldType: FieldType.string,
       defaultValue: 'option1',
       editorBuilder: kDefaultTextInputEditor,
+      propertyCategory: PropertyCategory.value
     ),
     PropField(
       name: 'isSelectedInGroup',
@@ -29,6 +30,7 @@ final RegisteredComponent radioComponentDefinition = RegisteredComponent(
       fieldType: FieldType.boolean,
       defaultValue: false,
       editorBuilder: kDefaultSwitchEditor,
+      propertyCategory: PropertyCategory.behavior
     ),
     PropField(
       name: 'activeColor',
@@ -36,6 +38,7 @@ final RegisteredComponent radioComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

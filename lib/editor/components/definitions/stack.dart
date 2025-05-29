@@ -52,6 +52,7 @@ final RegisteredComponent stackComponentDefinition = RegisteredComponent(
         {'id': 'passthrough', 'name': 'Passthrough (constraints pass through)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'clipBehavior',
@@ -65,6 +66,7 @@ final RegisteredComponent stackComponentDefinition = RegisteredComponent(
         {'id': 'none', 'name': 'None'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
   ],
   childPolicy: ChildAcceptancePolicy.multiple,

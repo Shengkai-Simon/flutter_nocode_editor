@@ -25,6 +25,7 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
       defaultValue: 16.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 1.0, 'maxValue': 100.0, 'divisions': 99, 'decimalPlaces': 0},
+      propertyCategory: PropertyCategory.sizing,
     ),
     PropField(
       name: 'thickness',
@@ -33,6 +34,7 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
       defaultValue: null,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.5, 'maxValue': 10.0, 'divisions': 19, 'decimalPlaces': 1},
+      propertyCategory: PropertyCategory.appearance,
     ),
     PropField(
       name: 'indent',
@@ -41,6 +43,7 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
       defaultValue: 0.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'divisions': 100, 'decimalPlaces': 0},
+      propertyCategory: PropertyCategory.layout,
     ),
     PropField(
       name: 'endIndent',
@@ -49,8 +52,9 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
       defaultValue: 0.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'divisions': 100, 'decimalPlaces': 0},
+      propertyCategory: PropertyCategory.layout,
     ),
-    PropField(name: 'color', label: 'Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor),
+    PropField(name: 'color', label: 'Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.appearance),
   ],
   childPolicy: ChildAcceptancePolicy.none,
   builder: (

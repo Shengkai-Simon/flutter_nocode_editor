@@ -30,6 +30,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'vertical', 'name': 'Vertical'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'alignment',
@@ -45,6 +46,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'spaceEvenly', 'name': 'Space Evenly'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'spacing',
@@ -53,6 +55,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       defaultValue: 0.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'decimalPlaces': 1},
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'runAlignment',
@@ -68,6 +71,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'spaceEvenly', 'name': 'Space Evenly'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'runSpacing',
@@ -76,6 +80,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       defaultValue: 0.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'decimalPlaces': 1},
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'crossAxisAlignment',
@@ -89,6 +94,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'stretch', 'name': 'Stretch'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'clipBehavior',
@@ -102,6 +108,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'antiAliasWithSaveLayer', 'name': 'Anti Alias With SaveLayer'},
       ],
       editorBuilder: kDefaultDropdownEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
   ],
   childPolicy: ChildAcceptancePolicy.multiple,

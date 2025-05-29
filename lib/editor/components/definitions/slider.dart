@@ -26,6 +26,7 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.number,
       defaultValue: 0.5,
       editorBuilder: kDefaultNumberInputEditor,
+      propertyCategory: PropertyCategory.value
     ),
     PropField(
       name: 'min',
@@ -33,6 +34,7 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.number,
       defaultValue: 0.0,
       editorBuilder: kDefaultNumberInputEditor,
+      propertyCategory: PropertyCategory.behavior
     ),
     PropField(
       name: 'max',
@@ -40,6 +42,7 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.number,
       defaultValue: 1.0,
       editorBuilder: kDefaultNumberInputEditor,
+      propertyCategory: PropertyCategory.behavior
     ),
     PropField(
       name: 'divisions',
@@ -48,6 +51,7 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       defaultValue: null,
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 2, 'step': 1},
+      propertyCategory: PropertyCategory.behavior
     ),
     PropField(
       name: 'activeColor',
@@ -55,6 +59,7 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'inactiveColor',
@@ -62,6 +67,7 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.behavior
     ),
     PropField(
       name: 'thumbColor',
@@ -69,6 +75,7 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
+      propertyCategory: PropertyCategory.behavior
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

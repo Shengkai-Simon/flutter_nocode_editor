@@ -19,7 +19,7 @@ class WidgetRenderer extends ConsumerWidget {
     final rc = registeredComponents[node.type];
     if (rc == null) {
       return Container(
-        constraints: const BoxConstraints(minWidth: 30, minHeight: 30), // Min size for unknown too
+        constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
         padding: const EdgeInsets.all(8),
         color: Colors.red.withOpacity(0.1),
         child: Text('Unknown: ${node.type}', style: const TextStyle(color: Colors.red, fontSize: 10)),
