@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
-import '../../properties/core/property_meta.dart';
-import '../core/common_props.dart';
-import '../core/component_model.dart';
+import '../../properties/core/property_definition.dart';
+import '../../properties/core/property_common_groups.dart';
+import '../core/widget_node.dart';
+import '../core/component_definition.dart';
 
 final RegisteredComponent paddingComponentDefinition = RegisteredComponent(
   type: 'Padding',

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../properties/core/property_editor_registry.dart';
-import '../../properties/core/property_meta.dart';
-import '../core/component_model.dart';
+import '../../properties/core/property_definition.dart';
+import '../core/widget_node.dart';
+import '../core/component_definition.dart';
 
 final RegisteredComponent centerComponentDefinition = RegisteredComponent(
   type: 'Center',

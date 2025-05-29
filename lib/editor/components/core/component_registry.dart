@@ -1,4 +1,5 @@
-import '../../properties/core/property_meta.dart';
+import 'package:flutter_editor/editor/components/core/component_definition.dart';
+
 import '../definitions/align.dart';
 import '../definitions/aspect_ratio.dart';
 import '../definitions/card.dart';

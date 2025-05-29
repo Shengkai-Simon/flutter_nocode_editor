@@ -3,9 +3,9 @@ import 'package:flutter_editor/ui/left/widget_tree_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../editor/components/core/component_model.dart';
+import '../../editor/components/core/widget_node.dart';
 import '../../editor/components/core/component_registry.dart';
-import '../../editor/properties/core/property_meta.dart';
+import '../../editor/components/core/component_definition.dart';
 import '../../state/editor_state.dart';
 
 class LeftView extends ConsumerWidget {

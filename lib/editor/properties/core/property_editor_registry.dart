@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_editor/editor/properties/core/property_meta.dart';
+import 'package:flutter_editor/editor/properties/core/property_definition.dart';
 
 import '../definitions/alignment_picker_field.dart';
 import '../definitions/color_picker_field.dart';

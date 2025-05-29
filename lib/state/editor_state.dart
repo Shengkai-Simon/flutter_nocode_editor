@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../editor/components/core/component_model.dart';
+import '../../editor/components/core/widget_node.dart';
 
 final uuid = Uuid();
 

@@ -287,8 +287,6 @@ class ParsingUtil {
 
   /// Converts a hex color string to a Flutter Color. Returns a default color if parsing fails or input is empty/null.
   static Color parseColor(String? hex, {Color defaultColor = Colors.black}) {
-    const Color defaultColor = Colors.black;
-
     if (hex == null || hex.isEmpty) {
       return defaultColor;
     }

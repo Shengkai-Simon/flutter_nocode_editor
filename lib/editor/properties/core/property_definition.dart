@@ -1,7 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../components/core/component_model.dart';
 
 const List<PropertyCategory> kPropertyCategoryOrder = [
   PropertyCategory.general,
@@ -22,22 +19,8 @@ const List<PropertyCategory> kPropertyCategoryOrder = [
   PropertyCategory.data,
 ];
 
-enum ComponentCategory {
-  layout,
-  content,
-  input,
-  other,
-}
-
 /// support for field types in editor's right-side properties panel
 enum FieldType { string, number, color, select, boolean, alignment, edgeInsets }
-
-/// support how many children a component can have
-enum ChildAcceptancePolicy {
-  none, // Cannot have any children
-  single, // Can have exactly one child
-  multiple, // Can have multiple children
-}
 
 enum PropertyCategory {
   general,
@@ -86,30 +69,5 @@ class PropField {
     required this.editorBuilder,
     this.editorConfig,
     required this.propertyCategory,
-  });
-}
-
-/// Register the metadata structure for component
-class RegisteredComponent {
-  final String type;
-  final String displayName;
-  final IconData? icon;
-  final List<PropField> propFields;
-  final Map<String, dynamic> defaultProps;
-  final ChildAcceptancePolicy childPolicy;
-  final ComponentCategory category;
-
-  /// return a widget builder based on props
-  final Widget Function(WidgetNode node, WidgetRef ref, Widget Function(WidgetNode childNode) renderChild) builder;
-
-  const RegisteredComponent({
-    required this.type,
-    required this.displayName,
-    this.icon,
-    required this.propFields,
-    required this.defaultProps,
-    required this.builder,
-    required this.childPolicy,
-    required this.category,
   });
 }

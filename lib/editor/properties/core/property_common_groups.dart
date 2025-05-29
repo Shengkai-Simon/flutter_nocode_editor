@@ -1,5 +1,5 @@
-import '../../properties/core/property_editor_registry.dart';
-import '../../properties/core/property_meta.dart';
+import 'property_editor_registry.dart';
+import 'property_definition.dart';
 
 class SizingProps {
   static List<PropField> get fields => [
