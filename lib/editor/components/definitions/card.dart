@@ -39,7 +39,7 @@ final RegisteredComponent cardComponentDefinition = RegisteredComponent(
         fieldType: FieldType.number,
         defaultValue: 4.0,
         editorBuilder: kDefaultNumberInputEditor,
-        propertyCategory: PropertyCategory.appearance
+        propertyCategory: PropertyCategory.border
     ),
     PropField(
         name: 'elevation',

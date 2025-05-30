@@ -88,7 +88,7 @@ class BackgroundColorProp {
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
-      propertyCategory: PropertyCategory.fill,
+      propertyCategory: PropertyCategory.background,
     ),
   ];
 
@@ -104,7 +104,7 @@ class FlexChildProps {
       defaultValue: 1,
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1, 'step': 1},
-      propertyCategory: PropertyCategory.flexLayout,
+      propertyCategory: PropertyCategory.sizing,
     ),
     PropField(
       name: 'fit',
@@ -116,7 +116,7 @@ class FlexChildProps {
         {'id': 'tight', 'name': 'Tight'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance,
+      propertyCategory: PropertyCategory.layout,
     ),
   ];
 
@@ -141,7 +141,7 @@ class MainAxisAlignmentProp {
         {'id': 'spaceEvenly', 'name': 'Space Evenly'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.flexLayout,
+      propertyCategory: PropertyCategory.layout,
     ),
   ];
 
@@ -163,7 +163,7 @@ class CrossAxisAlignmentProp {
         {'id': 'baseline', 'name': 'Baseline (req. textBaseline)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.flexLayout,
+      propertyCategory: PropertyCategory.layout,
     ),
   ];
 
@@ -182,7 +182,7 @@ class MainAxisSizeProp {
         {'id': 'max', 'name': 'Max'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.flexLayout,
+      propertyCategory: PropertyCategory.layout,
     ),
   ];
 

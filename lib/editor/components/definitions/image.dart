@@ -42,7 +42,7 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
       fieldType: FieldType.string,
       defaultValue: 'https://picsum.photos/seed/flutter_editor/200/300',
       editorBuilder: kDefaultTextInputEditor,
-      propertyCategory: PropertyCategory.imageSource
+      propertyCategory: PropertyCategory.image
     ),
     PropField(
       name: 'imageType',
@@ -54,7 +54,7 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
         {'id': 'asset', 'name': 'Asset Path (requires setup)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.imageSource
+      propertyCategory: PropertyCategory.image
     ),
 
     ...SizingProps.fields,
@@ -75,7 +75,7 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
         {'id': 'scaleDown', 'name': 'Scale Down'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.image
     ),
     PropField(
       name: 'repeat',
@@ -89,14 +89,14 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
         {'id': 'noRepeat', 'name': 'No Repeat'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-        propertyCategory: PropertyCategory.behavior
+        propertyCategory: PropertyCategory.image
     ),
     PropField(name: 'semanticLabel',
       label: 'Semantic Label',
       fieldType: FieldType.string,
       defaultValue: '',
       editorBuilder: kDefaultTextInputEditor,
-      propertyCategory: PropertyCategory.behavior
+      propertyCategory: PropertyCategory.image
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

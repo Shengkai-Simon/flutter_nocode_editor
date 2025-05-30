@@ -2,43 +2,42 @@ import 'package:flutter/cupertino.dart';
 
 const List<PropertyCategory> kPropertyCategoryOrder = [
   PropertyCategory.general,
+  PropertyCategory.value,
+  PropertyCategory.dataSource,
   PropertyCategory.sizing,
   PropertyCategory.spacing,
   PropertyCategory.layout,
-  PropertyCategory.flexLayout,
   PropertyCategory.appearance,
-  PropertyCategory.fill,
+  PropertyCategory.textStyle,
+  PropertyCategory.background,
   PropertyCategory.border,
   PropertyCategory.shadow,
-  PropertyCategory.gradient,
-  PropertyCategory.textStyle,
-  PropertyCategory.imageSource,
-  PropertyCategory.imageAppearance,
+  PropertyCategory.image,
   PropertyCategory.behavior,
-  PropertyCategory.value,
-  PropertyCategory.data,
 ];
 
 /// support for field types in editor's right-side properties panel
 enum FieldType { string, number, color, select, boolean, alignment, edgeInsets }
 
 enum PropertyCategory {
-  general,
+  // Core Content & Data
+  general, // Text.text, Button.text, Radio.itemValue
+  value, // Switch.value, Slider.value, TextField.initialValue
+  dataSource, // DropdownButton.itemsString
+  // Layout & Sizing
   sizing,
   spacing,
   layout,
-  flexLayout,
+  // Visual Styling
   appearance,
-  fill,
+  textStyle,
+  background,
   border,
   shadow,
-  gradient,
-  textStyle,
-  imageSource,
-  imageAppearance,
-  behavior,
-  data,
-  value
+  // Specific Component Types
+  image,
+  // Behavior & Interaction
+  behavior, // keyboardType, obscureText, Slider's min/max/divisions, splashRadius
 }
 
 typedef PropertyEditorBuilder = Widget Function(

@@ -32,7 +32,7 @@ final RegisteredComponent flexibleComponentDefinition = RegisteredComponent(
       defaultValue: 1,
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1, 'step': 1},
-      propertyCategory: PropertyCategory.flexLayout,
+      propertyCategory: PropertyCategory.sizing,
     ),
     PropField(
       name: 'fit',
@@ -44,7 +44,7 @@ final RegisteredComponent flexibleComponentDefinition = RegisteredComponent(
         {'id': 'tight', 'name': 'Tight (child fills space, like Expanded)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.layout
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

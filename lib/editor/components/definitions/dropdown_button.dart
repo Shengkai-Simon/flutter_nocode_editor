@@ -30,7 +30,7 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       fieldType: FieldType.string,
       defaultValue: _dropdownButtonDefaultProps['itemsString'],
       editorBuilder: kDefaultTextInputEditor,
-      propertyCategory: PropertyCategory.data,
+      propertyCategory: PropertyCategory.dataSource,
     ),
     PropField(
       name: 'selectedValue',
@@ -46,7 +46,7 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       fieldType: FieldType.string,
       defaultValue: _dropdownButtonDefaultProps['hintText'],
       editorBuilder: kDefaultTextInputEditor,
-        propertyCategory: PropertyCategory.appearance
+        propertyCategory: PropertyCategory.general
     ),
     PropField(
       name: 'isExpanded',
@@ -54,7 +54,7 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       fieldType: FieldType.boolean,
       defaultValue: _dropdownButtonDefaultProps['isExpanded'],
       editorBuilder: kDefaultSwitchEditor,
-        propertyCategory: PropertyCategory.behavior
+        propertyCategory: PropertyCategory.sizing
     ),
     ...BasicTextStyleProps.fields.map((field) {
       String labelPrefix = "Item ";

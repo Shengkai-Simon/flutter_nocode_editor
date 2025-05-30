@@ -68,7 +68,7 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
-      propertyCategory: PropertyCategory.behavior
+      propertyCategory: PropertyCategory.appearance
     ),
     PropField(
       name: 'thumbColor',
@@ -76,7 +76,7 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
-      propertyCategory: PropertyCategory.behavior
+      propertyCategory: PropertyCategory.appearance
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

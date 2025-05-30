@@ -25,7 +25,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       fieldType: FieldType.boolean,
       defaultValue: false,
       editorBuilder: kDefaultSwitchEditor,
-      propertyCategory: PropertyCategory.general,
+      propertyCategory: PropertyCategory.value,
     ),
     PropField(
       name: 'tristate',
@@ -58,7 +58,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       defaultValue: 20.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 50.0, 'decimalPlaces': 0},
-      propertyCategory: PropertyCategory.appearance,
+      propertyCategory: PropertyCategory.behavior,
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

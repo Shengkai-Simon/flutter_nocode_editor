@@ -53,7 +53,7 @@ final RegisteredComponent stackComponentDefinition = RegisteredComponent(
         {'id': 'passthrough', 'name': 'Passthrough (constraints pass through)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.layout
     ),
     PropField(
       name: 'clipBehavior',

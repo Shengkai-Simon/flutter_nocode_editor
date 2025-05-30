@@ -42,7 +42,7 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       fieldType: FieldType.string,
       defaultValue: _textFieldDefaultProps['hintText'],
       editorBuilder: kDefaultTextInputEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.general
     ),
     PropField(
       name: 'labelText',
@@ -50,7 +50,7 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       fieldType: FieldType.string,
       defaultValue: _textFieldDefaultProps['labelText'],
       editorBuilder: kDefaultTextInputEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.general
     ),
     PropField(
       name: 'obscureText',
@@ -58,7 +58,7 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       fieldType: FieldType.boolean,
       defaultValue: _textFieldDefaultProps['obscureText'],
       editorBuilder: kDefaultSwitchEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.behavior
     ),
     PropField(
       name: 'keyboardType',
@@ -76,7 +76,7 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
         {'id': 'visiblepassword', 'name': 'Visible Password'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.behavior
     ),
     PropField(
       name: 'maxLines',
@@ -85,7 +85,7 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       defaultValue: _textFieldDefaultProps['maxLines'],
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1},
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.sizing
     ),
     PropField(
       name: 'minLines',
@@ -94,7 +94,7 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       defaultValue: _textFieldDefaultProps['minLines'],
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1},
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.sizing
     ),
     PropField(
       name: 'maxLength',
@@ -103,7 +103,7 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       defaultValue: _textFieldDefaultProps['maxLength'],
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1},
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.behavior
     ),
     ...BasicTextStyleProps.fields.map((field) {
       String label = field.label;

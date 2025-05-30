@@ -31,7 +31,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'vertical', 'name': 'Vertical'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.layout
     ),
     PropField(
       name: 'alignment',
@@ -47,7 +47,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'spaceEvenly', 'name': 'Space Evenly'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.layout
     ),
     PropField(
       name: 'spacing',
@@ -56,7 +56,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       defaultValue: 0.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'decimalPlaces': 1},
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.spacing
     ),
     PropField(
       name: 'runAlignment',
@@ -72,7 +72,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'spaceEvenly', 'name': 'Space Evenly'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.layout
     ),
     PropField(
       name: 'runSpacing',
@@ -81,7 +81,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       defaultValue: 0.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'decimalPlaces': 1},
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.spacing
     ),
     PropField(
       name: 'crossAxisAlignment',
@@ -95,7 +95,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'stretch', 'name': 'Stretch'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.layout
     ),
     PropField(
       name: 'clipBehavior',

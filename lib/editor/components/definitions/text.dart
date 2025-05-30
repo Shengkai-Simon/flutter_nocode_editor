@@ -25,7 +25,7 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
         fieldType: FieldType.string,
         defaultValue: 'Hello World',
         editorBuilder: kDefaultTextInputEditor,
-        propertyCategory: PropertyCategory.value
+        propertyCategory: PropertyCategory.general
     ),
 
     ...BasicTextStyleProps.fields,
@@ -35,7 +35,7 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
         fieldType: FieldType.boolean,
         defaultValue: true,
         editorBuilder: kDefaultSwitchEditor,
-        propertyCategory: PropertyCategory.appearance
+        propertyCategory: PropertyCategory.layout
     ),
     PropField(
       name: 'maxLines',
@@ -44,7 +44,7 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
       defaultValue: null,
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1, 'step': 1},
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.sizing
     ),
     PropField(
       name: 'overflow',
@@ -58,7 +58,7 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
         {'id': 'visible', 'name': 'Visible (can overflow bounds)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.textStyle
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

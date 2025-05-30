@@ -21,7 +21,7 @@ final RegisteredComponent spacerComponentDefinition = RegisteredComponent(
       defaultValue: 1,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 1.0, 'maxValue': 10.0, 'divisions': 9, 'decimalPlaces': 0},
-      propertyCategory: PropertyCategory.flexLayout
+      propertyCategory: PropertyCategory.sizing
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

@@ -21,7 +21,7 @@ final RegisteredComponent expandedComponentDefinition = RegisteredComponent(
       defaultValue: 1,
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1, 'step': 1},
-      propertyCategory: PropertyCategory.flexLayout
+      propertyCategory: PropertyCategory.sizing
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

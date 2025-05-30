@@ -5,29 +5,147 @@ import '../../editor/components/core/widget_node.dart';
 import '../../editor/components/core/component_registry.dart';
 import '../../editor/properties/core/property_definition.dart';
 import '../../state/editor_state.dart';
+import '../../utils/parsing_util.dart';
 
 class RightView extends ConsumerWidget {
   const RightView({super.key});
 
+  static const Set<PropertyCategory> _switchableCategories = {
+    PropertyCategory.background,
+    PropertyCategory.border,
+    PropertyCategory.shadow,
+  };
+
+  bool _isPropertyGroupEffectivelyEnabled(
+      PropertyCategory category,
+      Map<String, dynamic> props,
+      ) {
+    switch (category) {
+      case PropertyCategory.background:
+        final String? bgColor = props['backgroundColor'] as String?;
+        final bool hasBgColor = bgColor != null && bgColor.isNotEmpty && ParsingUtil.parseColor(bgColor).alpha != 0;
+        final String? gradientType = props['gradientType'] as String?;
+        final bool hasGradient = gradientType != null && gradientType != 'none';
+        return hasBgColor || hasGradient;
+      case PropertyCategory.border:
+        return (props['borderWidth'] as num? ?? 0) > 0;
+      case PropertyCategory.shadow:
+        final String? shadowColor = props['shadowColor'] as String?;
+        return shadowColor != null && shadowColor.isNotEmpty && ParsingUtil.parseColor(shadowColor).alpha != 0;
+      default:
+        return true;
+    }
+  }
+
+  Map<String, dynamic> _applyDefaultsForEnabledGroup(
+      PropertyCategory category,
+      Map<String, dynamic> currentProps,
+      ) {
+    final newProps = Map<String, dynamic>.from(currentProps);
+
+    switch (category) {
+      case PropertyCategory.background:
+        if (!_isPropertyGroupEffectivelyEnabled(PropertyCategory.background, newProps)) {
+          newProps['backgroundColor'] = '#FFF0F0F0';
+          newProps['gradientType'] = 'none';
+        } else {
+          if (newProps['backgroundColor'] == null && (newProps['gradientType'] == null || newProps['gradientType'] == 'none')) {
+            newProps['backgroundColor'] = '#FFF0F0F0';
+          }
+        }
+        break;
+      case PropertyCategory.border:
+        if (!_isPropertyGroupEffectivelyEnabled(PropertyCategory.border, newProps)) {
+          newProps['borderWidth'] = 1.0;
+          newProps['borderColor'] = '#FF000000';
+        } else {
+          if ((newProps['borderWidth'] as num? ?? 0) <= 0) {
+            newProps['borderWidth'] = 1.0;
+          }
+          newProps['borderColor'] ??= '#FF000000';
+        }
+        break;
+      case PropertyCategory.shadow:
+        if (!_isPropertyGroupEffectivelyEnabled(PropertyCategory.shadow, newProps)) {
+          newProps['shadowColor'] = '#8A000000';
+          newProps['shadowOffsetX'] ??= 0.0;
+          newProps['shadowOffsetY'] ??= 2.0;
+          newProps['shadowBlurRadius'] ??= 4.0;
+          newProps['shadowSpreadRadius'] ??= 0.0;
+        } else {
+          newProps['shadowColor'] ??= '#8A000000';
+        }
+        break;
+      default:
+        break;
+    }
+    return newProps;
+  }
+
+  Map<String, dynamic> _applyDefaultsForDisabledGroup(
+      PropertyCategory category,
+      Map<String, dynamic> currentProps,
+      ) {
+    final newProps = Map<String, dynamic>.from(currentProps);
+    switch (category) {
+      case PropertyCategory.background:
+        newProps['backgroundColor'] = null;
+        newProps['gradientType'] = 'none';
+        newProps.remove('gradientColor1');
+        newProps.remove('gradientColor2');
+        newProps.remove('gradientBeginAlignment');
+        newProps.remove('gradientEndAlignment');
+        break;
+      case PropertyCategory.border:
+        newProps['borderWidth'] = 0.0;
+        break;
+      case PropertyCategory.shadow:
+        newProps['shadowColor'] = null;
+        break;
+      default:
+        break;
+    }
+    return newProps;
+  }
+
   // Helper function to get a displayable string name for a PropertyCategory
   String _getPropertyCategoryDisplayName(PropertyCategory category) {
     switch (category) {
-      case PropertyCategory.general: return 'General';
-      case PropertyCategory.sizing: return 'Sizing';
-      case PropertyCategory.spacing: return 'Spacing';
-      case PropertyCategory.layout: return 'Layout';
-      case PropertyCategory.flexLayout: return 'Flex Layout';
-      case PropertyCategory.appearance: return 'Appearance';
-      case PropertyCategory.fill: return 'Fill & Background';
-      case PropertyCategory.border: return 'Border';
-      case PropertyCategory.shadow: return 'Shadow';
-      case PropertyCategory.gradient: return 'Gradient';
-      case PropertyCategory.textStyle: return 'Text Style';
-      case PropertyCategory.imageSource: return 'Image Source';
-      case PropertyCategory.imageAppearance: return 'Image Appearance';
-      case PropertyCategory.behavior: return 'Behavior';
-      case PropertyCategory.value: return 'Value';
-      case PropertyCategory.data: return 'Data';
+    // Core Attributes
+      case PropertyCategory.general:
+        return 'General'; // e.g., Text content, Button text, Radio item value
+      case PropertyCategory.value:
+        return 'Value'; // e.g., Switch state, Slider position, TextField input
+      case PropertyCategory.dataSource:
+        return 'Data Source'; // e.g., Dropdown items
+
+    // Layout & Sizing
+      case PropertyCategory.sizing:
+        return 'Sizing & Dimensions'; // e.g., Width, Height, Flex factor
+      case PropertyCategory.spacing:
+        return 'Spacing & Indentation'; // e.g., Margin, Padding, Divider indents
+      case PropertyCategory.layout:
+        return 'Layout & Alignment'; // e.g., Child alignment, Row/Column axis controls, Wrap properties
+
+    // Visual Styling
+      case PropertyCategory.appearance:
+        return 'Appearance'; // e.g., Icon choice, active/inactive colors, elevation, clip behavior
+      case PropertyCategory.textStyle:
+        return 'Text Style'; // e.g., Font properties, text alignment
+      case PropertyCategory.background: // Merged 'fill' and 'gradient'
+        return 'Background & Fill'; // e.g., Background color, gradients
+      case PropertyCategory.border:
+        return 'Border & Corners'; // e.g., Border properties, corner radius
+      case PropertyCategory.shadow:
+        return 'Shadow'; // e.g., Box shadows, elevation shadows
+
+    // Specific Component Types
+      case PropertyCategory.image: // Merged 'imageSource' and 'imageAppearance'
+        return 'Image Properties'; // e.g., Image source, fit, repeat
+
+    // Behavior & Interaction
+      case PropertyCategory.behavior:
+        return 'Interaction & Behavior'; // Returns 'myCategory' from 'PropertyCategory.myCategory'
     }
   }
 
@@ -99,7 +217,6 @@ class RightView extends ConsumerWidget {
     }
 
     final Map<PropertyCategory, List<PropField>> categorizedFields = {};
-
     for (var field in rc.propFields) {
       final category = field.propertyCategory;
       (categorizedFields[category] ??= []).add(field);
@@ -107,39 +224,41 @@ class RightView extends ConsumerWidget {
 
     List<Widget> propertyWidgets = [];
 
+    // Editing: Component Name & Delete Button
     propertyWidgets.add(
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                'Editing: ${rc.displayName}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                overflow: TextOverflow.ellipsis,
-              ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              'Editing: ${rc.displayName}',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
             ),
-            if (node.id != tree.id)
-              IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                tooltip: 'Delete ${rc.displayName}',
-                onPressed: () {
-                  final currentGlobalTree = ref.read(canvasTreeProvider);
-                  if (currentGlobalTree.id == node.id) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Cannot delete the root canvas node."))
-                    );
-                    return;
-                  }
-                  final newTree = _removeNodeById(currentGlobalTree, node.id);
-                  ref.read(canvasTreeProvider.notifier).state = newTree;
-                  ref.read(selectedNodeIdProvider.notifier).state = null;
-                },
-              ),
-          ],
-        )
+          ),
+          if (node.id != tree.id)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              tooltip: 'Delete ${rc.displayName}',
+              onPressed: () {
+                final currentGlobalTree = ref.read(canvasTreeProvider);
+                if (currentGlobalTree.id == node.id) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Cannot delete the root canvas node.")));
+                  return;
+                }
+                ref.read(selectedNodeIdProvider.notifier).state = null;
+                final newTree = _removeNodeById(currentGlobalTree, node.id);
+                ref.read(canvasTreeProvider.notifier).state = newTree;
+
+              },
+            ),
+        ],
+      ),
     );
     propertyWidgets.add(const Divider(height: 20));
 
+    // Function to build property fields for a category
     List<Widget> buildFieldWidgets(List<PropField> fields) {
       return fields.map((field) {
         final dynamic rawPropValue = node.props[field.name];
@@ -173,18 +292,75 @@ class RightView extends ConsumerWidget {
       }).toList();
     }
 
+    // Iterate through ordered categories to build UI sections
     for (var categoryEnumValue in kPropertyCategoryOrder) {
-      if (categorizedFields.containsKey(categoryEnumValue) && categorizedFields[categoryEnumValue]!.isNotEmpty) {
-        propertyWidgets.add(
-          Padding(
-            padding: const EdgeInsets.only(top: 16.0, bottom: 4.0),
-            child: Text(
-              _getPropertyCategoryDisplayName(categoryEnumValue),
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
-            ),
-          ),
+      if (categorizedFields.containsKey(categoryEnumValue) &&
+          categorizedFields[categoryEnumValue]!.isNotEmpty) {
+
+        bool isSwitchable = _switchableCategories.contains(categoryEnumValue);
+        bool isEffectivelyEnabled = true;
+
+        if (isSwitchable) {
+          isEffectivelyEnabled = _isPropertyGroupEffectivelyEnabled(
+            categoryEnumValue,
+            node.props,
+          );
+        }
+
+        // Title Section (with Switch for switchable categories)
+        final titleWidget = Text(
+          _getPropertyCategoryDisplayName(categoryEnumValue),
+          style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary),
         );
-        propertyWidgets.addAll(buildFieldWidgets(categorizedFields[categoryEnumValue]!));
+
+        if (isSwitchable) {
+          propertyWidgets.add(
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0, bottom: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    titleWidget,
+                    Switch(
+                      value: isEffectivelyEnabled,
+                      onChanged: (bool newState) {
+                        Map<String, dynamic> newProps;
+                        if (newState) {
+                          newProps = _applyDefaultsForEnabledGroup(
+                            categoryEnumValue,
+                            node.props,
+                          );
+                        } else {
+                          newProps = _applyDefaultsForDisabledGroup(
+                            categoryEnumValue,
+                            node.props,
+                          );
+                        }
+                        final updatedNode = node.copyWith(props: newProps);
+                        final currentGlobalTree = ref.read(canvasTreeProvider);
+                        final newGlobalTree = _replaceNodeInTree(currentGlobalTree, updatedNode);
+                        ref.read(canvasTreeProvider.notifier).state = newGlobalTree;
+                      },
+                    ),
+                  ],
+                ),
+              )
+          );
+        } else {
+          propertyWidgets.add(
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0, bottom: 4.0),
+              child: titleWidget,
+            ),
+          );
+        }
+
+        if (isEffectivelyEnabled) {
+          propertyWidgets.addAll(buildFieldWidgets(categorizedFields[categoryEnumValue]!));
+        }
         propertyWidgets.add(const SizedBox(height: 8));
       }
     }
@@ -196,7 +372,7 @@ class RightView extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(top: 16.0, bottom: 4.0),
             child: Text(
-              _getPropertyCategoryDisplayName(categoryEnumValue),
+              "${_getPropertyCategoryDisplayName(categoryEnumValue)} (Unordered)",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey.shade700),
             ),
           ),

@@ -22,7 +22,7 @@ final RegisteredComponent elevatedButtonComponentDefinition = RegisteredComponen
   },
   propFields: [
     PropField(name: 'buttonText', label: 'Text', fieldType: FieldType.string, defaultValue: 'Click Me', editorBuilder: kDefaultTextInputEditor, propertyCategory: PropertyCategory.general),
-    PropField(name: 'backgroundColor', label: 'Background Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.appearance),
+    PropField(name: 'backgroundColor', label: 'Background Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.background),
     PropField(name: 'foregroundColor', label: 'Foreground Color (Text/Icon)', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.appearance),
     PropField(
         name: 'elevation',
