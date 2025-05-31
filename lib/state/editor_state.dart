@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../editor/components/core/widget_node.dart';
+import '../constants/app_constants.dart';
 
 final uuid = Uuid();
 
@@ -17,7 +18,7 @@ final canvasTreeProvider = StateProvider<WidgetNode>((ref) {
   return WidgetNode(
     id: uuid.v4(),
     type: 'Container',
-    props: {'width': 400.0, 'height': 300.0, 'backgroundColor': '#eeeeee'},
+    props: {'width': kRendererWidth, 'height': kRendererHeight, 'backgroundColor': '#eeeeee'},
     children: [],
   );
 });
