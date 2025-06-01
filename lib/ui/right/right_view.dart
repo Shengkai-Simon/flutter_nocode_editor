@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../editor/components/core/widget_node.dart';
 import '../../editor/components/core/component_registry.dart';
 import '../../editor/properties/core/property_definition.dart';
+import '../../services/issue_reporter_service.dart';
 import '../../state/editor_state.dart';
 import '../../utils/parsing_util.dart';
 
@@ -283,7 +284,7 @@ class RightView extends ConsumerWidget {
             onChanged,
           );
         } else {
-          print("Warning: No editorBuilder for property '${field.name}' in '${rc.displayName}'.");
+          IssueReporterService().reportWarning("Warning: No editorBuilder for property '${field.name}' in '${rc.displayName}'.");
           return ListTile(
             title: Text(field.label),
             subtitle: Text(currentValueForEditor?.toString() ?? 'N/A (No editor)'),

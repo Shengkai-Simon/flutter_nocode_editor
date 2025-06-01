@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../services/issue_reporter_service.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
@@ -34,7 +35,7 @@ final RegisteredComponent aspectRatioComponentDefinition = RegisteredComponent(
 
     double aspectRatioValue = (props['aspectRatio'] as num?)?.toDouble() ?? 1.0;
     if (aspectRatioValue <= 0) {
-      print("Warning: AspectRatio received invalid value $aspectRatioValue. Defaulting to 1.0.");
+      IssueReporterService().reportWarning("Warning: AspectRatio received invalid value $aspectRatioValue. Defaulting to 1.0.");
       aspectRatioValue = 1.0;
     }
 
