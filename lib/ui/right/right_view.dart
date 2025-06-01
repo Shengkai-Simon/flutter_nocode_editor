@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../editor/components/core/widget_node.dart';
 import '../../editor/components/core/component_registry.dart';
+import '../../editor/components/core/widget_node_utils.dart';
 import '../../editor/properties/core/property_definition.dart';
 import '../../services/issue_reporter_service.dart';
 import '../../state/editor_state.dart';
@@ -150,63 +151,11 @@ class RightView extends ConsumerWidget {
     }
   }
 
-  WidgetNode _removeNodeById(WidgetNode root, String targetId) {
-    if (root.id == targetId) {
-      return root;
-    }
-    final newChildren = <WidgetNode>[];
-    bool childRemoved = false;
-    for (final child in root.children) {
-      if (child.id == targetId) {
-        childRemoved = true;
-        continue;
-      }
-      newChildren.add(_removeNodeById(child, targetId));
-    }
-
-    if (childRemoved) {
-      return root.copyWith(children: newChildren);
-    }
-
-    bool childrenInstancesChanged = false;
-    if (newChildren.length == root.children.length) {
-      for (int i = 0; i < newChildren.length; i++) {
-        if (!identical(newChildren[i], root.children[i])) {
-          childrenInstancesChanged = true;
-          break;
-        }
-      }
-    }
-
-    if (childrenInstancesChanged) {
-      return root.copyWith(children: newChildren);
-    }
-
-    return root;
-  }
-
-  WidgetNode? _findNodeById(WidgetNode root, String? id) {
-    if (id == null) return null;
-    if (root.id == id) return root;
-    for (final child in root.children) {
-      final result = _findNodeById(child, id);
-      if (result != null) return result;
-    }
-    return null;
-  }
-
-  WidgetNode _replaceNodeInTree(WidgetNode root, WidgetNode updated) {
-    if (root.id == updated.id) return updated;
-    return root.copyWith(
-      children: root.children.map((c) => _replaceNodeInTree(c, updated)).toList(),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedId = ref.watch(selectedNodeIdProvider);
     final tree = ref.watch(canvasTreeProvider);
-    final WidgetNode? node = _findNodeById(tree, selectedId);
+    final WidgetNode? node = findNodeById(tree, selectedId);
 
     if (node == null) {
       return const Center(child: Text("Select a widget to edit its properties."));
@@ -249,7 +198,7 @@ class RightView extends ConsumerWidget {
                   return;
                 }
                 ref.read(selectedNodeIdProvider.notifier).state = null;
-                final newTree = _removeNodeById(currentGlobalTree, node.id);
+                final newTree = removeNodeById(currentGlobalTree, node.id);
                 ref.read(canvasTreeProvider.notifier).state = newTree;
 
               },
@@ -271,7 +220,7 @@ class RightView extends ConsumerWidget {
 
           final updatedNode = node.copyWith(props: updatedProps);
           final currentGlobalTree = ref.read(canvasTreeProvider);
-          final newGlobalTree = _replaceNodeInTree(currentGlobalTree, updatedNode);
+          final newGlobalTree = replaceNodeInTree(currentGlobalTree, updatedNode);
           ref.read(canvasTreeProvider.notifier).state = newGlobalTree;
         }
 
@@ -342,7 +291,7 @@ class RightView extends ConsumerWidget {
                         }
                         final updatedNode = node.copyWith(props: newProps);
                         final currentGlobalTree = ref.read(canvasTreeProvider);
-                        final newGlobalTree = _replaceNodeInTree(currentGlobalTree, updatedNode);
+                        final newGlobalTree = replaceNodeInTree(currentGlobalTree, updatedNode);
                         ref.read(canvasTreeProvider.notifier).state = newGlobalTree;
                       },
                     ),
