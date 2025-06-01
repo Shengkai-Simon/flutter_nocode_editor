@@ -311,8 +311,13 @@ class CanvasToolbar extends ConsumerWidget {
       );
     }
 
+    final ScrollController scrollController = ScrollController();
+
     return Scrollbar(
+      controller: scrollController,
+      thumbVisibility: true,
       child: ListView(
+        controller: scrollController,
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         children: _buildSelectableIssueListItems(issues, textColor, context),
       ),
