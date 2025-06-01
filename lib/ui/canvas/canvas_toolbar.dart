@@ -105,16 +105,26 @@ class CanvasToolbar extends ConsumerWidget {
               ref.read(selectedNodeIdProvider.notifier).state = null;
             }
 
-            Future.microtask(() {
-              if (!context.mounted) return;
-              final errors = ref.read(projectErrorsProvider);
-              final warnings = ref.read(projectWarningsProvider);
-              if (errors.isNotEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Project loaded with errors. Check 'Project Issues' panel."), backgroundColor: Colors.redAccent));
-              } else if (warnings.isNotEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Project loaded with warnings. Check 'Project Issues' panel."), backgroundColor: Colors.orangeAccent));
+            Future.delayed(Duration.zero, () {
+              if (!context.mounted) {
+                return;
+              }
+
+              final List<String> currentErrors = ref.read(projectErrorsProvider);
+              final List<String> currentWarnings = ref.read(projectWarningsProvider);
+
+              if (currentErrors.isNotEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Project loaded with errors. Check 'Project Issues' panel."), backgroundColor: Colors.redAccent),
+                );
+              } else if (currentWarnings.isNotEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Project loaded with warnings. Check 'Project Issues' panel."), backgroundColor: Colors.orangeAccent),
+                );
               } else if (fileContent.trim().isNotEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Project loaded successfully!"), backgroundColor: Colors.green));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Project loaded successfully!"), backgroundColor: Colors.green),
+                );
               }
             });
           } catch (err, s) {
