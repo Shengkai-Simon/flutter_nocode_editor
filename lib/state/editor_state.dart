@@ -31,6 +31,24 @@ final isLoadingProjectProvider = StateProvider<bool>((ref) => false);
 final hoveredNodeIdProvider = StateProvider<String?>((ref) => null);
 final showLayoutBoundsProvider = StateProvider<bool>((ref) => false);
 
+/// Stores the ID collection of all expanded WidgetNodes.
+final expandedNodeIdsProvider = StateProvider<Set<String>>((ref) {
+  final WidgetNode rootNode = ref.watch(canvasTreeProvider);
+  return _getAllInitiallyExpandedNodeIds(rootNode);
+});
+
+/// Used to obtain the IDs of all nodes in the tree that have child nodes.
+Set<String> _getAllInitiallyExpandedNodeIds(WidgetNode node) {
+  final Set<String> ids = {};
+  if (node.children.isNotEmpty) {
+    ids.add(node.id);
+    for (final child in node.children) {
+      ids.addAll(_getAllInitiallyExpandedNodeIds(child));
+    }
+  }
+  return ids;
+}
+
 class IssuesListNotifier extends StateNotifier<List<String>> {
   IssuesListNotifier() : super([]);
 

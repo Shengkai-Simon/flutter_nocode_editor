@@ -18,12 +18,15 @@ class WidgetTreeView extends ConsumerWidget {
     final selectedNodeNotifier = ref.read(selectedNodeIdProvider.notifier);
     final String? currentHoveredId = ref.watch(hoveredNodeIdProvider);
 
-    List<Widget> buildTreeNodes(WidgetNode node, int depth, WidgetNode currentRootForChecks) {
+    List<Widget> buildTreeNodes(WidgetNode node, int depth, WidgetNode currentRootForChecks, WidgetRef refForRecursion) {
       List<Widget> widgets = [];
 
       final RegisteredComponent? rc = registeredComponents[node.type];
       final String displayName = rc?.displayName ?? node.type;
       final IconData iconData = rc?.icon ?? Icons.device_unknown;
+
+      final Set<String> expandedIds = refForRecursion.watch(expandedNodeIdsProvider);
+      final StateController<Set<String>> expandedIdsNotifier = refForRecursion.read(expandedNodeIdsProvider.notifier);
 
       final bool isActuallySelected = node.id == selectedNodeId;
       final bool isNodeGloballyHovered = node.id == currentHoveredId;
@@ -32,15 +35,48 @@ class WidgetTreeView extends ConsumerWidget {
       final Color selectedColor = Theme.of(context).colorScheme.primary;
       final Color hoverEffectColor = kRendererHoverBorderColor;
 
+      final bool hasChildren = node.children.isNotEmpty;
+      final bool isCurrentlyExpanded = expandedIds.contains(node.id);
+
+      Widget leadingWidget = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (hasChildren)
+            IconButton(
+              icon: Icon(isCurrentlyExpanded ? Icons.arrow_drop_down : Icons.arrow_right),
+              iconSize: 22.0,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              visualDensity: VisualDensity.compact,
+              onPressed: () {
+                expandedIdsNotifier.update((currentExpandedIds) {
+                  final newIds = Set<String>.from(currentExpandedIds);
+                  if (newIds.contains(node.id)) {
+                    newIds.remove(node.id);
+                  } else {
+                    newIds.add(node.id);
+                  }
+                  return newIds;
+                });
+              },
+            )
+          else const SizedBox(width: 24.0),
+
+          const SizedBox(width: 4),
+
+          Icon(
+            iconData,
+            size: 18,
+            color: isActuallySelected
+                ? selectedColor
+                : (showHoverEffectInTreeItem ? hoverEffectColor : Theme.of(context).iconTheme.color?.withOpacity(0.7)),
+          ),
+        ],
+      );
+
       Widget treeItemContent = ListTile(
         dense: true,
-        leading: Icon(
-          iconData,
-          size: 20,
-          color: isActuallySelected
-              ? selectedColor
-              : (showHoverEffectInTreeItem ? hoverEffectColor : Theme.of(context).textTheme.bodySmall?.color),
-        ),
+        leading: leadingWidget,
         title: Text(
           displayName,
           style: TextStyle(
@@ -58,7 +94,7 @@ class WidgetTreeView extends ConsumerWidget {
           } else {
             selectedNodeNotifier.state = null;
           }
-          ref.read(hoveredNodeIdProvider.notifier).state = null;
+          refForRecursion.read(hoveredNodeIdProvider.notifier).state = null;
         },
       );
 
@@ -78,7 +114,7 @@ class WidgetTreeView extends ConsumerWidget {
                 color: Theme.of(context).colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: ListTile(dense: true, leading: Icon(iconData, size:20), title: Text(displayName, style: const TextStyle(fontSize: 13))),
+              child: ListTile(dense: true, leading: Row(mainAxisSize: MainAxisSize.min, children:[if(hasChildren) Icon(isCurrentlyExpanded ? Icons.arrow_drop_down : Icons.arrow_right, size:22), SizedBox(width:4), Icon(iconData, size:18)]), title: Text(displayName, style: const TextStyle(fontSize: 13))),
             ),
           ),
         ),
@@ -122,8 +158,6 @@ class WidgetTreeView extends ConsumerWidget {
         }
 
         return Container(
-          margin: EdgeInsets.only(left: depth * 16.0),
-          padding: const EdgeInsets.symmetric(vertical: 0.5),
           decoration: BoxDecoration(
             color: resolvedItemBackgroundColor,
             border: resolvedItemBorder,
@@ -133,13 +167,14 @@ class WidgetTreeView extends ConsumerWidget {
         );
       }
 
-      Widget dragTargetForItem = (node.id == rootNode.id && rc?.type == 'Container')
+      Widget dragTargetForItem = (node.id == rootNode.id && rc?.type == 'Container' )
           ? finalInteractiveItem
           : DragTarget<String>(
         builder: dragTargetVisualBuilder,
         onWillAcceptWithDetails: (DragTargetDetails<String> details) {
           final String draggedNodeId = details.data;
           if (draggedNodeId == node.id) return false;
+          if (node.id == rootNode.id ) return false;
 
           final targetNodeDefinition = registeredComponents[node.type];
           if (targetNodeDefinition == null || targetNodeDefinition.childPolicy == ChildAcceptancePolicy.none) return false;
@@ -156,37 +191,42 @@ class WidgetTreeView extends ConsumerWidget {
           final String draggedNodeId = details.data;
           final String targetParentId = node.id;
 
-          final currentTree = ref.read(canvasTreeProvider);
+          final currentTree = refForRecursion.read(canvasTreeProvider);
           final WidgetNode? nodeToMove = findNodeById(currentTree, draggedNodeId);
           if (nodeToMove == null) return;
 
           final treeAfterRemoval = removeNodeById(currentTree, draggedNodeId);
           final finalTree = addNodeAsChildRecursive(treeAfterRemoval, targetParentId, nodeToMove);
 
-          ref.read(canvasTreeProvider.notifier).state = finalTree;
-          ref.read(selectedNodeIdProvider.notifier).state = draggedNodeId;
-          ref.read(hoveredNodeIdProvider.notifier).state = null;
+          refForRecursion.read(canvasTreeProvider.notifier).state = finalTree;
+          refForRecursion.read(selectedNodeIdProvider.notifier).state = draggedNodeId;
+          refForRecursion.read(hoveredNodeIdProvider.notifier).state = null;
         },
       );
 
       Widget itemWithMouseRegionForHover = MouseRegion(
         onEnter: (_) {
-          ref.read(hoveredNodeIdProvider.notifier).state = node.id;
+          if (node.id != rootNode.id) {
+            refForRecursion.read(hoveredNodeIdProvider.notifier).state = node.id;
+          }
         },
         onExit: (_) {
-          if (ref.read(hoveredNodeIdProvider) == node.id) {
-            ref.read(hoveredNodeIdProvider.notifier).state = null;
+          if (refForRecursion.read(hoveredNodeIdProvider) == node.id) {
+            refForRecursion.read(hoveredNodeIdProvider.notifier).state = null;
           }
         },
         cursor: SystemMouseCursors.click,
-        child: dragTargetForItem,
+        child: Container(
+          margin: EdgeInsets.only(left: depth * 16.0),
+          child: dragTargetForItem,
+        ),
       );
 
       widgets.add(itemWithMouseRegionForHover);
 
-      if (node.children.isNotEmpty) {
+      if (hasChildren && isCurrentlyExpanded) {
         for (var child in node.children) {
-          widgets.addAll(buildTreeNodes(child, depth + 1, currentRootForChecks));
+          widgets.addAll(buildTreeNodes(child, depth + 1, currentRootForChecks, refForRecursion));
         }
       }
       return widgets;
@@ -194,7 +234,7 @@ class WidgetTreeView extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsets.all(8.0),
-      children: buildTreeNodes(rootNode, 0, rootNode),
+      children: buildTreeNodes(rootNode, 0, rootNode, ref),
     );
   }
 }
