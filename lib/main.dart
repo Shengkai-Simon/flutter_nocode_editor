@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_editor/services/issue_reporter_service.dart';
-import 'package:flutter_editor/ui/app_error_handler.dart';
+import 'package:flutter_editor/ui/common/app_error_handler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'constants/app_constants.dart';

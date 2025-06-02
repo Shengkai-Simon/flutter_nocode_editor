@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_editor/ui/left/palette_component_item.dart';
 import 'package:flutter_editor/ui/left/widget_tree_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../editor/components/core/widget_node.dart';
 import '../../editor/components/core/component_registry.dart';
 import '../../editor/components/core/component_definition.dart';
-import '../../editor/components/core/widget_node_utils.dart';
 import '../../state/editor_state.dart' hide uuid;
 
 class LeftView extends ConsumerWidget {
@@ -26,6 +25,7 @@ class LeftView extends ConsumerWidget {
 
   Widget _buildAddComponentSection(BuildContext context, WidgetRef ref) {
     final allComponents = registeredComponents.values.toList();
+    final theme = Theme.of(context);
 
     final Map<ComponentCategory, List<RegisteredComponent>> categorizedComponents = {};
     for (var component in allComponents) {
@@ -40,7 +40,6 @@ class LeftView extends ConsumerWidget {
     ];
 
     List<Widget> sectionWidgets = [];
-
     for (var category in categoryOrder) {
       final componentsInCategory = categorizedComponents[category];
       if (componentsInCategory != null && componentsInCategory.isNotEmpty) {
@@ -64,109 +63,9 @@ class LeftView extends ConsumerWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             children: componentsInCategory.map((rc) {
-              Widget componentItemButton = GestureDetector(
-              onTap: () {
-                final newComponentRc = registeredComponents[rc.type];
-                if (newComponentRc == null) return;
+              Widget componentItemWithHover = PaletteComponentItem(rc: rc, theme: theme);
 
-                final newNode = WidgetNode(
-                  id: uuid.v4(),
-                  type: newComponentRc.type,
-                  props: Map<String, dynamic>.from(newComponentRc.defaultProps),
-                  children: [],
-                );
-
-                final selectedId = ref.read(selectedNodeIdProvider);
-                final currentTree = ref.read(canvasTreeProvider);
-
-                WidgetNode? targetParentNode;
-                RegisteredComponent? targetParentRcDef;
-
-                if (selectedId == null) {
-                  targetParentNode = currentTree;
-                } else {
-                  targetParentNode = findNodeById(currentTree, selectedId);
-                }
-
-                targetParentNode ??= currentTree;
-                targetParentRcDef = registeredComponents[targetParentNode.type];
-
-
-                if (targetParentRcDef == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Cannot add component: Target parent's definition not found."),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                  );
-                  return;
-                }
-
-                bool canAddChild = true;
-                String restrictionMessage = "";
-
-                switch (targetParentRcDef.childPolicy) {
-                  case ChildAcceptancePolicy.none:
-                    restrictionMessage = "'${targetParentRcDef.displayName}' cannot accept any children.";
-                    canAddChild = false;
-                    break;
-                  case ChildAcceptancePolicy.single:
-                    if (targetParentNode.children.isNotEmpty) {
-                      restrictionMessage = "'${targetParentRcDef.displayName}' can only hold one child. "
-                          "Please remove the existing child or select a different parent.";
-                      canAddChild = false;
-                    }
-                    break;
-                  case ChildAcceptancePolicy.multiple: break;
-                }
-
-                if (!canAddChild) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(restrictionMessage),
-                      backgroundColor: Colors.orangeAccent,
-                    ),
-                  );
-                  return;
-                }
-
-                final newTree = addNodeAsChildRecursive(currentTree, targetParentNode.id, newNode);
-
-                ref.read(canvasTreeProvider.notifier).state = newTree;
-                ref.read(selectedNodeIdProvider.notifier).state = newNode.id;
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Theme.of(context).cardColor,
-                  border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(8),
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(rc.icon ?? Icons.extension, size: 24, color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(height: 4),
-                    Text(
-                      rc.displayName,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            );
-
-            return Draggable<String>(
+              return Draggable<String>(
               data: rc.type,
               feedback: Material(
                 elevation: 4.0,
@@ -194,11 +93,11 @@ class LeftView extends ConsumerWidget {
                   ),
                 ),
               ),
-              childWhenDragging: Opacity(
-                opacity: 0.4,
-                child: componentItemButton,
-              ),
-              child: componentItemButton,
+                childWhenDragging: Opacity(
+                  opacity: 0.4,
+                  child: PaletteComponentItem(rc: rc, theme: theme),
+                ),
+                child: componentItemWithHover,
             );
             }).toList(),
           ),

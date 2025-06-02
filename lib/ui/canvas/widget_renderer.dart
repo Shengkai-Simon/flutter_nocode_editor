@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../constants/app_constants.dart';
-import '../../editor/components/core/component_definition.dart';
 import '../../editor/components/core/widget_node.dart';
 import '../../editor/components/core/component_registry.dart';
-import '../../editor/components/core/widget_node_utils.dart';
-import '../../services/issue_reporter_service.dart';
+import '../../editor/components/core/component_definition.dart';
 import '../../state/editor_state.dart' hide uuid;
+import '../../editor/components/core/widget_node_utils.dart';
 
 class WidgetRenderer extends ConsumerWidget {
   final WidgetNode node;
@@ -19,7 +18,7 @@ class WidgetRenderer extends ConsumerWidget {
     final selectedId = ref.watch(selectedNodeIdProvider);
     final isSelected = selectedId == node.id;
 
-    final rc = registeredComponents[node.type];
+    final RegisteredComponent? rc = registeredComponents[node.type];
     if (rc == null) {
       return Container(
         constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
@@ -36,32 +35,26 @@ class WidgetRenderer extends ConsumerWidget {
     );
 
     return DragTarget<String>(
-      builder: (BuildContext context, List<String?> candidateData, List<dynamic> rejectedData) {
-        bool isHoveringOverTarget = candidateData.isNotEmpty;
-        bool canAcceptDraggedItem = false;
+      builder: (BuildContext context, List<String?> candidateData, List<dynamic> rejectedDataList) {
+        Color effektiveBorderColor;
+        double effektiveBorderWidth = 1.0;
+        Color? effektiveHoverBackgroundColor;
 
-        if (isHoveringOverTarget) {
-          final String? draggedComponentType = candidateData.first;
-          if (draggedComponentType != null && rc.childPolicy != ChildAcceptancePolicy.none) {
-            if (rc.childPolicy == ChildAcceptancePolicy.single && node.children.isNotEmpty) {
-              canAcceptDraggedItem = false;
-            } else {
-              canAcceptDraggedItem = true;
-            }
+        if (candidateData.isNotEmpty) {
+          effektiveBorderColor = Colors.greenAccent.shade400;
+          effektiveBorderWidth = 2.0;
+          effektiveHoverBackgroundColor = Colors.green.withOpacity(0.15);
+        } else if (rejectedDataList.isNotEmpty) {
+          effektiveBorderColor = Colors.redAccent.shade400;
+          effektiveBorderWidth = 2.0;
+          effektiveHoverBackgroundColor = Colors.red.withOpacity(0.12);
+        } else {
+          if (isSelected) {
+            effektiveBorderColor = kRendererSelectedBorderColor;
+          } else {
+            effektiveBorderColor = kRendererUnselectedBorderColor;
           }
         }
-
-        final borderColor = isSelected
-            ? kRendererSelectedBorderColor
-            : (isHoveringOverTarget && canAcceptDraggedItem
-            ? Colors.greenAccent.shade400
-            : kRendererUnselectedBorderColor);
-
-        final borderWidth = isHoveringOverTarget && canAcceptDraggedItem ? 2.0 : 1.0;
-        final backgroundColor = isHoveringOverTarget && canAcceptDraggedItem
-            ? Colors.green.withOpacity(0.1)
-            : null;
-
 
         return GestureDetector(
           onTap: () {
@@ -80,14 +73,26 @@ class WidgetRenderer extends ConsumerWidget {
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: borderColor,
-                    width: borderWidth,
+                    color: effektiveBorderColor,
+                    width: effektiveBorderWidth,
                     style: BorderStyle.solid,
                   ),
-                  color: backgroundColor,
                 ),
                 child: actualComponentWidget,
               ),
+
+              if (effektiveHoverBackgroundColor != null)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Container(
+                      margin: const EdgeInsets.all(kRendererWrapperMargin),
+                      decoration: BoxDecoration(
+                        color: effektiveHoverBackgroundColor,
+                        ),
+                    ),
+                  ),
+                ),
+
               if (isSelected)
                 Positioned(
                   top: -8,
@@ -125,16 +130,12 @@ class WidgetRenderer extends ConsumerWidget {
         final String droppedComponentType = details.data;
         final RegisteredComponent? droppedRc = registeredComponents[droppedComponentType];
 
-        if (droppedRc == null) {
-          IssueReporterService().reportError("Dropped unregistered component type: $droppedComponentType");
-          return;
-        }
+        if (droppedRc == null) return;
 
         final newNode = WidgetNode(
           id: uuid.v4(),
           type: droppedComponentType,
           props: Map<String, dynamic>.from(droppedRc.defaultProps),
-          children: [],
         );
 
         final currentTree = ref.read(canvasTreeProvider);
