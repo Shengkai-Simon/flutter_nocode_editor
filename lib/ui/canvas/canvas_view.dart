@@ -16,11 +16,20 @@ class CanvasView extends ConsumerWidget {
       children: [
         const CanvasToolbar(),
         Expanded(
-          child: Container(
-            color: Colors.grey[200],
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.topLeft,
-            child: WidgetRenderer(node: tree),
+          child: GestureDetector(
+            onTap: () {
+              // When click on an empty area of the canvas, all selected and hover states are deselected
+              ref.read(selectedNodeIdProvider.notifier).state = null;
+              ref.read(hoveredNodeIdProvider.notifier).state = null;
+            },
+            child: Container(
+              color: Colors.grey[200],
+              width: double.infinity,
+              height: double.infinity,
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.topLeft,
+              child: WidgetRenderer(node: tree),
+            ),
           ),
         ),
       ],

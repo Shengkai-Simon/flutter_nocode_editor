@@ -331,6 +331,10 @@ class CanvasToolbar extends ConsumerWidget {
     final errors = ref.watch(projectErrorsProvider);
     final warnings = ref.watch(projectWarningsProvider);
 
+    // Read the layout boundary display state
+    final showLayoutBounds = ref.watch(showLayoutBoundsProvider);
+    final showLayoutBoundsNotifier = ref.read(showLayoutBoundsProvider.notifier);
+
     IconData statusIconData = Icons.check_circle_outline_rounded;
     Color statusIconColor = Colors.green.shade600;
     String statusTooltip = "Project Status: OK";
@@ -378,7 +382,35 @@ class CanvasToolbar extends ConsumerWidget {
               iconSize: 20,
             ),
           ),
+
           const Spacer(),
+
+          // A Switch that shows the layout boundary
+          Tooltip(
+            message: showLayoutBounds ? 'Hide Layout Bounds' : 'Show Layout Bounds',
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  showLayoutBounds ? Icons.grid_on_sharp : Icons.grid_off_sharp,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
+                Switch(
+                  value: showLayoutBounds,
+                  onChanged: (value) {
+                    showLayoutBoundsNotifier.state = value;
+                  },
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  activeColor: Theme.of(context).colorScheme.primary,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+
+
           if (isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 12.0),

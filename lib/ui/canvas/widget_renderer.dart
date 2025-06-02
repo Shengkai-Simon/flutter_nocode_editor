@@ -16,7 +16,11 @@ class WidgetRenderer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedId = ref.watch(selectedNodeIdProvider);
-    final isSelected = selectedId == node.id;
+    final hoveredId = ref.watch(hoveredNodeIdProvider);
+    final showLayoutBounds = ref.watch(showLayoutBoundsProvider);
+
+    final bool isActuallySelected = selectedId == node.id;
+    final bool isActuallyHovered = hoveredId == node.id && !isActuallySelected;
 
     final RegisteredComponent? rc = registeredComponents[node.type];
     if (rc == null) {
@@ -34,116 +38,140 @@ class WidgetRenderer extends ConsumerWidget {
     },
     );
 
-    return DragTarget<String>(
-      builder: (BuildContext context, List<String?> candidateData, List<dynamic> rejectedDataList) {
-        Color effektiveBorderColor;
-        double effektiveBorderWidth = 1.0;
-        Color? effektiveHoverBackgroundColor;
-
-        if (candidateData.isNotEmpty) {
-          effektiveBorderColor = Colors.greenAccent.shade400;
-          effektiveBorderWidth = 2.0;
-          effektiveHoverBackgroundColor = Colors.green.withOpacity(0.15);
-        } else if (rejectedDataList.isNotEmpty) {
-          effektiveBorderColor = Colors.redAccent.shade400;
-          effektiveBorderWidth = 2.0;
-          effektiveHoverBackgroundColor = Colors.red.withOpacity(0.12);
-        } else {
-          if (isSelected) {
-            effektiveBorderColor = kRendererSelectedBorderColor;
-          } else {
-            effektiveBorderColor = kRendererUnselectedBorderColor;
-          }
+    return MouseRegion(
+      onEnter: (_) {
+        ref.read(hoveredNodeIdProvider.notifier).state = node.id;
+      },
+      onExit: (_) {
+        if (ref.read(hoveredNodeIdProvider) == node.id) {
+          ref.read(hoveredNodeIdProvider.notifier).state = null;
         }
+      },
+      cursor: SystemMouseCursors.click,
+      child: DragTarget<String>(
+        builder: (BuildContext context, List<String?> candidateData, List<dynamic> rejectedDataList) {
+          Color effectiveBorderColor = Colors.transparent;
+          double effectiveBorderWidth = 1.0;
+          Color? effectiveHoverBackgroundColor;
 
-        return GestureDetector(
-          onTap: () {
-            ref.read(selectedNodeIdProvider.notifier).state = node.id;
-          },
-          behavior: HitTestBehavior.opaque,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.topLeft,
-            children: [
-              Container(
-                margin: const EdgeInsets.all(kRendererWrapperMargin),
-                constraints: const BoxConstraints(
-                  minWidth: kRendererMinVisibleWidth,
-                  minHeight: kRendererMinInteractiveHeight,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: effektiveBorderColor,
-                    width: effektiveBorderWidth,
-                    style: BorderStyle.solid,
+          bool showTag = false;
+          String tagText = rc.displayName;
+          Color tagBackgroundColor = Colors.transparent;
+          Color tagTextColor = Colors.white;
+
+          if (candidateData.isNotEmpty) {
+            effectiveBorderColor = Colors.greenAccent.shade400;
+            effectiveBorderWidth = 2.0;
+            effectiveHoverBackgroundColor = Colors.green.withOpacity(0.15);
+          } else if (rejectedDataList.isNotEmpty) {
+            effectiveBorderColor = Colors.redAccent.shade400;
+            effectiveBorderWidth = 2.0;
+            effectiveHoverBackgroundColor = Colors.red.withOpacity(0.12);
+          } else {
+            if (isActuallySelected) {
+              effectiveBorderColor = selectedBorderColor;
+              effectiveBorderWidth = 1.5;
+              showTag = true;
+              tagBackgroundColor = selectedTagBackgroundColor;
+              tagTextColor = selectedTagTextColor;
+            }
+            else if (isActuallyHovered) {
+              effectiveBorderColor = hoverBorderColor;
+              effectiveBorderWidth = 1.5;
+              showTag = true;
+              tagBackgroundColor = hoverTagBackgroundColor;
+              tagTextColor = hoverTagTextColor;
+            }
+            else if (showLayoutBounds) {
+              effectiveBorderColor = layoutBoundBorderColor;
+              effectiveBorderWidth = 1.0;
+            }
+          }
+
+          return GestureDetector(
+            onTap: () {
+              if (!isActuallySelected) {
+                ref.read(selectedNodeIdProvider.notifier).state = node.id;
+              }
+            },
+            behavior: HitTestBehavior.opaque,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.topLeft,
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(kRendererWrapperMargin),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: effectiveBorderColor,
+                      width: effectiveBorderWidth,
+                    ),
                   ),
+                  child: actualComponentWidget,
                 ),
-                child: actualComponentWidget,
-              ),
-
-              if (effektiveHoverBackgroundColor != null)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Container(
-                      margin: const EdgeInsets.all(kRendererWrapperMargin),
-                      decoration: BoxDecoration(
-                        color: effektiveHoverBackgroundColor,
+                if (effectiveHoverBackgroundColor != null)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: Container(
+                        margin: const EdgeInsets.all(kRendererWrapperMargin),
+                        decoration: BoxDecoration(
+                          color: effectiveHoverBackgroundColor,
                         ),
-                    ),
-                  ),
-                ),
-
-              if (isSelected)
-                Positioned(
-                  top: -8,
-                  left: kRendererWrapperMargin -1,
-                  child: Container(
-                    padding: kRendererTagPadding,
-                    decoration: BoxDecoration(
-                      color: kRendererTagBackgroundColor,
-                      borderRadius: BorderRadius.circular(kRendererTagBorderRadius),
-                    ),
-                    child: Text(
-                      rc.displayName,
-                      style: const TextStyle(
-                        color: kRendererTagTextColor,
-                        fontSize: kRendererTagFontSize,
-                        fontWeight: FontWeight.normal,
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-        );
-      },
-      onWillAcceptWithDetails: (DragTargetDetails<String> details) {
-        if (rc.childPolicy == ChildAcceptancePolicy.none) {
-          return false;
-        }
-        if (rc.childPolicy == ChildAcceptancePolicy.single && node.children.isNotEmpty) {
-          return false;
-        }
-        return true;
-      },
-      onAcceptWithDetails: (DragTargetDetails<String> details) {
-        final String droppedComponentType = details.data;
-        final RegisteredComponent? droppedRc = registeredComponents[droppedComponentType];
+                if (showTag)
+                  Positioned(
+                    top: -8,
+                    left: kRendererWrapperMargin -1,
+                    child: Container(
+                      padding: kRendererTagPadding,
+                      decoration: BoxDecoration(
+                        color: tagBackgroundColor,
+                        borderRadius: BorderRadius.circular(kRendererTagBorderRadius),
+                      ),
+                      child: Text(
+                        tagText,
+                        style: TextStyle(
+                          color: tagTextColor,
+                          fontSize: kRendererTagFontSize,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+        onWillAcceptWithDetails: (DragTargetDetails<String> details) {
+          if (rc.childPolicy == ChildAcceptancePolicy.none) {
+            return false;
+          }
+          if (rc.childPolicy == ChildAcceptancePolicy.single && node.children.isNotEmpty) {
+            return false;
+          }
+          return true;
+        },
+        onAcceptWithDetails: (DragTargetDetails<String> details) {
+          final String droppedComponentType = details.data;
+          final RegisteredComponent? droppedRc = registeredComponents[droppedComponentType];
 
-        if (droppedRc == null) return;
+          if (droppedRc == null) return;
 
-        final newNode = WidgetNode(
-          id: uuid.v4(),
-          type: droppedComponentType,
-          props: Map<String, dynamic>.from(droppedRc.defaultProps),
-        );
+          final newNode = WidgetNode(
+            id: uuid.v4(),
+            type: droppedComponentType,
+            props: Map<String, dynamic>.from(droppedRc.defaultProps),
+          );
 
-        final currentTree = ref.read(canvasTreeProvider);
-        final newTree = addNodeAsChildRecursive(currentTree, node.id, newNode);
+          final currentTree = ref.read(canvasTreeProvider);
+          final newTree = addNodeAsChildRecursive(currentTree, node.id, newNode);
 
-        ref.read(canvasTreeProvider.notifier).state = newTree;
-        ref.read(selectedNodeIdProvider.notifier).state = newNode.id;
-      },
+          ref.read(canvasTreeProvider.notifier).state = newTree;
+          ref.read(selectedNodeIdProvider.notifier).state = newNode.id;
+        },
+      ),
     );
   }
 }

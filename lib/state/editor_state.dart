@@ -28,7 +28,8 @@ final canvasTreeProvider = StateProvider<WidgetNode>((ref) {
 
 final selectedNodeIdProvider = StateProvider<String?>((ref) => null);
 final isLoadingProjectProvider = StateProvider<bool>((ref) => false);
-
+final hoveredNodeIdProvider = StateProvider<String?>((ref) => null);
+final showLayoutBoundsProvider = StateProvider<bool>((ref) => false);
 
 class IssuesListNotifier extends StateNotifier<List<String>> {
   IssuesListNotifier() : super([]);
