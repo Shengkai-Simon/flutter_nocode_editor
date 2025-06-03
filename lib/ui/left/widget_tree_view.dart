@@ -6,7 +6,6 @@ import '../../editor/components/core/component_registry.dart';
 import '../../editor/components/core/component_definition.dart';
 import '../../state/editor_state.dart';
 import '../../editor/components/core/widget_node_utils.dart';
-import '../../constants/app_constants.dart';
 
 class WidgetTreeView extends ConsumerWidget {
   const WidgetTreeView({super.key});
@@ -16,7 +15,6 @@ class WidgetTreeView extends ConsumerWidget {
     final WidgetNode rootNode = ref.watch(canvasTreeProvider);
     final String? selectedNodeId = ref.watch(selectedNodeIdProvider);
     final selectedNodeNotifier = ref.read(selectedNodeIdProvider.notifier);
-    final String? currentHoveredId = ref.watch(hoveredNodeIdProvider);
 
     List<Widget> buildTreeNodes(WidgetNode node, int depth, WidgetNode currentRootForChecks, WidgetRef refForRecursion) {
       List<Widget> widgets = [];
@@ -29,11 +27,8 @@ class WidgetTreeView extends ConsumerWidget {
       final StateController<Set<String>> expandedIdsNotifier = refForRecursion.read(expandedNodeIdsProvider.notifier);
 
       final bool isActuallySelected = node.id == selectedNodeId;
-      final bool isNodeGloballyHovered = node.id == currentHoveredId;
-      final bool showHoverEffectInTreeItem = isNodeGloballyHovered && !isActuallySelected;
 
       final Color selectedColor = Theme.of(context).colorScheme.primary;
-      final Color hoverEffectColor = kRendererHoverBorderColor;
 
       final bool hasChildren = node.children.isNotEmpty;
       final bool isCurrentlyExpanded = expandedIds.contains(node.id);
@@ -61,15 +56,13 @@ class WidgetTreeView extends ConsumerWidget {
               },
             )
           else const SizedBox(width: 24.0),
-
           const SizedBox(width: 4),
-
           Icon(
             iconData,
             size: 18,
             color: isActuallySelected
                 ? selectedColor
-                : (showHoverEffectInTreeItem ? hoverEffectColor : Theme.of(context).iconTheme.color?.withOpacity(0.7)),
+                : Theme.of(context).iconTheme.color?.withOpacity(0.7),
           ),
         ],
       );
@@ -84,7 +77,7 @@ class WidgetTreeView extends ConsumerWidget {
             fontSize: 13,
             color: isActuallySelected
                 ? selectedColor
-                : (showHoverEffectInTreeItem ? hoverEffectColor : Theme.of(context).textTheme.bodyLarge?.color),
+                : Theme.of(context).textTheme.bodyLarge?.color,
           ),
         ),
         selected: isActuallySelected,
@@ -114,7 +107,14 @@ class WidgetTreeView extends ConsumerWidget {
                 color: Theme.of(context).colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: ListTile(dense: true, leading: Row(mainAxisSize: MainAxisSize.min, children:[if(hasChildren) Icon(isCurrentlyExpanded ? Icons.arrow_drop_down : Icons.arrow_right, size:22), SizedBox(width:4), Icon(iconData, size:18)]), title: Text(displayName, style: const TextStyle(fontSize: 13))),
+              child: ListTile(dense: true,
+                  leading: Row(mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if(hasChildren) Icon(isCurrentlyExpanded ? Icons.arrow_drop_down : Icons.arrow_right, size: 22),
+                        SizedBox(width: 4),
+                        Icon(iconData, size: 18)
+                      ]),
+                  title: Text(displayName, style: const TextStyle(fontSize: 13))),
             ),
           ),
         ),
@@ -153,8 +153,6 @@ class WidgetTreeView extends ConsumerWidget {
           }
         } else if (isActuallySelected) {
           resolvedItemBackgroundColor = selectedColor.withOpacity(0.12);
-        } else if (showHoverEffectInTreeItem) {
-          resolvedItemBackgroundColor = hoverEffectColor.withOpacity(0.1);
         }
 
         return Container(
@@ -206,9 +204,7 @@ class WidgetTreeView extends ConsumerWidget {
 
       Widget itemWithMouseRegionForHover = MouseRegion(
         onEnter: (_) {
-          if (node.id != rootNode.id) {
-            refForRecursion.read(hoveredNodeIdProvider.notifier).state = node.id;
-          }
+          refForRecursion.read(hoveredNodeIdProvider.notifier).state = node.id;
         },
         onExit: (_) {
           if (refForRecursion.read(hoveredNodeIdProvider) == node.id) {
