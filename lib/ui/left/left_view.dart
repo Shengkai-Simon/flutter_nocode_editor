@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_editor/ui/left/palette_component_item.dart';
-import 'package:flutter_editor/ui/left/widget_tree_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../editor/components/core/component_registry.dart';
 import '../../editor/components/core/component_definition.dart';
 import '../../state/editor_state.dart' hide uuid;
+import 'palette_component_item.dart';
+import 'widget_tree/widget_tree_view.dart';
 
 class LeftView extends ConsumerWidget {
   const LeftView({super.key});

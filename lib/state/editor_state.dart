@@ -31,6 +31,8 @@ final isLoadingProjectProvider = StateProvider<bool>((ref) => false);
 final hoveredNodeIdProvider = StateProvider<String?>((ref) => null);
 final showLayoutBoundsProvider = StateProvider<bool>((ref) => false);
 
+final dragRejectedDataProviderFor = StateProvider.family<List<dynamic>, String>((ref, nodeId) => []);
+
 /// Stores the ID collection of all expanded WidgetNodes.
 final expandedNodeIdsProvider = StateProvider<Set<String>>((ref) {
   final WidgetNode rootNode = ref.watch(canvasTreeProvider);
