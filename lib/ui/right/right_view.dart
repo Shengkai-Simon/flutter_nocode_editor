@@ -199,8 +199,7 @@ class RightView extends ConsumerWidget {
                 }
                 ref.read(selectedNodeIdProvider.notifier).state = null;
                 final newTree = removeNodeById(currentGlobalTree, node.id);
-                ref.read(canvasTreeProvider.notifier).state = newTree;
-
+                ref.read(historyManagerProvider.notifier).recordState(newTree);
               },
             ),
         ],
@@ -219,9 +218,9 @@ class RightView extends ConsumerWidget {
           updatedProps[field.name] = newValueFromField;
 
           final updatedNode = node.copyWith(props: updatedProps);
-          final currentGlobalTree = ref.read(canvasTreeProvider);
+          final currentGlobalTree = ref.read(canvasTreeProvider); // Get current tree to apply changes
           final newGlobalTree = replaceNodeInTree(currentGlobalTree, updatedNode);
-          ref.read(canvasTreeProvider.notifier).state = newGlobalTree;
+          ref.read(historyManagerProvider.notifier).recordState(newGlobalTree);
         }
 
         if (field.editorBuilder != null) {
@@ -290,9 +289,9 @@ class RightView extends ConsumerWidget {
                           );
                         }
                         final updatedNode = node.copyWith(props: newProps);
-                        final currentGlobalTree = ref.read(canvasTreeProvider);
+                        final currentGlobalTree = ref.read(canvasTreeProvider); // Get current tree
                         final newGlobalTree = replaceNodeInTree(currentGlobalTree, updatedNode);
-                        ref.read(canvasTreeProvider.notifier).state = newGlobalTree;
+                        ref.read(historyManagerProvider.notifier).recordState(newGlobalTree);
                       },
                     ),
                   ],
