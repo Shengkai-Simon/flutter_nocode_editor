@@ -21,7 +21,16 @@ final canvasTreeProvider = StateProvider<WidgetNode>((ref) {
   return WidgetNode(
     id: uuid.v4(),
     type: 'Container',
-    props: {'width': kRendererWidth, 'height': kRendererHeight, 'backgroundColor': '#eeeeee'},
+    props: {
+      'width': kRendererWidth,
+      'height': kRendererHeight,
+      'backgroundColor': '#eeeeee',
+      'shadowColor': '#999999',
+      'shadowOffsetX': 0.0,
+      'shadowOffsetY': 2.0,
+      'shadowBlurRadius': 4.0,
+      'shadowSpreadRadius': 0.0
+    },
     children: [],
   );
 });
