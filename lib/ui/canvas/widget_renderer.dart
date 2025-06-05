@@ -5,7 +5,7 @@ import '../../constants/app_constants.dart';
 import '../../editor/components/core/widget_node.dart';
 import '../../editor/components/core/component_registry.dart';
 import '../../editor/components/core/component_definition.dart';
-import '../../state/editor_state.dart' hide uuid;
+import '../../state/editor_state.dart';
 import '../../editor/components/core/widget_node_utils.dart';
 
 class WidgetRenderer extends ConsumerWidget {

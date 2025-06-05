@@ -1,11 +1,8 @@
 import 'package:flutter_editor/editor/components/core/component_definition.dart';
 import 'package:flutter_editor/editor/components/core/component_registry.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../services/issue_reporter_service.dart';
 import 'widget_node.dart';
-
-final uuid = Uuid();
 
 /// Finds a node by its ID within the given root node.
 WidgetNode? findNodeById(WidgetNode root, String? id) {
