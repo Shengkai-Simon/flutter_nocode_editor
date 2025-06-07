@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
@@ -27,7 +28,8 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.number,
       defaultValue: 0.5,
       editorBuilder: kDefaultNumberInputEditor,
-      propertyCategory: PropertyCategory.value
+      propertyCategory: PropertyCategory.value,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'min',
@@ -35,7 +37,8 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.number,
       defaultValue: 0.0,
       editorBuilder: kDefaultNumberInputEditor,
-      propertyCategory: PropertyCategory.behavior
+      propertyCategory: PropertyCategory.behavior,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'max',
@@ -43,7 +46,8 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.number,
       defaultValue: 1.0,
       editorBuilder: kDefaultNumberInputEditor,
-      propertyCategory: PropertyCategory.behavior
+      propertyCategory: PropertyCategory.behavior,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'divisions',
@@ -52,7 +56,8 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       defaultValue: null,
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 2, 'step': 1},
-      propertyCategory: PropertyCategory.behavior
+      propertyCategory: PropertyCategory.behavior,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'activeColor',
@@ -60,7 +65,8 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.appearance,
+      toCode: kColorCodeFormatter
     ),
     PropField(
       name: 'inactiveColor',
@@ -68,7 +74,8 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.appearance,
+      toCode: kColorCodeFormatter
     ),
     PropField(
       name: 'thumbColor',
@@ -76,7 +83,8 @@ final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.appearance,
+      toCode: kColorCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

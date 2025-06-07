@@ -3,6 +3,7 @@ import 'package:flutter_editor/editor/properties/core/property_editor_registry.d
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
 import '../core/widget_node.dart';
@@ -42,7 +43,8 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
       fieldType: FieldType.string,
       defaultValue: 'https://picsum.photos/seed/flutter_editor/200/300',
       editorBuilder: kDefaultTextInputEditor,
-      propertyCategory: PropertyCategory.image
+      propertyCategory: PropertyCategory.image,
+      toCode: kStringCodeFormatter
     ),
     PropField(
       name: 'imageType',
@@ -54,7 +56,8 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
         {'id': 'asset', 'name': 'Asset Path (requires setup)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.image
+      propertyCategory: PropertyCategory.image,
+      toCode: (v) => null,
     ),
 
     ...SizingProps.fields,
@@ -75,7 +78,8 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
         {'id': 'scaleDown', 'name': 'Scale Down'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.image
+      propertyCategory: PropertyCategory.image,
+      toCode: kEnumCodeFormatter('BoxFit'),
     ),
     PropField(
       name: 'repeat',
@@ -89,14 +93,16 @@ final RegisteredComponent imageComponentDefinition = RegisteredComponent(
         {'id': 'noRepeat', 'name': 'No Repeat'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-        propertyCategory: PropertyCategory.image
+      propertyCategory: PropertyCategory.image,
+      toCode: kEnumCodeFormatter('ImageRepeat'),
     ),
     PropField(name: 'semanticLabel',
       label: 'Semantic Label',
       fieldType: FieldType.string,
       defaultValue: '',
       editorBuilder: kDefaultTextInputEditor,
-      propertyCategory: PropertyCategory.image
+      propertyCategory: PropertyCategory.image,
+      toCode: kStringCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

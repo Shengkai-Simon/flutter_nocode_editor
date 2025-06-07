@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
@@ -26,6 +27,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       defaultValue: false,
       editorBuilder: kDefaultSwitchEditor,
       propertyCategory: PropertyCategory.value,
+      toCode: kBooleanCodeFormatter
     ),
     PropField(
       name: 'tristate',
@@ -34,6 +36,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       defaultValue: false,
       editorBuilder: kDefaultSwitchEditor,
       propertyCategory: PropertyCategory.behavior,
+      toCode: kBooleanCodeFormatter
     ),
     PropField(
       name: 'activeColor',
@@ -42,6 +45,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
       propertyCategory: PropertyCategory.appearance,
+      toCode: kColorCodeFormatter
     ),
     PropField(
       name: 'checkColor',
@@ -50,6 +54,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
       propertyCategory: PropertyCategory.appearance,
+      toCode: kColorCodeFormatter
     ),
     PropField(
       name: 'splashRadius',
@@ -59,6 +64,7 @@ final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 50.0, 'decimalPlaces': 0},
       propertyCategory: PropertyCategory.behavior,
+      toCode: kNumberCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

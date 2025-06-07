@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
@@ -53,7 +54,8 @@ final RegisteredComponent stackComponentDefinition = RegisteredComponent(
         {'id': 'passthrough', 'name': 'Passthrough (constraints pass through)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.layout
+      propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('StackFit'),
     ),
     PropField(
       name: 'clipBehavior',
@@ -67,7 +69,8 @@ final RegisteredComponent stackComponentDefinition = RegisteredComponent(
         {'id': 'none', 'name': 'None'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.appearance,
+      toCode: kEnumCodeFormatter('Clip'),
     ),
   ],
   childPolicy: ChildAcceptancePolicy.multiple,

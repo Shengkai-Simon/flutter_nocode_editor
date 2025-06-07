@@ -34,11 +34,11 @@ class ParsingUtil {
       case 'number': return TextInputType.number;
       case 'phone': return TextInputType.phone;
       case 'datetime': return TextInputType.datetime;
-      case 'emailaddress': return TextInputType.emailAddress;
+      case 'emailAddress': return TextInputType.emailAddress;
       case 'url': return TextInputType.url;
-      case 'visiblepassword': return TextInputType.visiblePassword;
+      case 'visiblePassword': return TextInputType.visiblePassword;
       case 'name': return TextInputType.name;
-      case 'streetaddress': return TextInputType.streetAddress;
+      case 'streetAddress': return TextInputType.streetAddress;
       case 'none': return TextInputType.none;
       default:
         return _handleUnrecognizedValueAndReport(

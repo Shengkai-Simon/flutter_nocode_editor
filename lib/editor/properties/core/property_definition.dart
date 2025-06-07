@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
 
+// Define a function type for formatting a property's value into a Dart code string.
+typedef PropValueToCodeFormatter = String? Function(dynamic propValue);
+
 const List<PropertyCategory> kPropertyCategoryOrder = [
   PropertyCategory.general,
   PropertyCategory.value,
@@ -58,6 +61,7 @@ class PropField {
   final PropertyEditorBuilder? editorBuilder;
   final Map<String, dynamic>? editorConfig;
   final PropertyCategory propertyCategory;
+  final PropValueToCodeFormatter? toCode;
 
   const PropField({
     required this.name,
@@ -68,5 +72,6 @@ class PropField {
     required this.editorBuilder,
     this.editorConfig,
     required this.propertyCategory,
+    required this.toCode,
   });
 }

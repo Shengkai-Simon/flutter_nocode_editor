@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
@@ -44,11 +45,38 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
     ...ChildAlignmentProps.fields,
     ...BackgroundColorProp.fields,
 
-    PropField(name: 'borderRadius', label: 'Border Radius', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor, propertyCategory: PropertyCategory.border),
-    PropField(name: 'borderWidth', label: 'Border Width', fieldType: FieldType.number, defaultValue: 0.0, editorBuilder: kDefaultNumberInputEditor, propertyCategory: PropertyCategory.border),
-    PropField(name: 'borderColor', label: 'Border Color', fieldType: FieldType.color, defaultValue: '#000000', editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.border),
-
-    PropField(name: 'shadowColor', label: 'Shadow Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.shadow),
+    PropField(name: 'borderRadius',
+        label: 'Border Radius',
+        fieldType: FieldType.number,
+        defaultValue: 0.0,
+        editorBuilder: kDefaultNumberInputEditor,
+        propertyCategory: PropertyCategory.border,
+        toCode: kNumberCodeFormatter
+    ),
+    PropField(name: 'borderWidth',
+        label: 'Border Width',
+        fieldType: FieldType.number,
+        defaultValue: 0.0,
+        editorBuilder: kDefaultNumberInputEditor,
+        propertyCategory: PropertyCategory.border,
+        toCode: kNumberCodeFormatter
+    ),
+    PropField(name: 'borderColor',
+        label: 'Border Color',
+        fieldType: FieldType.color,
+        defaultValue: '#000000',
+        editorBuilder: kDefaultColorPickerEditor,
+        propertyCategory: PropertyCategory.border,
+        toCode: kColorCodeFormatter
+    ),
+    PropField(name: 'shadowColor',
+        label: 'Shadow Color',
+        fieldType: FieldType.color,
+        defaultValue: null,
+        editorBuilder: kDefaultColorPickerEditor,
+        propertyCategory: PropertyCategory.shadow,
+        toCode: kColorCodeFormatter
+    ),
     PropField(
       name: 'shadowOffsetX',
       label: 'Shadow Offset X',
@@ -57,6 +85,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': -20.0, 'maxValue': 20.0, 'divisions': 40, 'decimalPlaces': 1},
       propertyCategory: PropertyCategory.shadow,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'shadowOffsetY',
@@ -65,7 +94,8 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       defaultValue: 2.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': -20.0, 'maxValue': 20.0, 'divisions': 40, 'decimalPlaces': 1},
-        propertyCategory: PropertyCategory.shadow,
+      propertyCategory: PropertyCategory.shadow,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'shadowBlurRadius',
@@ -75,6 +105,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 50.0, 'divisions': 50, 'decimalPlaces': 1},
       propertyCategory: PropertyCategory.shadow,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'shadowSpreadRadius',
@@ -84,6 +115,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': -10.0, 'maxValue': 20.0, 'divisions': 30, 'decimalPlaces': 1},
       propertyCategory: PropertyCategory.shadow,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'gradientType',
@@ -96,9 +128,24 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       ],
       editorBuilder: kDefaultDropdownEditor,
       propertyCategory: PropertyCategory.background,
+      toCode: (v) => null, // its value is used to structurally build the BoxDecoration.
     ),
-    PropField(name: 'gradientColor1', label: 'Gradient Color 1', fieldType: FieldType.color, defaultValue: '#FFFFFFFF', editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.background),
-    PropField(name: 'gradientColor2', label: 'Gradient Color 2', fieldType: FieldType.color, defaultValue: '#FF000000', editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.background),
+    PropField(name: 'gradientColor1',
+        label: 'Gradient Color 1',
+        fieldType: FieldType.color,
+        defaultValue: '#FFFFFFFF',
+        editorBuilder: kDefaultColorPickerEditor,
+        propertyCategory: PropertyCategory.background,
+        toCode: kColorCodeFormatter
+    ),
+    PropField(name: 'gradientColor2',
+        label: 'Gradient Color 2',
+        fieldType: FieldType.color,
+        defaultValue: '#FF000000',
+        editorBuilder: kDefaultColorPickerEditor,
+        propertyCategory: PropertyCategory.background,
+        toCode: kColorCodeFormatter
+    ),
     PropField(
       name: 'gradientBeginAlignment',
       label: 'Gradient Begin Align',
@@ -107,6 +154,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       options: ChildAlignmentProps.fields.first.options,
       editorBuilder: kDefaultDropdownEditor,
       propertyCategory: PropertyCategory.background,
+      toCode: kEnumCodeFormatter('Alignment'),
     ),
     PropField(
       name: 'gradientEndAlignment',
@@ -116,6 +164,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
       options: ChildAlignmentProps.fields.first.options,
       editorBuilder: kDefaultDropdownEditor,
       propertyCategory: PropertyCategory.background,
+      toCode: kEnumCodeFormatter('Alignment'),
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

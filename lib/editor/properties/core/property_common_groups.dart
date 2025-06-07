@@ -1,3 +1,5 @@
+import 'package:flutter_editor/editor/properties/core/property_code_formatters.dart';
+
 import 'property_editor_registry.dart';
 import 'property_definition.dart';
 
@@ -10,6 +12,7 @@ class SizingProps {
       defaultValue: null,
       editorBuilder: kDefaultNumberInputEditor,
       propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'height',
@@ -18,6 +21,7 @@ class SizingProps {
       defaultValue: null,
       editorBuilder: kDefaultNumberInputEditor,
       propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
   ];
 
@@ -33,6 +37,7 @@ class MarginProps {
       defaultValue: 'all:0',
       editorBuilder: kDefaultEdgeInsetsEditor,
       propertyCategory: PropertyCategory.spacing,
+      toCode: kEdgeInsetsCodeFormatter
     ),
   ];
 
@@ -48,6 +53,7 @@ class PaddingProps {
       defaultValue: 'all:0',
       editorBuilder: kDefaultEdgeInsetsEditor,
       propertyCategory: PropertyCategory.spacing,
+      toCode: kEdgeInsetsCodeFormatter
     ),
   ];
 
@@ -74,6 +80,7 @@ class ChildAlignmentProps {
       ],
       editorBuilder: kAlignmentPickerEditor,
       propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('Alignment'),
     ),
   ];
 
@@ -89,6 +96,7 @@ class BackgroundColorProp {
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
       propertyCategory: PropertyCategory.background,
+      toCode: kColorCodeFormatter
     ),
   ];
 
@@ -105,6 +113,7 @@ class FlexChildProps {
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1, 'step': 1},
       propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'fit',
@@ -117,6 +126,7 @@ class FlexChildProps {
       ],
       editorBuilder: kDefaultDropdownEditor,
       propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('FlexFit'),
     ),
   ];
 
@@ -142,6 +152,7 @@ class MainAxisAlignmentProp {
       ],
       editorBuilder: kDefaultDropdownEditor,
       propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('MainAxisAlignment'),
     ),
   ];
 
@@ -164,6 +175,7 @@ class CrossAxisAlignmentProp {
       ],
       editorBuilder: kDefaultDropdownEditor,
       propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('CrossAxisAlignment'),
     ),
   ];
 
@@ -183,6 +195,7 @@ class MainAxisSizeProp {
       ],
       editorBuilder: kDefaultDropdownEditor,
       propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('MainAxisSize'),
     ),
   ];
 
@@ -199,6 +212,7 @@ class BasicTextStyleProps {
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 6.0, 'maxValue': 96.0, 'divisions': 90, 'decimalPlaces': 0},
       propertyCategory: PropertyCategory.textStyle,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'textColor',
@@ -207,6 +221,7 @@ class BasicTextStyleProps {
       defaultValue: '#000000',
       editorBuilder: kDefaultColorPickerEditor,
       propertyCategory: PropertyCategory.textStyle,
+      toCode: kColorCodeFormatter
     ),
     PropField(
       name: 'fontWeight',
@@ -226,6 +241,7 @@ class BasicTextStyleProps {
       ],
       editorBuilder: kDefaultDropdownEditor,
       propertyCategory: PropertyCategory.textStyle,
+      toCode: kEnumCodeFormatter('FontWeight'),
     ),
     PropField(
       name: 'fontStyle',
@@ -238,6 +254,7 @@ class BasicTextStyleProps {
       ],
       editorBuilder: kDefaultDropdownEditor,
       propertyCategory: PropertyCategory.textStyle,
+      toCode: kEnumCodeFormatter('FontStyle'),
     ),
     PropField(
       name: 'textAlign',
@@ -254,6 +271,7 @@ class BasicTextStyleProps {
       ],
       editorBuilder: kDefaultDropdownEditor,
       propertyCategory: PropertyCategory.textStyle,
+      toCode: kEnumCodeFormatter('TextAlign'),
     ),
   ];
 

@@ -39,6 +39,8 @@ dependencies:
   flutter_colorpicker: ^1.1.0
   web: ^1.1.1
   js_interop: any
+  dart_style: ^3.1.0
+  flutter_syntax_view: ^4.1.7
 
 dev_dependencies:
   flutter_test:

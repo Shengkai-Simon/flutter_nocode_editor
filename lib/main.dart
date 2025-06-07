@@ -6,6 +6,7 @@ import 'package:flutter_editor/ui/common/app_error_handler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'constants/app_constants.dart';
+import 'state/editor_state.dart';
 import 'ui/left/left_view.dart';
 import 'ui/canvas/canvas_view.dart';
 import 'ui/right/right_view.dart';
@@ -21,13 +22,8 @@ void main() {
       ),
     );
   }, (error, stackTrace) {
-
-    print('Unhandled error caught by runZonedGuarded:');
-    print('Error: $error');
-    print('StackTrace: $stackTrace');
-
     IssueReporterService().reportError(
-      "An unhandled error occurred outside of Flutter's typical framework error handling.",
+      "An unhandled error occurred.",
       source: "runZonedGuarded",
       error: error,
       stackTrace: stackTrace,
@@ -52,17 +48,49 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class EditorScaffold extends StatelessWidget {
+class EditorScaffold extends ConsumerWidget {
   const EditorScaffold({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedNodeId = ref.watch(selectedNodeIdProvider);
+    final isRightPanelVisible = selectedNodeId != null;
+
+    return Scaffold(
+      body: Stack(
         children: [
-          SizedBox(width: kLeftPanelWidth, child: LeftView()),
-          Expanded(child: CanvasView()),
-          SizedBox(width: kRightPanelWidth, child: RightView()),
+          Row(
+            children: [
+              const SizedBox(width: kLeftPanelWidth, child: LeftView()),
+              Expanded(
+                child: AnimatedPadding(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  padding: EdgeInsets.only(right: isRightPanelVisible ? kRightPanelWidth : 0),
+                  child: const CanvasView(),
+                ),
+              ),
+            ],
+          ),
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            right: isRightPanelVisible ? 0 : -(kRightPanelWidth + 1),
+            top: 0,
+            bottom: 0,
+            child: Material(
+              elevation: 8.0,
+              child: Row(
+                children: [
+                  const VerticalDivider(width: 1, thickness: 1),
+                  SizedBox(
+                    width: kRightPanelWidth,
+                    child: const RightView(),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

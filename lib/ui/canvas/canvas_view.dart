@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../state/editor_state.dart';
-import 'canvas_toolbar.dart';
 import 'widget_renderer.dart';
+import 'canvas_toolbar.dart';
 
 class CanvasView extends ConsumerWidget {
   const CanvasView({super.key});
@@ -18,17 +18,20 @@ class CanvasView extends ConsumerWidget {
         Expanded(
           child: GestureDetector(
             onTap: () {
-              // When click on an empty area of the canvas, all selected and hover states are deselected
               ref.read(selectedNodeIdProvider.notifier).state = null;
               ref.read(hoveredNodeIdProvider.notifier).state = null;
             },
             child: Container(
-              color: Colors.grey[200],
+              color: Theme.of(context).canvasColor,
               width: double.infinity,
               height: double.infinity,
-              padding: const EdgeInsets.all(16),
-              alignment: Alignment.topLeft,
-              child: WidgetRenderer(node: tree),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: WidgetRenderer(node: tree),
+                ),
+              ),
             ),
           ),
         ),

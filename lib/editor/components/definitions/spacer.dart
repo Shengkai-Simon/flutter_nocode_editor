@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
@@ -21,7 +22,8 @@ final RegisteredComponent spacerComponentDefinition = RegisteredComponent(
       defaultValue: 1,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 1.0, 'maxValue': 10.0, 'divisions': 9, 'decimalPlaces': 0},
-      propertyCategory: PropertyCategory.sizing
+      propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

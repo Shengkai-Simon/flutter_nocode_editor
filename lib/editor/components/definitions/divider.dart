@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
@@ -27,6 +28,7 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 1.0, 'maxValue': 100.0, 'divisions': 99, 'decimalPlaces': 0},
       propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'thickness',
@@ -36,6 +38,7 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.5, 'maxValue': 10.0, 'divisions': 19, 'decimalPlaces': 1},
       propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'indent',
@@ -45,6 +48,7 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'divisions': 100, 'decimalPlaces': 0},
       propertyCategory: PropertyCategory.spacing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'endIndent',
@@ -54,8 +58,16 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'divisions': 100, 'decimalPlaces': 0},
       propertyCategory: PropertyCategory.spacing,
+      toCode: kNumberCodeFormatter
     ),
-    PropField(name: 'color', label: 'Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.appearance),
+    PropField(name: 'color',
+        label: 'Color',
+        fieldType: FieldType.color,
+        defaultValue: null,
+        editorBuilder: kDefaultColorPickerEditor,
+        propertyCategory: PropertyCategory.appearance,
+        toCode: kColorCodeFormatter
+    ),
   ],
   childPolicy: ChildAcceptancePolicy.none,
   builder: (

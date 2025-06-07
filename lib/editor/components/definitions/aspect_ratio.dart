@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../services/issue_reporter_service.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
@@ -23,6 +24,7 @@ final RegisteredComponent aspectRatioComponentDefinition = RegisteredComponent(
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.1, 'maxValue': 4.0, 'divisions': 39, 'decimalPlaces': 2},
       propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

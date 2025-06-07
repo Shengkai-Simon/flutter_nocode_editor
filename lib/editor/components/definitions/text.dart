@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
@@ -25,7 +26,8 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
         fieldType: FieldType.string,
         defaultValue: 'Hello World',
         editorBuilder: kDefaultTextInputEditor,
-        propertyCategory: PropertyCategory.general
+        propertyCategory: PropertyCategory.general,
+        toCode: kStringCodeFormatter,
     ),
 
     ...BasicTextStyleProps.fields,
@@ -35,7 +37,8 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
         fieldType: FieldType.boolean,
         defaultValue: true,
         editorBuilder: kDefaultSwitchEditor,
-        propertyCategory: PropertyCategory.layout
+        propertyCategory: PropertyCategory.layout,
+        toCode: kBooleanCodeFormatter
     ),
     PropField(
       name: 'maxLines',
@@ -44,7 +47,8 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
       defaultValue: null,
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1, 'step': 1},
-      propertyCategory: PropertyCategory.sizing
+      propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'overflow',
@@ -58,7 +62,8 @@ final RegisteredComponent textComponentDefinition = RegisteredComponent(
         {'id': 'visible', 'name': 'Visible (can overflow bounds)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.textStyle
+      propertyCategory: PropertyCategory.textStyle,
+      toCode: kEnumCodeFormatter('TextOverflow'),
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,

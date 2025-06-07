@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
@@ -31,6 +32,7 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       defaultValue: _dropdownButtonDefaultProps['itemsString'],
       editorBuilder: kDefaultTextInputEditor,
       propertyCategory: PropertyCategory.dataSource,
+      toCode: kStringCodeFormatter
     ),
     PropField(
       name: 'selectedValue',
@@ -38,7 +40,8 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       fieldType: FieldType.string,
       defaultValue: _dropdownButtonDefaultProps['selectedValue'],
       editorBuilder: kDefaultTextInputEditor,
-        propertyCategory: PropertyCategory.value
+      propertyCategory: PropertyCategory.value,
+      toCode: kStringCodeFormatter
     ),
     PropField(
       name: 'hintText',
@@ -46,7 +49,8 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       fieldType: FieldType.string,
       defaultValue: _dropdownButtonDefaultProps['hintText'],
       editorBuilder: kDefaultTextInputEditor,
-        propertyCategory: PropertyCategory.general
+      propertyCategory: PropertyCategory.general,
+      toCode: kStringCodeFormatter
     ),
     PropField(
       name: 'isExpanded',
@@ -54,7 +58,8 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
       fieldType: FieldType.boolean,
       defaultValue: _dropdownButtonDefaultProps['isExpanded'],
       editorBuilder: kDefaultSwitchEditor,
-        propertyCategory: PropertyCategory.sizing
+      propertyCategory: PropertyCategory.sizing,
+      toCode: kBooleanCodeFormatter
     ),
     ...BasicTextStyleProps.fields.map((field) {
       String labelPrefix = "Item ";
@@ -72,7 +77,8 @@ final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponen
           defaultValue: defaultValue,
           options: field.options,
           editorBuilder: field.editorBuilder,
-          propertyCategory: PropertyCategory.appearance
+          propertyCategory: PropertyCategory.appearance,
+          toCode: field.toCode,
       );
     }),
   ],

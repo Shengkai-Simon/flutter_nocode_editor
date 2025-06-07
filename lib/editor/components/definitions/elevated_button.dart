@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
@@ -21,17 +22,44 @@ final RegisteredComponent elevatedButtonComponentDefinition = RegisteredComponen
     'padding': 'symmetric:H16,V8',
   },
   propFields: [
-    PropField(name: 'buttonText', label: 'Text', fieldType: FieldType.string, defaultValue: 'Click Me', editorBuilder: kDefaultTextInputEditor, propertyCategory: PropertyCategory.general),
-    PropField(name: 'backgroundColor', label: 'Background Color', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.background),
-    PropField(name: 'foregroundColor', label: 'Foreground Color (Text/Icon)', fieldType: FieldType.color, defaultValue: null, editorBuilder: kDefaultColorPickerEditor, propertyCategory: PropertyCategory.appearance),
+    PropField(name: 'buttonText',
+        label: 'Text',
+        fieldType: FieldType.string,
+        defaultValue: 'Click Me',
+        editorBuilder: kDefaultTextInputEditor,
+        propertyCategory: PropertyCategory.general,
+        toCode: kStringCodeFormatter
+    ),
+    PropField(name: 'backgroundColor',
+        label: 'Background Color',
+        fieldType: FieldType.color,
+        defaultValue: null,
+        editorBuilder: kDefaultColorPickerEditor,
+        propertyCategory: PropertyCategory.background,
+        toCode: kColorCodeFormatter
+    ),
+    PropField(name: 'foregroundColor',
+        label: 'Foreground Color (Text/Icon)',
+        fieldType: FieldType.color,
+        defaultValue: null,
+        editorBuilder: kDefaultColorPickerEditor,
+        propertyCategory: PropertyCategory.appearance,
+        toCode: kColorCodeFormatter
+    ),
     PropField(
         name: 'elevation',
         label: 'Elevation',
         fieldType: FieldType.number,
         defaultValue: 1.0,
         editorBuilder: kSliderNumberInputEditor,
-        editorConfig: {'minValue': 0.0, 'maxValue': 24.0, 'divisions': 24, 'decimalPlaces': 1},
-        propertyCategory: PropertyCategory.appearance
+        editorConfig: {
+          'minValue': 0.0,
+          'maxValue': 24.0,
+          'divisions': 24,
+          'decimalPlaces': 1
+        },
+        propertyCategory: PropertyCategory.appearance,
+        toCode: kNumberCodeFormatter
     ),
     ...PaddingProps.fields,
   ],

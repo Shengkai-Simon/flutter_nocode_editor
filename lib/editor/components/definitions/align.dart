@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
@@ -27,6 +28,7 @@ final RegisteredComponent alignComponentDefinition = RegisteredComponent(
       defaultValue: null,
       editorBuilder: kDefaultNumberInputEditor,
       propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'heightFactor',
@@ -35,6 +37,7 @@ final RegisteredComponent alignComponentDefinition = RegisteredComponent(
       defaultValue: null,
       editorBuilder: kDefaultNumberInputEditor,
       propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

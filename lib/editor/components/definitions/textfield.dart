@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
-import '../../properties/core/property_editor_registry.dart';
-import '../../properties/core/property_definition.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_common_groups.dart';
-import '../core/widget_node.dart';
+import '../../properties/core/property_definition.dart';
+import '../../properties/core/property_editor_registry.dart';
 import '../core/component_definition.dart';
+import '../core/widget_node.dart';
 
 final Map<String, dynamic> _textFieldDefaultProps = {
   'initialValue': '',
@@ -34,7 +35,8 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       fieldType: FieldType.string,
       defaultValue:  _textFieldDefaultProps['initialValue'],
       editorBuilder: kDefaultTextInputEditor,
-      propertyCategory: PropertyCategory.value
+      propertyCategory: PropertyCategory.value,
+      toCode: kStringCodeFormatter
     ),
     PropField(
       name: 'hintText',
@@ -42,7 +44,8 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       fieldType: FieldType.string,
       defaultValue: _textFieldDefaultProps['hintText'],
       editorBuilder: kDefaultTextInputEditor,
-      propertyCategory: PropertyCategory.general
+      propertyCategory: PropertyCategory.general,
+      toCode: kStringCodeFormatter
     ),
     PropField(
       name: 'labelText',
@@ -50,7 +53,8 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       fieldType: FieldType.string,
       defaultValue: _textFieldDefaultProps['labelText'],
       editorBuilder: kDefaultTextInputEditor,
-      propertyCategory: PropertyCategory.general
+      propertyCategory: PropertyCategory.general,
+      toCode: kStringCodeFormatter
     ),
     PropField(
       name: 'obscureText',
@@ -58,7 +62,8 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       fieldType: FieldType.boolean,
       defaultValue: _textFieldDefaultProps['obscureText'],
       editorBuilder: kDefaultSwitchEditor,
-      propertyCategory: PropertyCategory.behavior
+      propertyCategory: PropertyCategory.behavior,
+      toCode: kBooleanCodeFormatter
     ),
     PropField(
       name: 'keyboardType',
@@ -71,12 +76,14 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
         {'id': 'number', 'name': 'Number'},
         {'id': 'phone', 'name': 'Phone'},
         {'id': 'datetime', 'name': 'Date Time'},
-        {'id': 'emailaddress', 'name': 'Email Address'},
+        {'id': 'emailAddress', 'name': 'Email Address'},
         {'id': 'url', 'name': 'URL'},
-        {'id': 'visiblepassword', 'name': 'Visible Password'},
+        {'id': 'visiblePassword', 'name': 'Visible Password'},
+        {'id': 'streetAddress', 'name': 'Street Address'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.behavior
+      propertyCategory: PropertyCategory.behavior,
+      toCode: kEnumCodeFormatter('TextInputType'),
     ),
     PropField(
       name: 'maxLines',
@@ -85,7 +92,8 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       defaultValue: _textFieldDefaultProps['maxLines'],
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1},
-      propertyCategory: PropertyCategory.sizing
+      propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'minLines',
@@ -94,7 +102,8 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       defaultValue: _textFieldDefaultProps['minLines'],
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1},
-      propertyCategory: PropertyCategory.sizing
+      propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'maxLength',
@@ -103,7 +112,8 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
       defaultValue: _textFieldDefaultProps['maxLength'],
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1},
-      propertyCategory: PropertyCategory.behavior
+      propertyCategory: PropertyCategory.behavior,
+      toCode: kNumberCodeFormatter
     ),
     ...BasicTextStyleProps.fields.map((field) {
       String label = field.label;
@@ -125,7 +135,8 @@ final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
           options: field.options,
           editorBuilder: field.editorBuilder,
           editorConfig: field.editorConfig,
-          propertyCategory: field.propertyCategory
+          propertyCategory: field.propertyCategory,
+          toCode: field.toCode,
       );
     }),
   ],

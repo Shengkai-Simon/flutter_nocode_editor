@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
@@ -33,6 +34,7 @@ final RegisteredComponent flexibleComponentDefinition = RegisteredComponent(
       editorBuilder: kIntegerStepperEditor,
       editorConfig: {'minValue': 1, 'step': 1},
       propertyCategory: PropertyCategory.sizing,
+      toCode: kNumberCodeFormatter,
     ),
     PropField(
       name: 'fit',
@@ -44,7 +46,8 @@ final RegisteredComponent flexibleComponentDefinition = RegisteredComponent(
         {'id': 'tight', 'name': 'Tight (child fills space, like Expanded)'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.layout
+      propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('FlexFit'),
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

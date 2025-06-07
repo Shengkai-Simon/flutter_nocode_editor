@@ -25,7 +25,7 @@ final canvasTreeProvider = StateProvider<WidgetNode>((ref) {
     props: {
       'width': kRendererWidth,
       'height': kRendererHeight,
-      'backgroundColor': '#eeeeee',
+      'backgroundColor': '#ffffff',
       'shadowColor': '#999999',
       'shadowOffsetX': 0.0,
       'shadowOffsetY': 2.0,

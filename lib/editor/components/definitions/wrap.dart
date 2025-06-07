@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
@@ -31,7 +32,8 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'vertical', 'name': 'Vertical'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.layout
+      propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('Axis'),
     ),
     PropField(
       name: 'alignment',
@@ -47,7 +49,8 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'spaceEvenly', 'name': 'Space Evenly'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.layout
+      propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('WrapAlignment'),
     ),
     PropField(
       name: 'spacing',
@@ -56,7 +59,8 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       defaultValue: 0.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'decimalPlaces': 1},
-      propertyCategory: PropertyCategory.spacing
+      propertyCategory: PropertyCategory.spacing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'runAlignment',
@@ -72,7 +76,8 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'spaceEvenly', 'name': 'Space Evenly'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.layout
+      propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('WrapAlignment'),
     ),
     PropField(
       name: 'runSpacing',
@@ -81,7 +86,8 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       defaultValue: 0.0,
       editorBuilder: kSliderNumberInputEditor,
       editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'decimalPlaces': 1},
-      propertyCategory: PropertyCategory.spacing
+      propertyCategory: PropertyCategory.spacing,
+      toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'crossAxisAlignment',
@@ -95,7 +101,8 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'stretch', 'name': 'Stretch'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.layout
+      propertyCategory: PropertyCategory.layout,
+      toCode: kEnumCodeFormatter('WrapCrossAlignment'),
     ),
     PropField(
       name: 'clipBehavior',
@@ -109,7 +116,8 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         {'id': 'antiAliasWithSaveLayer', 'name': 'Anti Alias With SaveLayer'},
       ],
       editorBuilder: kDefaultDropdownEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.appearance,
+      toCode: kEnumCodeFormatter('Clip'),
     ),
   ],
   childPolicy: ChildAcceptancePolicy.multiple,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
@@ -31,7 +32,8 @@ final RegisteredComponent cardComponentDefinition = RegisteredComponent(
         fieldType: FieldType.color,
         defaultValue: null,
         editorBuilder: kDefaultColorPickerEditor,
-        propertyCategory: PropertyCategory.shadow
+        propertyCategory: PropertyCategory.shadow,
+        toCode: kColorCodeFormatter
     ),
     PropField(
         name: 'borderRadius',
@@ -39,7 +41,8 @@ final RegisteredComponent cardComponentDefinition = RegisteredComponent(
         fieldType: FieldType.number,
         defaultValue: 4.0,
         editorBuilder: kDefaultNumberInputEditor,
-        propertyCategory: PropertyCategory.border
+        propertyCategory: PropertyCategory.border,
+        toCode: kNumberCodeFormatter
     ),
     PropField(
         name: 'elevation',
@@ -48,7 +51,8 @@ final RegisteredComponent cardComponentDefinition = RegisteredComponent(
         defaultValue: 1.0,
         editorBuilder: kSliderNumberInputEditor,
         editorConfig: {'minValue': 0.0, 'maxValue': 24.0, 'divisions': 24, 'decimalPlaces': 1},
-        propertyCategory: PropertyCategory.appearance
+        propertyCategory: PropertyCategory.appearance,
+        toCode: kNumberCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,

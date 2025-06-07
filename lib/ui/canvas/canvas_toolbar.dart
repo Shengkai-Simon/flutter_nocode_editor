@@ -6,24 +6,90 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web/web.dart' as web;
 
 import '../../editor/components/core/widget_node.dart';
+import '../../editor/components/core/component_registry.dart';
+import '../../services/code_generator_service.dart';
 import '../../services/issue_reporter_service.dart';
 import '../../state/editor_state.dart';
+import 'code_preview_dialog.dart';
 
 class CanvasToolbar extends ConsumerWidget {
   const CanvasToolbar({super.key});
 
+  /// A reusable utility function to trigger a file download in the browser.
+  void _downloadFile(BuildContext context, {
+    required String content,
+    required String fileName,
+    required String mimeType,
+  }) {
+    try {
+      final blob = web.Blob([content.toJS].toJS, web.BlobPropertyBag(type: mimeType));
+      final url = web.URL.createObjectURL(blob);
+      final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
+      anchor.href = url;
+      anchor.download = fileName;
+      web.document.body?.append(anchor);
+      anchor.click();
+      anchor.remove();
+      web.URL.revokeObjectURL(url);
+    } catch (e, s) {
+      IssueReporterService().reportError("Error during file download", source: "CanvasToolbar._downloadFile", error: e, stackTrace: s);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error downloading file: $e"), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  /// Saves the current canvas tree as a JSON file.
+  void _saveProject(BuildContext context, WidgetNode tree) {
+    const jsonEncoder = JsonEncoder.withIndent('  ');
+    final jsonString = jsonEncoder.convert(tree.toJson());
+    _downloadFile(
+        context,
+        content: jsonString,
+        fileName: 'flutter_editor_project.json',
+        mimeType: 'application/json'
+    );
+  }
+
+  /// Generates the Dart code and displays it in a preview dialog.
+  void _showExportDialog(BuildContext context, WidgetRef ref) {
+    final WidgetNode currentTree = ref.read(canvasTreeProvider);
+    const String rootWidgetName = "MyExportedScreen";
+    final String fileName = '${rootWidgetName.toLowerCase().replaceAll('_', '-')}.dart';
+
+    final generator = CodeGeneratorService(registeredComponents);
+
+    try {
+      final String formattedDartCode = generator.generateDartCode(currentTree, rootWidgetName);
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return CodePreviewDialog(
+            code: formattedDartCode,
+            fileName: fileName,
+          );
+        },
+      );
+    } catch (e, s) {
+      IssueReporterService().reportError(
+        "Failed to generate Dart code for project.",
+        source: "CanvasToolbar._showExportDialog",
+        error: e,
+        stackTrace: s,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error generating code: $e"), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentTree = ref.watch(canvasTreeProvider);
     final isLoading = ref.watch(isLoadingProjectProvider);
     final errors = ref.watch(projectErrorsProvider);
     final warnings = ref.watch(projectWarningsProvider);
-
-    // Read the layout boundary display state
     final showLayoutBounds = ref.watch(showLayoutBoundsProvider);
     final showLayoutBoundsNotifier = ref.read(showLayoutBoundsProvider.notifier);
-
-    // Watch history state for undo/redo button enabling
     final historyState = ref.watch(historyManagerProvider);
 
     IconData statusIconData = Icons.check_circle_outline_rounded;
@@ -33,11 +99,11 @@ class CanvasToolbar extends ConsumerWidget {
     if (errors.isNotEmpty) {
       statusIconData = Icons.error_rounded;
       statusIconColor = Colors.red.shade700;
-      statusTooltip = "Project Status: ${errors.length} Error(s) found. Click 'Project Issues' for details.";
+      statusTooltip = "Project Status: ${errors.length} Error(s) found.";
     } else if (warnings.isNotEmpty) {
       statusIconData = Icons.warning_amber_rounded;
       statusIconColor = Colors.orange.shade700;
-      statusTooltip = "Project Status: ${warnings.length} Warning(s) found. Click 'Project Issues' for details.";
+      statusTooltip = "Project Status: ${warnings.length} Warning(s) found.";
     }
 
     return Container(
@@ -56,15 +122,15 @@ class CanvasToolbar extends ConsumerWidget {
       child: Row(
         children: [
           Tooltip(
-            message: 'Save Project',
+            message: 'Save Project as JSON',
             child: IconButton(
               icon: const Icon(Icons.save_alt_outlined),
-              onPressed: () => _saveProject(context, currentTree),
+              onPressed: () => _saveProject(context, ref.read(canvasTreeProvider)),
               iconSize: 20,
             ),
           ),
           Tooltip(
-            message: 'Load Project',
+            message: 'Load Project from JSON',
             child: IconButton(
               icon: const Icon(Icons.file_upload_outlined),
               onPressed: isLoading ? null : () => _loadProject(context, ref),
@@ -72,7 +138,6 @@ class CanvasToolbar extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 8),
-          // --- UNDO/REDO BUTTONS ---
           Tooltip(
             message: 'Undo',
             child: IconButton(
@@ -81,7 +146,6 @@ class CanvasToolbar extends ConsumerWidget {
                   ? () => ref.read(historyManagerProvider.notifier).undo()
                   : null,
               iconSize: 20,
-              color: historyState.canUndo ? Theme.of(context).colorScheme.onSurfaceVariant : Theme.of(context).disabledColor,
             ),
           ),
           Tooltip(
@@ -92,13 +156,17 @@ class CanvasToolbar extends ConsumerWidget {
                   ? () => ref.read(historyManagerProvider.notifier).redo()
                   : null,
               iconSize: 20,
-              color: historyState.canRedo ? Theme.of(context).colorScheme.onSurfaceVariant : Theme.of(context).disabledColor,
             ),
           ),
-          // --- END UNDO/REDO BUTTONS ---
-
+          Tooltip(
+            message: 'Export to Dart Code',
+            child: IconButton(
+              icon: const Icon(Icons.code),
+              onPressed: () => _showExportDialog(context, ref),
+              iconSize: 20,
+            ),
+          ),
           const Spacer(),
-
           Tooltip(
             message: showLayoutBounds ? 'Hide Layout Bounds' : 'Show Layout Bounds',
             child: Row(
@@ -115,14 +183,11 @@ class CanvasToolbar extends ConsumerWidget {
                   onChanged: (value) {
                     showLayoutBoundsNotifier.state = value;
                   },
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  activeColor: Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
           ),
           const SizedBox(width: 12),
-
           if (isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 12.0),
@@ -137,49 +202,17 @@ class CanvasToolbar extends ConsumerWidget {
             icon: const Icon(Icons.playlist_add_check_circle_outlined, size: 20),
             label: const Text('Project Issues'),
             onPressed: () => _showProjectIssuesDialog(context, ref),
-            style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)
-            ),
           ),
         ],
       ),
     );
   }
 
-  void _saveProject(BuildContext context, WidgetNode tree) {
-    try {
-      final jsonMap = tree.toJson();
-      const jsonEncoder = JsonEncoder.withIndent('  ');
-      final jsonString = jsonEncoder.convert(jsonMap);
-
-      final blob = web.Blob([jsonString.toJS].toJS, web.BlobPropertyBag(type: 'application/json'));
-      final url = web.URL.createObjectURL(blob);
-      final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
-      anchor.href = url;
-      anchor.download = 'flutter_editor_project.json';
-      web.document.body?.append(anchor);
-      anchor.click();
-      anchor.remove();
-      web.URL.revokeObjectURL(url);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Project saved successfully!"), backgroundColor: Colors.green),
-      );
-    } catch (e, s) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error saving project: $e"), backgroundColor: Colors.red),
-      );
-      IssueReporterService().reportError("Error during project save", source: "ProjectSave", error: e, stackTrace: s);
-    }
-  }
-
   void _loadProject(BuildContext context, WidgetRef ref) {
-    if (ref.read(isLoadingProjectProvider)) {
-      return;
-    }
+    if (ref.read(isLoadingProjectProvider)) {return;}
+
     ref.read(isLoadingProjectProvider.notifier).state = true;
+
     final issueService = IssueReporterService();
     final uploadInput = web.document.createElement('input') as web.HTMLInputElement;
     uploadInput.type = 'file';
@@ -202,14 +235,17 @@ class CanvasToolbar extends ConsumerWidget {
 
       final web.HTMLInputElement eventInputTarget = event.currentTarget as web.HTMLInputElement;
       final web.FileList? files = eventInputTarget.files;
+
       web.File? selectedFile;
       if (files != null && files.length > 0 && files.item(0) != null) {
         selectedFile = files.item(0)!;
       }
+
       eventInputTarget.value = '';
       if (selectedFile != null) {
         ref.read(projectErrorsNotifierProvider.notifier).clearIssues();
         ref.read(projectWarningsNotifierProvider.notifier).clearIssues();
+
         final reader = web.FileReader();
         reader.onloadend = ((web.Event loadEndEvent) {
           String fileContent = "";
@@ -217,52 +253,31 @@ class CanvasToolbar extends ConsumerWidget {
             final jsResult = reader.result;
             if (jsResult == null || jsResult.isUndefinedOrNull) {
               fileContent = "";
-              issueService.reportWarning("FileReader result was null or undefined for file: ${selectedFile?.name}", source: "FileReader");
             } else if (jsResult.isA<JSString>()) {
               fileContent = (jsResult as JSString).toDart;
             } else {
               fileContent = jsResult.toString();
-              issueService.reportWarning("FileReader result was NOT a JSString for file: ${selectedFile?.name}. Type: ${jsResult.runtimeType}. Using Dart .toString().", source: "FileReader");
             }
-            if (fileContent.trim().isEmpty && !(jsResult == null || jsResult.isUndefinedOrNull) ) {
-              issueService.reportWarning("Loaded file ('${selectedFile?.name}') content is effectively empty after processing.", source: "FileLoader");
-            }
+
             if (fileContent.trim().isNotEmpty) {
               final jsonMap = jsonDecode(fileContent) as Map<String, dynamic>;
               final WidgetNode newTree = WidgetNode.fromJson(jsonMap);
               ref.read(historyManagerProvider.notifier).resetWithInitialState(newTree);
             }
-            Future.delayed(Duration.zero, () {
-              if (!context.mounted) return;
-              final List<String> currentErrors = ref.read(projectErrorsProvider);
-              final List<String> currentWarnings = ref.read(projectWarningsProvider);
-              if (currentErrors.isNotEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Project loaded with errors. Check 'Project Issues' panel."), backgroundColor: Colors.redAccent),
-                );
-              } else if (currentWarnings.isNotEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Project loaded with warnings. Check 'Project Issues' panel."), backgroundColor: Colors.orangeAccent),
-                );
-              } else if (fileContent.trim().isNotEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Project loaded successfully!"), backgroundColor: Colors.green),
-                );
-              }
-            });
           } catch (err, s) {
             issueService.reportError("Failed to parse project data from '${selectedFile?.name}'.", source: "ProjectParser", error: err, stackTrace: s);
-            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to parse project. See 'Project Issues' for details."), backgroundColor: Colors.red));
           } finally {
             if(context.mounted) ref.read(isLoadingProjectProvider.notifier).state = false;
           }
         }).toJS;
+
         reader.onerror = ((web.Event errorEvent) {
-          final errorMessage = "Error reading file: ${selectedFile?.name}";
-          issueService.reportError(errorMessage, source: "FileReader", error: reader.error);
+          issueService.reportError("Error reading file: ${selectedFile?.name}", source: "FileReader", error: reader.error);
           if(context.mounted) ref.read(isLoadingProjectProvider.notifier).state = false;
         }).toJS;
+
         reader.readAsText(selectedFile);
+
       } else {
         if(context.mounted) ref.read(isLoadingProjectProvider.notifier).state = false;
       }
@@ -275,6 +290,7 @@ class CanvasToolbar extends ConsumerWidget {
         web.window.removeEventListener('focus', jsWindowFocusCallbackHolder);
         jsWindowFocusCallbackHolder = null;
       }
+
       Future.delayed(const Duration(milliseconds: 150), () {
         if (!context.mounted) return;
         if (!changeEventHasProcessed) {
@@ -294,40 +310,11 @@ class CanvasToolbar extends ConsumerWidget {
     } catch (e, s) {
       issueService.reportError("Failed to trigger file selection dialog.", source: "FileLoader", error: e, stackTrace: s);
       if(context.mounted) ref.read(isLoadingProjectProvider.notifier).state = false;
-      if (jsChangeCallbackHolder != null) uploadInput.removeEventListener('change', jsChangeCallbackHolder);
-      if (jsWindowFocusCallbackHolder != null) web.window.removeEventListener('focus', jsWindowFocusCallbackHolder);
     } finally {
       Future.delayed(const Duration(milliseconds: 200), () {
         if (uploadInput.parentElement != null) { uploadInput.remove(); }
       });
     }
-  }
-
-  List<Widget> _buildSelectableIssueListItems(List<String> issues, Color textColor, BuildContext context) {
-    if (issues.isEmpty) return [];
-    List<Widget> widgets = [];
-    for (int i = 0; i < issues.length; i++) {
-      widgets.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 4.0),
-            child: SelectableText(
-              issues[i],
-              style: TextStyle(color: textColor, fontSize: 13, fontFamily: 'monospace'),
-              toolbarOptions: const ToolbarOptions(copy: true, selectAll: true),
-            ),
-          )
-      );
-      if (i < issues.length - 1) {
-        widgets.add(Divider(
-            height: 1.0,
-            thickness: 0.5,
-            color: Theme.of(context).dividerColor.withOpacity(0.5),
-            indent: 4,
-            endIndent: 4
-        ));
-      }
-    }
-    return widgets;
   }
 
   void _showProjectIssuesDialog(BuildContext context, WidgetRef ref) {
@@ -336,7 +323,6 @@ class CanvasToolbar extends ConsumerWidget {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Project Issues Report'),
-          contentPadding: const EdgeInsets.fromLTRB(0, 12.0, 0, 0),
           content: Consumer(
             builder: (context, dialogRef, child) {
               final errors = dialogRef.watch(projectErrorsProvider);
@@ -348,38 +334,18 @@ class CanvasToolbar extends ConsumerWidget {
                   width: MediaQuery.of(context).size.width * 0.8,
                   height: MediaQuery.of(context).size.height * 0.6,
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor, width: 0.8)),
-                        ),
-                        child: TabBar(
-                          tabs: [
-                            Tab(child: Text("Errors (${errors.length})", style: const TextStyle(fontSize: 14))),
-                            Tab(child: Text("Warnings (${warnings.length})", style: const TextStyle(fontSize: 14))),
-                          ],
-                          labelColor: Theme.of(context).colorScheme.primary,
-                          unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                          indicatorColor: Theme.of(context).colorScheme.primary,
-                          indicatorWeight: 3.0,
-                        ),
+                      TabBar(
+                        tabs: [
+                          Tab(text: "Errors (${errors.length})"),
+                          Tab(text: "Warnings (${warnings.length})"),
+                        ],
                       ),
                       Expanded(
                         child: TabBarView(
                           children: [
-                            _buildIssueListForTab(
-                              context,
-                              errors,
-                              Colors.red.shade700,
-                              "No errors reported.",
-                            ),
-                            _buildIssueListForTab(
-                              context,
-                              warnings,
-                              Colors.orange.shade900,
-                              "No warnings reported.",
-                            ),
+                            _buildIssueListForTab(context, errors, Colors.red.shade700, "No errors reported."),
+                            _buildIssueListForTab(context, warnings, Colors.orange.shade900, "No warnings reported."),
                           ],
                         ),
                       ),
@@ -389,21 +355,17 @@ class CanvasToolbar extends ConsumerWidget {
               );
             },
           ),
-          actionsAlignment: MainAxisAlignment.spaceBetween,
           actions: <Widget>[
             TextButton(
-              style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-              child: const Text('Clear Log'),
               onPressed: () {
                 ref.read(projectErrorsNotifierProvider.notifier).clearIssues();
                 ref.read(projectWarningsNotifierProvider.notifier).clearIssues();
               },
+              child: const Text('Clear Log'),
             ),
             TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
             ),
           ],
         );
@@ -411,33 +373,17 @@ class CanvasToolbar extends ConsumerWidget {
     );
   }
 
-  Widget _buildIssueListForTab(
-      BuildContext context,
-      List<String> issues,
-      Color textColor,
-      String emptyMessage,
-      ) {
+  Widget _buildIssueListForTab(BuildContext context, List<String> issues, Color textColor, String emptyMessage) {
     if (issues.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: SelectableText(
-            emptyMessage,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Theme.of(context).hintColor),
-          ),
-        ),
-      );
+      return Center(child: Text(emptyMessage));
     }
-    final ScrollController scrollController = ScrollController();
-    return Scrollbar(
-      controller: scrollController,
-      thumbVisibility: true,
-      child: ListView(
-        controller: scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        children: _buildSelectableIssueListItems(issues, textColor, context),
+    return ListView.separated(
+      itemCount: issues.length,
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SelectableText(issues[index], style: TextStyle(color: textColor, fontFamily: 'monospace')),
       ),
+      separatorBuilder: (context, index) => const Divider(height: 1),
     );
   }
 }

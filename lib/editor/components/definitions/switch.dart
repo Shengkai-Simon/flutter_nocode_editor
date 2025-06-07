@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/parsing_util.dart';
+import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
@@ -25,7 +26,8 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       fieldType: FieldType.boolean,
       defaultValue: false,
       editorBuilder: kDefaultSwitchEditor,
-      propertyCategory: PropertyCategory.value
+      propertyCategory: PropertyCategory.value,
+      toCode: kBooleanCodeFormatter
     ),
     PropField(
       name: 'activeColor',
@@ -33,7 +35,8 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.appearance,
+      toCode: kColorCodeFormatter
     ),
     PropField(
       name: 'activeTrackColor',
@@ -41,7 +44,8 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.appearance,
+      toCode: kColorCodeFormatter
     ),
     PropField(
       name: 'inactiveThumbColor',
@@ -49,7 +53,8 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.appearance,
+      toCode: kColorCodeFormatter
     ),
     PropField(
       name: 'inactiveTrackColor',
@@ -57,7 +62,8 @@ final RegisteredComponent switchComponentDefinition = RegisteredComponent(
       fieldType: FieldType.color,
       defaultValue: null,
       editorBuilder: kDefaultColorPickerEditor,
-      propertyCategory: PropertyCategory.appearance
+      propertyCategory: PropertyCategory.appearance,
+      toCode: kColorCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,
