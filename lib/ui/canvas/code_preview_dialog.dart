@@ -25,7 +25,6 @@ void _downloadDartFile(String content, String fileName, BuildContext context) {
 
 /// A dialog widget that displays a code preview with syntax highlighting,
 /// copy, and download actions.
-/// 一个对话框组件，用于显示带有语法高亮、复制和下载操作的代码预览。
 class CodePreviewDialog extends StatelessWidget {
   final String code;
   final String fileName;

@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../editor/components/core/widget_node.dart';
 import '../constants/app_constants.dart';
+import '../constants/device_sizes.dart';
 import '../editor/components/core/widget_node_utils.dart';
 import '../services/issue_reporter_service.dart';
 
@@ -17,6 +18,10 @@ enum LeftPanelMode {
 }
 
 final leftPanelModeProvider = StateProvider<LeftPanelMode>((ref) => LeftPanelMode.addWidgets);
+
+final selectedDeviceProvider = StateProvider<String>((ref) {
+  return kPredefinedDeviceSizes.first.name;
+});
 
 final canvasTreeProvider = StateProvider<WidgetNode>((ref) {
   return WidgetNode(

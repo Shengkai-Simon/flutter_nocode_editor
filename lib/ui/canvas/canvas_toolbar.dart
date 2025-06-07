@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:js_interop';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_editor/constants/device_sizes.dart';
+import 'package:flutter_editor/ui/canvas/custom_size_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web/web.dart' as web;
 
@@ -83,6 +85,21 @@ class CanvasToolbar extends ConsumerWidget {
     }
   }
 
+  /// Updates the canvas root node with a new size and records the change in history.
+  void _updateCanvasSize(Size newSize, String deviceName, WidgetRef ref) {
+    ref.read(selectedDeviceProvider.notifier).state = deviceName;
+
+    final currentTree = ref.read(canvasTreeProvider);
+    final newProps = Map<String, dynamic>.from(currentTree.props);
+    newProps['width'] = newSize.width;
+    newProps['height'] = newSize.height;
+
+    final newTree = currentTree.copyWith(props: newProps);
+
+    ref.read(historyManagerProvider.notifier).recordState(newTree);
+  }
+
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = ref.watch(isLoadingProjectProvider);
@@ -91,6 +108,7 @@ class CanvasToolbar extends ConsumerWidget {
     final showLayoutBounds = ref.watch(showLayoutBoundsProvider);
     final showLayoutBoundsNotifier = ref.read(showLayoutBoundsProvider.notifier);
     final historyState = ref.watch(historyManagerProvider);
+    final selectedDeviceName = ref.watch(selectedDeviceProvider);
 
     IconData statusIconData = Icons.check_circle_outline_rounded;
     Color statusIconColor = Colors.green.shade600;
@@ -137,7 +155,8 @@ class CanvasToolbar extends ConsumerWidget {
               iconSize: 20,
             ),
           ),
-          const SizedBox(width: 8),
+          const VerticalDivider(indent: 12, endIndent: 12),
+
           Tooltip(
             message: 'Undo',
             child: IconButton(
@@ -158,6 +177,8 @@ class CanvasToolbar extends ConsumerWidget {
               iconSize: 20,
             ),
           ),
+          const VerticalDivider(indent: 12, endIndent: 12),
+
           Tooltip(
             message: 'Export to Dart Code',
             child: IconButton(
@@ -166,7 +187,55 @@ class CanvasToolbar extends ConsumerWidget {
               iconSize: 20,
             ),
           ),
+          const VerticalDivider(indent: 12, endIndent: 12),
+
+          // Canvas Size Dropdown
+          SizedBox(
+            width: 250,
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: selectedDeviceName,
+                // isDense: true,
+                isExpanded: true,
+                items: kPredefinedDeviceSizes.map((device) {
+                  return DropdownMenuItem<String>(
+                    value: device.name,
+                    child: Text(
+                      device.name == 'Custom' ? 'Custom' : '${device.name} (${device.size.width} x ${device.size.height})',
+                      style: const TextStyle(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newDeviceName) async {
+                  if (newDeviceName == null) return;
+
+                  if (newDeviceName == 'Custom') {
+                    final currentRootNode = ref.read(canvasTreeProvider);
+                    final currentSize = Size(
+                      (currentRootNode.props['width'] as num).toDouble(),
+                      (currentRootNode.props['height'] as num).toDouble(),
+                    );
+
+                    final newCustomSize = await showDialog<Size>(
+                      context: context,
+                      builder: (_) => CustomSizeDialog(currentSize: currentSize),
+                    );
+
+                    if (newCustomSize != null) {
+                      _updateCanvasSize(newCustomSize, 'Custom', ref);
+                    }
+                  } else {
+                    final selectedDevice = kPredefinedDeviceSizes.firstWhere((d) => d.name == newDeviceName);
+                    _updateCanvasSize(selectedDevice.size, newDeviceName, ref);
+                  }
+                },
+              ),
+            ),
+          ),
+
           const Spacer(),
+
           Tooltip(
             message: showLayoutBounds ? 'Hide Layout Bounds' : 'Show Layout Bounds',
             child: Row(
@@ -187,22 +256,24 @@ class CanvasToolbar extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          const VerticalDivider(indent: 12, endIndent: 12),
+
           if (isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 12.0),
               child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.5)),
             ),
-          Tooltip(
-            message: statusTooltip,
-            child: Icon(statusIconData, color: statusIconColor, size: 22),
-          ),
-          const SizedBox(width: 8),
+
           TextButton.icon(
             icon: const Icon(Icons.playlist_add_check_circle_outlined, size: 20),
             label: const Text('Project Issues'),
             onPressed: () => _showProjectIssuesDialog(context, ref),
           ),
+          Tooltip(
+            message: statusTooltip,
+            child: Icon(statusIconData, color: statusIconColor, size: 22),
+          ),
+          const SizedBox(width: 12),
         ],
       ),
     );
@@ -263,6 +334,24 @@ class CanvasToolbar extends ConsumerWidget {
               final jsonMap = jsonDecode(fileContent) as Map<String, dynamic>;
               final WidgetNode newTree = WidgetNode.fromJson(jsonMap);
               ref.read(historyManagerProvider.notifier).resetWithInitialState(newTree);
+
+              final loadedWidth = (newTree.props['width'] as num?)?.toDouble();
+              final loadedHeight = (newTree.props['height'] as num?)?.toDouble();
+              if (loadedWidth != null && loadedHeight != null) {
+                final loadedSize = Size(loadedWidth, loadedHeight);
+                bool foundMatch = false;
+                for (var device in kPredefinedDeviceSizes) {
+                  if (device.size == loadedSize) {
+                    ref.read(selectedDeviceProvider.notifier).state = device.name;
+                    foundMatch = true;
+                    break;
+                  }
+                }
+                if (!foundMatch) {
+                  ref.read(selectedDeviceProvider.notifier).state = 'Custom';
+                }
+              }
+
             }
           } catch (err, s) {
             issueService.reportError("Failed to parse project data from '${selectedFile?.name}'.", source: "ProjectParser", error: err, stackTrace: s);
