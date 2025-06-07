@@ -64,9 +64,13 @@ class WidgetTreeView extends ConsumerWidget {
       ));
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(8.0),
-      children: topLevelTreeItems,
-    );
+    if (topLevelTreeItems.isEmpty) {
+      return Center(child: Text("Please add widgets to the canvas."));
+    } else {
+      return ListView(
+        padding: const EdgeInsets.all(8.0),
+        children: topLevelTreeItems,
+      );
+    }
   }
 }

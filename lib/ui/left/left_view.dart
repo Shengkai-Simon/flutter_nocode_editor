@@ -112,14 +112,6 @@ class LeftView extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(12, 16, 12, 8),
-          child: Text(
-            'Components',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-          ),
-        ),
-        const Divider(height: 1),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.only(bottom: 12.0),
