@@ -6,6 +6,7 @@ import '../../editor/components/core/widget_node.dart';
 import '../constants/app_constants.dart';
 import '../constants/device_sizes.dart';
 import '../editor/components/core/widget_node_utils.dart';
+import '../services/iframe_communication_service.dart';
 import '../services/issue_reporter_service.dart';
 import '../services/project_api_service.dart';
 
@@ -19,6 +20,19 @@ final projectApiServiceProvider = Provider<ProjectApiService>((ref) {
 final projectProvider = FutureProvider.family<WidgetNode, String>((ref, projectId) async {
   final apiService = ref.watch(projectApiServiceProvider);
   return apiService.fetchProject(projectId);
+});
+
+// Create a Provider to manage the instances and lifecycle of Communication Services
+final iframeCommunicationServiceProvider = Provider<IframeCommunicationService>((ref) {
+  final service = IframeCommunicationService();
+  ref.onDispose(() => service.dispose());
+  return service;
+});
+
+// Create a StreamProvider to expose the received message stream
+final incomingMessagesProvider = StreamProvider<Map<String, dynamic>>((ref) {
+  final communicationService = ref.watch(iframeCommunicationServiceProvider);
+  return communicationService.messages;
 });
 
 enum LeftPanelMode {

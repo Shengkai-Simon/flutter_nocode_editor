@@ -5,6 +5,15 @@ import 'package:http/http.dart' as http;
 
 import '../editor/components/core/widget_node.dart';
 
+/// An exception thrown when the user's session is invalid or has expired.
+class SessionExpiredException implements Exception {
+  final String message;
+  SessionExpiredException(this.message);
+
+  @override
+  String toString() => message;
+}
+
 class ProjectApiService {
   final String _baseUrl = 'http://localhost/api';
 
@@ -15,6 +24,16 @@ class ProjectApiService {
 
     try {
       final response = await http.get(uri);
+
+      if (response.statusCode == 401) {
+        final responseData = jsonDecode(response.body);
+        // Check whether the response content matches the characteristics of session expiration
+        if (responseData['message'] == "Authentication token is invalid or has expired.") {
+          print('[API Auth Error] Session expired. Throwing SessionExpiredException.');
+          // Throw our custom exception
+          throw SessionExpiredException('The session has expired, please log back in.');
+        }
+      }
 
       if (response.statusCode == 200) {
         print('[API Success] <== Status: ${response.statusCode} for $uri');
@@ -44,9 +63,7 @@ class ProjectApiService {
       }
     } catch (e) {
       print('[API Exception] <== Error fetching from $uri: ${e.toString()}');
-      throw Exception(
-        'An error occurred while fetching the project: ${e.toString()}',
-      );
+      rethrow;
     }
   }
 }
