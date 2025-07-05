@@ -19,3 +19,8 @@ samples, guidance on mobile development, and a full API reference.
 ```bash
 flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8082
 ```
+# Generate JSON Schema
+```bash
+flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8082 -t lib/editor/dev_tools_app.dart
+```
+Web link: http://localhost:8082/flutter 
