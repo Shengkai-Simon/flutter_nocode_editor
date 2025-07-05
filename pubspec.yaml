@@ -41,6 +41,7 @@ dependencies:
   js_interop: any
   dart_style: ^3.1.0
   flutter_syntax_view: ^4.1.7
+  http: ^1.4.0
 
 dev_dependencies:
   flutter_test:

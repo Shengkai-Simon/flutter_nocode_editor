@@ -1,15 +1,25 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../editor/components/core/widget_node.dart';
 import '../constants/app_constants.dart';
 import '../constants/device_sizes.dart';
 import '../editor/components/core/widget_node_utils.dart';
 import '../services/issue_reporter_service.dart';
+import '../services/project_api_service.dart';
 
-final uuid = Uuid();
+/// Provider that creates and exposes a single instance of ProjectApiService.
+final projectApiServiceProvider = Provider<ProjectApiService>((ref) {
+  return ProjectApiService();
+});
+
+/// A family provider that fetches project data using the ProjectApiService.
+/// It takes a projectId as a parameter and returns the corresponding WidgetNode.
+final projectProvider = FutureProvider.family<WidgetNode, String>((ref, projectId) async {
+  final apiService = ref.watch(projectApiServiceProvider);
+  return apiService.fetchProject(projectId);
+});
 
 enum LeftPanelMode {
   addWidgets,
@@ -24,21 +34,7 @@ final selectedDeviceProvider = StateProvider<String>((ref) {
 });
 
 final canvasTreeProvider = StateProvider<WidgetNode>((ref) {
-  return WidgetNode(
-    id: uuid.v4(),
-    type: 'Container',
-    props: {
-      'width': kRendererWidth,
-      'height': kRendererHeight,
-      'backgroundColor': '#ffffff',
-      'shadowColor': '#999999',
-      'shadowOffsetX': 0.0,
-      'shadowOffsetY': 2.0,
-      'shadowBlurRadius': 4.0,
-      'shadowSpreadRadius': 0.0
-    },
-    children: [],
-  );
+  return createDefaultCanvasTree();
 });
 
 final selectedNodeIdProvider = StateProvider<String?>((ref) => null);

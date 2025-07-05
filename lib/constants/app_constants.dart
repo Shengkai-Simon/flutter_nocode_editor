@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+
+import '../editor/components/core/widget_node.dart';
 
 // Panel Dimensions
 const double kLeftPanelWidth = 356.0;
@@ -32,3 +35,24 @@ const Color layoutBoundBorderColor = kRendererUnselectedBorderColor; // Layout b
 const Color kRendererHoverBorderColor = Colors.orangeAccent; // Hover border color
 const Color kRendererHoverTagBackgroundColor = Colors.orangeAccent; // Hover over the label background
 const Color kRendererHoverTagTextColor = Colors.black87; // Hover the label text
+
+final uuid = Uuid();
+
+/// Creates and returns a new instance of a default, empty canvas tree.
+WidgetNode createDefaultCanvasTree() {
+  return WidgetNode(
+    id: uuid.v4(),
+    type: 'Container',
+    props: {
+      'width': kRendererWidth,
+      'height': kRendererHeight,
+      'backgroundColor': '#ffffff',
+      'shadowColor': '#999999',
+      'shadowOffsetX': 0.0,
+      'shadowOffsetY': 2.0,
+      'shadowBlurRadius': 4.0,
+      'shadowSpreadRadius': 0.0
+    },
+    children: [],
+  );
+}

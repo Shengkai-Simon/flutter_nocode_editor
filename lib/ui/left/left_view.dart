@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../editor/components/core/component_registry.dart';
 import '../../editor/components/core/component_definition.dart';
-import '../../state/editor_state.dart' hide uuid;
+import '../../state/editor_state.dart';
 import 'palette_component_item.dart';
 import 'widget_tree/widget_tree_view.dart';
 

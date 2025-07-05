@@ -2,33 +2,33 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_editor/services/issue_reporter_service.dart';
+import 'package:flutter_editor/ui/common/AppLoader.dart';
 import 'package:flutter_editor/ui/common/app_error_handler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'constants/app_constants.dart';
 import 'state/editor_state.dart';
-import 'ui/left/left_view.dart';
 import 'ui/canvas/canvas_view.dart';
+import 'ui/left/left_view.dart';
 import 'ui/right/right_view.dart';
 
 void main() {
-  runZonedGuarded<Future<void>>(() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    AppErrorHandler.initialize();
+  runZonedGuarded<Future<void>>(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      AppErrorHandler.initialize();
 
-    runApp(
-      const ProviderScope(
-        child: MyApp(),
-      ),
-    );
-  }, (error, stackTrace) {
-    IssueReporterService().reportError(
-      "An unhandled error occurred.",
-      source: "runZonedGuarded",
-      error: error,
-      stackTrace: stackTrace,
-    );
-  });
+      runApp(const ProviderScope(child: MyApp()));
+    },
+    (error, stackTrace) {
+      IssueReporterService().reportError(
+        "An unhandled error occurred.",
+        source: "runZonedGuarded",
+        error: error,
+        stackTrace: stackTrace,
+      );
+    },
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -39,11 +39,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Visual Editor',
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        useMaterial3: true,
-      ),
-      home: const EditorScaffold(),
+      theme: ThemeData(primarySwatch: Colors.deepPurple, useMaterial3: true),
+      home: const AppLoader(),
     );
   }
 }
@@ -66,7 +63,9 @@ class EditorScaffold extends ConsumerWidget {
                 child: AnimatedPadding(
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
-                  padding: EdgeInsets.only(right: isRightPanelVisible ? kRightPanelWidth : 0),
+                  padding: EdgeInsets.only(
+                    right: isRightPanelVisible ? kRightPanelWidth : 0,
+                  ),
                   child: const CanvasView(),
                 ),
               ),
@@ -83,10 +82,7 @@ class EditorScaffold extends ConsumerWidget {
               child: Row(
                 children: [
                   const VerticalDivider(width: 1, thickness: 1),
-                  SizedBox(
-                    width: kRightPanelWidth,
-                    child: const RightView(),
-                  ),
+                  SizedBox(width: kRightPanelWidth, child: const RightView()),
                 ],
               ),
             ),
