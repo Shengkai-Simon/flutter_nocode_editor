@@ -36,6 +36,17 @@ const Color kRendererHoverBorderColor = Colors.orangeAccent; // Hover border col
 const Color kRendererHoverTagBackgroundColor = Colors.orangeAccent; // Hover over the label background
 const Color kRendererHoverTagTextColor = Colors.black87; // Hover the label text
 
+/// The current version of the project JSON schema.
+/// Increment this number whenever a breaking change is made to the project data structure.
+const int kCurrentProjectSchemaVersion = 1;
+
+/// Defines the keys used in the project's JSON schema as static constants
+/// to prevent typos and ensure consistency across the application.
+class ProjectSchemaKeys {
+  static const String schemaVersion = 'schemaVersion';
+  static const String projectData = 'projectData';
+}
+
 final uuid = Uuid();
 
 /// Creates and returns a new instance of a default, empty canvas tree.

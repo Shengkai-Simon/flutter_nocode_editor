@@ -7,10 +7,12 @@ import 'package:flutter_editor/ui/canvas/custom_size_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web/web.dart' as web;
 
+import '../../constants/app_constants.dart';
 import '../../editor/components/core/widget_node.dart';
 import '../../editor/components/core/component_registry.dart';
 import '../../services/code_generator_service.dart';
 import '../../services/issue_reporter_service.dart';
+import '../../services/project_migrator_service.dart';
 import '../../state/editor_state.dart';
 import 'code_preview_dialog.dart';
 
@@ -43,8 +45,12 @@ class CanvasToolbar extends ConsumerWidget {
 
   /// Saves the current canvas tree as a JSON file.
   void _saveProject(BuildContext context, WidgetNode tree) {
+    final versionedProjectData = {
+      ProjectSchemaKeys.schemaVersion: kCurrentProjectSchemaVersion,
+      ProjectSchemaKeys.projectData: tree.toJson(),
+    };
     const jsonEncoder = JsonEncoder.withIndent('  ');
-    final jsonString = jsonEncoder.convert(tree.toJson());
+    final jsonString = jsonEncoder.convert(versionedProjectData);
     _downloadFile(
         context,
         content: jsonString,
@@ -332,7 +338,10 @@ class CanvasToolbar extends ConsumerWidget {
 
             if (fileContent.trim().isNotEmpty) {
               final jsonMap = jsonDecode(fileContent) as Map<String, dynamic>;
-              final WidgetNode newTree = WidgetNode.fromJson(jsonMap);
+
+              final migrator = ProjectMigratorService();
+              final WidgetNode newTree = migrator.migrate(jsonMap);
+
               ref.read(historyManagerProvider.notifier).resetWithInitialState(newTree);
 
               final loadedWidth = (newTree.props['width'] as num?)?.toDouble();
