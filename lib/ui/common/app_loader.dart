@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:js_interop';
 
 import '../../main.dart';
+import '../../providers/communication_providers.dart';
+import '../../providers/project_providers.dart';
 import '../../services/project_api_service.dart';
 import '../../state/editor_state.dart';
 
@@ -35,31 +37,11 @@ class AppLoader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+
+    // As soon as the provider is listened to, it will be activated and start processing messages
+    ref.watch(iframeMessageCoordinatorProvider);
+
     final communicationService = ref.watch(iframeCommunicationServiceProvider);
-
-    // Use ref.listen to subscribe to the message stream and take action
-    ref.listen(incomingMessagesProvider, (previous, next) {
-      // Check for new, valid messages
-      if (next.hasValue) {
-        final message = next.value!;
-
-        switch (message['type']) {
-          case 'SAVE_PROJECT':
-          // Example: What you can do when you receive a 'SAVE_PROJECT' message
-            print('[Flutter] Received SAVE_PROJECT command from parent shell.');
-            // This is where a save to the backend can be triggered for a service
-            // e.g., ref.read(projectApiServiceProvider).saveProject(...);
-            break;
-          case 'CHANGE_THEME':
-            print('[Flutter] Received CHANGE_THEME command with payload: ${message['payload']}');
-            // Can update your app's theme here
-            break;
-          default:
-            print('[Flutter] Received unknown message type: ${message['type']}');
-        }
-      }
-    });
-
     // Directly read the project ID from the browser's URL at startup.
     final projectId = Uri.base.queryParameters['id'];
 

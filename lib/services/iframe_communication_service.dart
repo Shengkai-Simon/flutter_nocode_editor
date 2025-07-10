@@ -81,6 +81,15 @@ class IframeCommunicationService {
     _postMessageToParent({'type': 'flutterReady', 'payload': true});
   }
 
+  void sendLayout(String requestId, Map<String, dynamic> layoutJson) {
+    print('[Flutter] Sending "sendLayout" message to parent shell.');
+    _postMessageToParent({
+      'type': 'GET_LAYOUT_RESPONSE',
+      'requestId': requestId,
+      'payload': layoutJson
+    });
+  }
+
   void sendProjectUpdate(String jsonData) {
     print('[Flutter] Sending "projectUpdate" message to parent shell.');
     _postMessageToParent({'type': 'projectUpdate', 'payload': jsonData});

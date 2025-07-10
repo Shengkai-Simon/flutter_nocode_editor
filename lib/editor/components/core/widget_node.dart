@@ -1,3 +1,5 @@
+import '../../../constants/app_constants.dart';
+
 class WidgetNode {
   final String id;
   final String type;
@@ -34,8 +36,19 @@ class WidgetNode {
     };
   }
 
+  Map<String, dynamic> toJsonWithoutIds() {
+    return {
+      'type': type,
+      'props': props,
+      'children': children.map((child) => child.toJsonWithoutIds()).toList(),
+    };
+  }
+
   factory WidgetNode.fromJson(Map<String, dynamic> json) {
-    final String id = json['id'] as String? ?? '';
+    String? id = json['id'] as String?;
+    if (id == null || id.isEmpty) {
+      id = uuid.v4();
+    }
     final String type = json['type'] as String? ?? 'Unknown';
 
     final Map<String, dynamic> props =
