@@ -2,60 +2,110 @@ import 'package:dart_style/dart_style.dart';
 import '../editor/components/core/widget_node.dart';
 import '../editor/components/core/component_definition.dart';
 import '../editor/properties/core/property_definition.dart';
+import '../state/editor_state.dart';
+import '../utils/string_utils.dart';
 import '../services/issue_reporter_service.dart';
 
 /// A service that generates executable Flutter/Dart code from a WidgetNode tree.
-/// This final version follows the best practice of separating concerns:
-/// 1.  **Generation**: This service generates syntactically correct but unformatted code.
-///     All indentation and manual formatting logic has been removed.
-/// 2.  **Formatting**: It then uses the official `dart_style` package to format the
-///     generated code, ensuring a professional and consistent output.
 class CodeGeneratorService {
   final Map<String, RegisteredComponent> _registeredComponents;
+  final _formatter = DartFormatter(
+      languageVersion: DartFormatter.latestLanguageVersion);
 
   CodeGeneratorService(this._registeredComponents);
 
-  /// Generates and then formats the full Dart code.
-  String generateDartCode(WidgetNode rootNode, String rootWidgetClassName) {
-    // 1. Generate the raw, unformatted code string for the canvas content.
-    final unformattedCode = _generateUnformattedCode(rootNode, rootWidgetClassName);
+  /// Generate all Dart files for the entire project.
+  /// Returns a map where key is the file name and value is the file content.
+  Map<String, String> generateProjectCode(ProjectState project) {
+    final Map<String, String> generatedFiles = {};
 
-    // 2. Instantiate the formatter just in time and format the code.
-    final formatter = DartFormatter(languageVersion: DartFormatter.latestLanguageVersion);
+    // 1. Generate a separate file for each page
+    for (final page in project.pages) {
+      final pageClassName = toUpperCamelCase(page.name);
+      final pageFileName = '${toSnakeCase(page.name)}.dart';
+      final pageCode = _generatePageCode(page.tree, pageClassName);
+      generatedFiles[pageFileName] = pageCode;
+    }
+
+    // 2. Generate a main.dart file
+    final initialPage = project.pages.firstWhere(
+            (p) => p.id == project.activePageId,
+        orElse: () => project.pages.first
+    );
+    final initialPageClassName = toUpperCamelCase(initialPage.name);
+    final initialPageFileName = toSnakeCase(initialPage.name);
+
+    final mainCode = _generateMainDartCode(
+        initialPageClassName, initialPageFileName);
+    generatedFiles['main.dart'] = mainCode;
+
+    return generatedFiles;
+  }
+
+  String _formatCode(String unformattedCode) {
     try {
-      final formattedCode = formatter.format(unformattedCode);
-      return formattedCode;
+      return _formatter.format(unformattedCode);
     } on FormatterException catch (e) {
       IssueReporterService().reportError(
-        "Failed to format generated Dart code. This usually indicates a syntax error in the generated code.",
-        source: "CodeGeneratorService",
-        error: e,
+        "Failed to format generated Dart code.",
+        source: "CodeGeneratorService", error: e,
       );
-      // Return the unformatted code with an error comment for debugging.
       return "// DART CODE FORMATTING FAILED: $e\n\n$unformattedCode";
     }
   }
 
-  /// Generates the unformatted Dart code, wrapping the canvas content in a Scaffold.
-  String _generateUnformattedCode(WidgetNode rootNode, String rootWidgetClassName) {
+  /// Generate unformatted Dart code for individual pages。
+  String _generatePageCode(WidgetNode rootNode, String pageClassName) {
     final widgetCode = _generateWidgetCodeRecursive(rootNode);
-    return """
-import 'package:flutter/material.dart';
+    final unformattedCode = """
+    import 'package:flutter/material.dart';
 
-class $rootWidgetClassName extends StatelessWidget {
-  const $rootWidgetClassName({super.key});
+   
+    class $pageClassName extends StatelessWidget {
+      const $pageClassName({super.key});
 
-  @override
-  Widget build(BuildContext context) {
+    @override
+    Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('$rootWidgetClassName'),
-      ),
-      body: $widgetCode,
+    appBar: AppBar(
+            title: const Text('$pageClassName'),
+    ),
+    body: $widgetCode,
     );
+    }
+    }
+    """;
+    return _formatCode(unformattedCode);
   }
-}
-""";
+
+  /// The code to generate the main.dart file.
+  String _generateMainDartCode(String initialPageClassName,
+      String initialPageFileName) {
+    final unformattedCode = """
+    import 'package:flutter/material.dart';
+    import './$initialPageFileName';
+    
+    void main() {
+      runApp(const MyApp());
+    }
+    
+    class MyApp extends StatelessWidget {
+      const MyApp({super.key});
+    
+      @override
+      Widget build(BuildContext context) {
+        return MaterialApp(
+          title: 'Flutter Project',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            useMaterial3: true,
+          ),
+          home: const $initialPageClassName(),
+        );
+      }
+    }
+    """;
+    return _formatCode(unformattedCode);
   }
 
   /// The main dispatcher. It chooses a generation strategy based on the widget type.

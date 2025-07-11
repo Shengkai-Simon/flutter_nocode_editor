@@ -10,7 +10,7 @@ class CanvasView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tree = ref.watch(canvasTreeProvider);
+    final tree = ref.watch(activeCanvasTreeProvider);
 
     return Column(
       children: [

@@ -61,26 +61,23 @@ class CanvasToolbar extends ConsumerWidget {
 
   /// Generates the Dart code and displays it in a preview dialog.
   void _showExportDialog(BuildContext context, WidgetRef ref) {
-    final WidgetNode currentTree = ref.read(canvasTreeProvider);
-    const String rootWidgetName = "MyExportedScreen";
-    final String fileName = '${rootWidgetName.toLowerCase().replaceAll('_', '-')}.dart';
+    final ProjectState currentProject = ref.read(projectStateProvider);
 
     final generator = CodeGeneratorService(registeredComponents);
 
     try {
-      final String formattedDartCode = generator.generateDartCode(currentTree, rootWidgetName);
+      final Map<String, String> generatedFiles = generator.generateProjectCode(currentProject);
       showDialog(
         context: context,
         builder: (BuildContext dialogContext) {
           return CodePreviewDialog(
-            code: formattedDartCode,
-            fileName: fileName,
+            generatedFiles: generatedFiles,
           );
         },
       );
     } catch (e, s) {
       IssueReporterService().reportError(
-        "Failed to generate Dart code for project.",
+        "Failed to generate project code.",
         source: "CanvasToolbar._showExportDialog",
         error: e,
         stackTrace: s,
@@ -95,7 +92,7 @@ class CanvasToolbar extends ConsumerWidget {
   void _updateCanvasSize(Size newSize, String deviceName, WidgetRef ref) {
     ref.read(selectedDeviceProvider.notifier).state = deviceName;
 
-    final currentTree = ref.read(canvasTreeProvider);
+    final currentTree = ref.read(activeCanvasTreeProvider);
     final newProps = Map<String, dynamic>.from(currentTree.props);
     newProps['width'] = newSize.width;
     newProps['height'] = newSize.height;
@@ -149,7 +146,7 @@ class CanvasToolbar extends ConsumerWidget {
             message: 'Save Project as JSON',
             child: IconButton(
               icon: const Icon(Icons.save_alt_outlined),
-              onPressed: () => _saveProject(context, ref.read(canvasTreeProvider)),
+              onPressed: () => _saveProject(context, ref.read(activeCanvasTreeProvider)),
               iconSize: 20,
             ),
           ),
@@ -217,7 +214,7 @@ class CanvasToolbar extends ConsumerWidget {
                   if (newDeviceName == null) return;
 
                   if (newDeviceName == 'Custom') {
-                    final currentRootNode = ref.read(canvasTreeProvider);
+                    final currentRootNode = ref.read(activeCanvasTreeProvider);
                     final currentSize = Size(
                       (currentRootNode.props['width'] as num).toDouble(),
                       (currentRootNode.props['height'] as num).toDouble(),
@@ -342,7 +339,9 @@ class CanvasToolbar extends ConsumerWidget {
               final migrator = ProjectMigratorService();
               final WidgetNode newTree = migrator.migrate(jsonMap);
 
-              ref.read(historyManagerProvider.notifier).resetWithInitialState(newTree);
+              // Update the entire project status with the new tree loaded to.
+              // HistoryManager automatically listens for this change and resets it.
+              ref.read(projectStateProvider.notifier).loadProject(newTree);
 
               final loadedWidth = (newTree.props['width'] as num?)?.toDouble();
               final loadedHeight = (newTree.props['height'] as num?)?.toDouble();

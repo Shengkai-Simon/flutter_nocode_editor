@@ -6,6 +6,7 @@ import '../../editor/components/core/widget_node.dart';
 import '../constants/app_constants.dart';
 import '../constants/device_sizes.dart';
 import '../editor/components/core/widget_node_utils.dart';
+import '../editor/models/page_node.dart';
 import '../services/issue_reporter_service.dart';
 
 
@@ -21,8 +22,151 @@ final selectedDeviceProvider = StateProvider<String>((ref) {
   return kPredefinedDeviceSizes.first.name;
 });
 
-final canvasTreeProvider = StateProvider<WidgetNode>((ref) {
-  return createDefaultCanvasTree();
+/// Encapsulates the state of the entire project。
+class ProjectState {
+  final List<PageNode> pages;
+  final String activePageId;
+
+  const ProjectState({required this.pages, required this.activePageId});
+
+  /// Gets the page that is currently being edited.
+  PageNode get activePage => pages.firstWhere((p) => p.id == activePageId);
+
+  ProjectState copyWith({
+    List<PageNode>? pages,
+    String? activePageId,
+  }) {
+    return ProjectState(
+      pages: pages ?? this.pages,
+      activePageId: activePageId ?? this.activePageId,
+    );
+  }
+}
+
+/// The core of the project state Notifier。
+class ProjectNotifier extends StateNotifier<ProjectState> {
+  ProjectNotifier() : super(_createInitialState());
+
+  static ProjectState _createInitialState() {
+    final defaultPage = PageNode(
+      id: uuid.v4(),
+      name: 'Main Page',
+      tree: createDefaultCanvasTree(),
+    );
+    return ProjectState(
+      pages: [defaultPage],
+      activePageId: defaultPage.id,
+    );
+  }
+
+  /// Load/reset the entire project state with a new widget tree.
+  void loadProject(WidgetNode rootTree) {
+    final newPage = PageNode(
+      id: uuid.v4(),
+      name: 'Main Page', // Or derive from project data if available
+      tree: rootTree,
+    );
+    state = ProjectState(
+      pages: [newPage],
+      activePageId: newPage.id,
+    );
+  }
+
+  /// Updates the widget tree of the currently active page.
+  void updateActivePageTree(WidgetNode newTree) {
+    state = state.copyWith(
+      pages: state.pages.map((page) {
+        if (page.id == state.activePageId) {
+          return page.copyWith(tree: newTree);
+        }
+        return page;
+      }).toList(),
+    );
+  }
+
+  /// Add a new page
+  void addPage() {
+    // To avoid duplicate names, find a unique default name
+    int pageCounter = 1;
+    String newPageName;
+    do {
+      newPageName = 'New Page $pageCounter';
+      pageCounter++;
+    } while (state.pages.any((p) => p.name == newPageName));
+
+    final newPage = PageNode(
+      id: uuid.v4(),
+      name: newPageName,
+      tree: createDefaultCanvasTree(),
+    );
+
+    final newPages = [...state.pages, newPage];
+    state = state.copyWith(pages: newPages, activePageId: newPage.id);
+  }
+
+  /// Delete a page.
+  void deletePage(String pageId) {
+    if (state.pages.length <= 1) {
+      // Deletion of the last page is not allowed
+      IssueReporterService().reportWarning(
+          "Cannot delete the last page of the project.");
+      return;
+    }
+
+    final newPages = state.pages.where((p) => p.id != pageId).toList();
+    String newActivePageId = state.activePageId;
+
+    // If the currently active page is deleted, the active page is switched to the first one in the list
+    if (state.activePageId == pageId) {
+      newActivePageId = newPages.first.id;
+    }
+
+    state = state.copyWith(pages: newPages, activePageId: newActivePageId);
+  }
+
+  /// Rename a page.
+  void renamePage(String pageId, String newName) {
+    if (newName
+        .trim()
+        .isEmpty) {
+      IssueReporterService().reportWarning("Page name cannot be empty.");
+      return;
+    }
+    if (state.pages.any((p) => p.name == newName && p.id != pageId)) {
+      IssueReporterService().reportWarning(
+          'Page name "$newName" already exists.');
+      return;
+    }
+
+    state = state.copyWith(
+      pages: state.pages.map((p) {
+        if (p.id == pageId) {
+          p.name = newName;
+        }
+        return p;
+      }).toList(),
+    );
+  }
+
+  /// Set the currently active page.
+  void setActivePage(String pageId) {
+    if (state.activePageId != pageId &&
+        state.pages.any((p) => p.id == pageId)) {
+      state = state.copyWith(activePageId: pageId);
+    }
+  }
+}
+
+/// Globally unique project status provider.
+final projectStateProvider = StateNotifierProvider<ProjectNotifier, ProjectState>((ref) {
+  return ProjectNotifier();
+ });
+
+/// Derives the Widget tree from the currently active page.
+/// The UI component will listen to this provider, not directly to the projectProvider.
+final activeCanvasTreeProvider = Provider<WidgetNode>((ref) {
+  final projectState = ref.watch(projectStateProvider);
+  return projectState.activePage.tree;
 });
 
 final selectedNodeIdProvider = StateProvider<String?>((ref) => null);
@@ -34,7 +178,7 @@ final dragRejectedDataProviderFor = StateProvider.family<List<dynamic>, String>(
 
 /// Stores the ID collection of all expanded WidgetNodes.
 final expandedNodeIdsProvider = StateProvider<Set<String>>((ref) {
-  final WidgetNode rootNode = ref.watch(canvasTreeProvider);
+  final WidgetNode rootNode = ref.watch(activeCanvasTreeProvider);
   return _getAllInitiallyExpandedNodeIds(rootNode);
 });
 
@@ -112,87 +256,100 @@ class HistoryInfoState {
   int get hashCode => canUndo.hashCode ^ canRedo.hashCode;
 }
 
+/// An inner helper class that encapsulates the history of a single page.
+class _PageHistory {
+    final List<WidgetNode> stack = [];
+    int currentIndex = -1;
+}
+
 class HistoryManager extends StateNotifier<HistoryInfoState> {
   final Ref _ref;
-  List<WidgetNode> _history = [];
-  int _currentIndex = -1; // Index of the current state in _history
+  final Map<String, _PageHistory> _pageHistories = {};
 
   HistoryManager(this._ref)
       : super(const HistoryInfoState(canUndo: false, canRedo: false)) {
-    // Initialize history with a deep copy of the initial canvas tree state
-    final initialTree = _ref.read(canvasTreeProvider);
-    _history = [deepCopyNode(initialTree)];
-    _currentIndex = 0;
-    _updateState(); // Set initial canUndo/canRedo state
+    // Listen for changes in project status to react when pages are added, deleted, or switched.
+    _ref.listen<ProjectState>(projectStateProvider, (previous, next) {
+      _syncHistoriesWithProjectState(next);
+      _updateState(next.activePageId);
+    }, fireImmediately: true);
   }
 
-  // Public getters for direct checking if needed, though watching the state is preferred
-  bool get currentCanUndo => _currentIndex > 0;
-  bool get currentCanRedo => _currentIndex < _history.length - 1;
+  /// Synchronize history based on project status
+  void _syncHistoriesWithProjectState(ProjectState project) {
+    // Create a history for new pages
+    for (final page in project.pages) {
+      if (!_pageHistories.containsKey(page.id)) {
+        _pageHistories[page.id] = _PageHistory()
+          ..stack.add(deepCopyNode(page.tree))
+          ..currentIndex = 0;
+      }
+    }
+    // Remove the history of deleted pages
+    _pageHistories.removeWhere((pageId, _) => !project.pages.any((p) => p.id == pageId));
+  }
 
-  void _updateState() {
-    final newCanUndo = currentCanUndo;
-    final newCanRedo = currentCanRedo;
-    // Only update state if it actually changed to prevent unnecessary rebuilds
-    if (state.canUndo != newCanUndo || state.canRedo != newCanRedo) {
-      state = HistoryInfoState(canUndo: newCanUndo, canRedo: newCanRedo);
+  void _updateState(String activePageId) {
+    final history = _pageHistories[activePageId];
+    final canUndo = history != null && history.currentIndex > 0;
+    final canRedo = history != null && history.currentIndex < history.stack.length - 1;
+
+    if (state.canUndo != canUndo || state.canRedo != canRedo) {
+      state = HistoryInfoState(canUndo: canUndo, canRedo: canRedo);
     }
   }
 
   void recordState(WidgetNode newTree) {
+    final activePageId = _ref.read(projectStateProvider).activePageId;
+    final history = _pageHistories[activePageId];
+    if (history == null) return;
+
     final newStateCopy = deepCopyNode(newTree);
 
-    if (_currentIndex < _history.length - 1) {
-      _history = _history.sublist(0, _currentIndex + 1);
+    if (history.currentIndex < history.stack.length - 1) {
+      history.stack.removeRange(history.currentIndex + 1, history.stack.length);
     }
 
-    _history.add(newStateCopy);
-    _currentIndex++; // Move pointer to the new state
+    history.stack.add(newStateCopy);
+    history.currentIndex++;
 
-    // Limit history size
-    if (_history.length > kMaxHistorySteps) {
-      _history.removeAt(0);
-      _currentIndex--; // Adjust index because an element was removed from the beginning
+    if (history.stack.length > kMaxHistorySteps) {
+      history.stack.removeAt(0);
+      history.currentIndex--;
     }
 
-    // Update the live canvas tree provider with the recorded state
-    _ref.read(canvasTreeProvider.notifier).state = newStateCopy;
-
-    _updateState(); // Update canUndo/canRedo status
+    _ref.read(projectStateProvider.notifier).updateActivePageTree(newStateCopy);
+    _updateState(activePageId);
   }
 
   void undo() {
-    if (currentCanUndo) {
-      _currentIndex--;
-      final historicState = _history[_currentIndex];
-      // Set live state to a deep copy of the historic state
-      _ref.read(canvasTreeProvider.notifier).state = deepCopyNode(historicState);
-      _ref.read(selectedNodeIdProvider.notifier).state = null; // Deselect node
-      _ref.read(hoveredNodeIdProvider.notifier).state = null;  // Clear hover
-      _updateState();
-    }
+    final activePageId = _ref.read(projectStateProvider).activePageId;
+    final history = _pageHistories[activePageId];
+    if (history == null || history.currentIndex <= 0) return;
+
+    history.currentIndex--;
+    final historicState = history.stack[history.currentIndex];
+
+    _ref.read(projectStateProvider.notifier).updateActivePageTree(deepCopyNode(historicState));
+    _ref.read(selectedNodeIdProvider.notifier).state = null;
+    _ref.read(hoveredNodeIdProvider.notifier).state = null;
+    _updateState(activePageId);
   }
 
   void redo() {
-    if (currentCanRedo) {
-      _currentIndex++;
-      final historicState = _history[_currentIndex];
-      // Set live state to a deep copy of the historic state
-      _ref.read(canvasTreeProvider.notifier).state = deepCopyNode(historicState);
-      _ref.read(selectedNodeIdProvider.notifier).state = null; // Deselect node
-      _ref.read(hoveredNodeIdProvider.notifier).state = null;  // Clear hover
-      _updateState();
+    final activePageId = _ref.read(projectStateProvider).activePageId;
+    final history = _pageHistories[activePageId];
+    if (history == null || history.currentIndex >= history.stack.length - 1) {
+      return;
     }
-  }
 
-  void resetWithInitialState(WidgetNode initialState) {
-    final initialStateCopy = deepCopyNode(initialState); // Deep copy
-    _history = [initialStateCopy];
-    _currentIndex = 0;
-    _ref.read(canvasTreeProvider.notifier).state = initialStateCopy;
+    history.currentIndex++;
+    final historicState = history.stack[history.currentIndex];
+
+    _ref.read(projectStateProvider.notifier).updateActivePageTree(deepCopyNode(historicState));
     _ref.read(selectedNodeIdProvider.notifier).state = null;
     _ref.read(hoveredNodeIdProvider.notifier).state = null;
-    _updateState();
+    _updateState(activePageId);
   }
 }
 

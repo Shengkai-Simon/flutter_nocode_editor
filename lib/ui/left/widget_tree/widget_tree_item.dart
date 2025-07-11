@@ -353,7 +353,7 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
           return;
         }
         final WidgetNode nodeToMove = deepCopyNode(nodeToMoveOriginal);
-        WidgetNode currentTree = ref.read(canvasTreeProvider);
+        WidgetNode currentTree = ref.read(activeCanvasTreeProvider);
         WidgetNode treeAfterRemoval = removeNodeById(currentTree, draggedNodeId);
         WidgetNode finalTree = treeAfterRemoval;
         bool actionTaken = false;

@@ -165,7 +165,7 @@ class WidgetRenderer extends ConsumerWidget {
             props: Map<String, dynamic>.from(droppedRc.defaultProps),
           );
 
-          final currentTree = ref.read(canvasTreeProvider);
+          final currentTree = ref.read(activeCanvasTreeProvider);
           final newTree = addNodeAsChildRecursive(currentTree, node.id, newNode);
 
           ref.read(historyManagerProvider.notifier).recordState(newTree);

@@ -62,7 +62,7 @@ final iframeMessageCoordinatorProvider = Provider<void>((ref) {
         }
         break;
       case 'GET_LAYOUT_REQUEST':
-        final WidgetNode tree = ref.read(canvasTreeProvider);
+        final WidgetNode tree = ref.read(activeCanvasTreeProvider);
         final Map<String, dynamic> treeNodeToJson = tree.toJsonWithoutIds();
         if(treeNodeToJson['children'].isNotEmpty && treeNodeToJson['children'][0].isNotEmpty){
           communicationService.sendLayout(message['requestId'], treeNodeToJson['children'][0]);

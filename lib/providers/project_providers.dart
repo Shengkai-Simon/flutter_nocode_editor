@@ -9,7 +9,7 @@ final projectApiServiceProvider = Provider<ProjectApiService>((ref) {
 
 /// A family provider that fetches project data using the ProjectApiService.
 /// It takes a projectId as a parameter and returns the corresponding WidgetNode.
-final projectProvider = FutureProvider.family<WidgetNode, String>((ref, projectId) async {
+final projectDataFutureProvider = FutureProvider.family<WidgetNode, String>((ref, projectId) async {
   final apiService = ref.watch(projectApiServiceProvider);
   return apiService.fetchProject(projectId);
 });

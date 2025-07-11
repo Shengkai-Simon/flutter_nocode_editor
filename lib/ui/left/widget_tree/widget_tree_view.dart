@@ -11,7 +11,7 @@ class WidgetTreeView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final WidgetNode rootCanvasNode = ref.watch(canvasTreeProvider);
+    final WidgetNode rootCanvasNode = ref.watch(activeCanvasTreeProvider);
     final Set<String> expandedIds = ref.watch(expandedNodeIdsProvider);
 
     List<Widget> buildTreeWidgetsRecursive(

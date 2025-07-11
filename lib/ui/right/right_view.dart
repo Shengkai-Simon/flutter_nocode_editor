@@ -154,7 +154,7 @@ class RightView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedId = ref.watch(selectedNodeIdProvider);
-    final tree = ref.watch(canvasTreeProvider);
+    final tree = ref.watch(activeCanvasTreeProvider);
     final WidgetNode? node = findNodeById(tree, selectedId);
 
     if (node == null) {
@@ -191,7 +191,7 @@ class RightView extends ConsumerWidget {
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
               tooltip: 'Delete ${rc.displayName}',
               onPressed: () {
-                final currentGlobalTree = ref.read(canvasTreeProvider);
+                final currentGlobalTree = ref.read(activeCanvasTreeProvider);
                 if (currentGlobalTree.id == node.id) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Cannot delete the root canvas node.")));
@@ -218,7 +218,7 @@ class RightView extends ConsumerWidget {
           updatedProps[field.name] = newValueFromField;
 
           final updatedNode = node.copyWith(props: updatedProps);
-          final currentGlobalTree = ref.read(canvasTreeProvider); // Get current tree to apply changes
+          final currentGlobalTree = ref.read(activeCanvasTreeProvider); // Get current tree to apply changes
           final newGlobalTree = replaceNodeInTree(currentGlobalTree, updatedNode);
           ref.read(historyManagerProvider.notifier).recordState(newGlobalTree);
         }
@@ -289,7 +289,7 @@ class RightView extends ConsumerWidget {
                           );
                         }
                         final updatedNode = node.copyWith(props: newProps);
-                        final currentGlobalTree = ref.read(canvasTreeProvider); // Get current tree
+                        final currentGlobalTree = ref.read(activeCanvasTreeProvider); // Get current tree
                         final newGlobalTree = replaceNodeInTree(currentGlobalTree, updatedNode);
                         ref.read(historyManagerProvider.notifier).recordState(newGlobalTree);
                       },

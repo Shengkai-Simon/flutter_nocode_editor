@@ -5,6 +5,7 @@ import '../../editor/components/core/component_registry.dart';
 import '../../editor/components/core/component_definition.dart';
 import '../../state/editor_state.dart';
 import 'palette_component_item.dart';
+import 'pages/page_management_view.dart';
 import 'widget_tree/widget_tree_view.dart';
 
 class LeftView extends ConsumerWidget {
@@ -141,7 +142,6 @@ class LeftView extends ConsumerWidget {
                 isSelected: currentMode == LeftPanelMode.addWidgets,
                 selectedIcon: const Icon(Icons.add_box),
                 onPressed: () => modeNotifier.state = LeftPanelMode.addWidgets,
-                color: currentMode == LeftPanelMode.addWidgets ? Theme.of(context).colorScheme.primary : null,
               ),
               const SizedBox(height: 8),
               IconButton(
@@ -150,7 +150,6 @@ class LeftView extends ConsumerWidget {
                 isSelected: currentMode == LeftPanelMode.widgetTree,
                 selectedIcon: const Icon(Icons.account_tree),
                 onPressed: () => modeNotifier.state = LeftPanelMode.widgetTree,
-                color: currentMode == LeftPanelMode.widgetTree ? Theme.of(context).colorScheme.primary : null,
               ),
               const SizedBox(height: 8),
               IconButton(
@@ -159,7 +158,6 @@ class LeftView extends ConsumerWidget {
                 isSelected: currentMode == LeftPanelMode.pages,
                 selectedIcon: const Icon(Icons.layers),
                 onPressed: () => modeNotifier.state = LeftPanelMode.pages,
-                color: currentMode == LeftPanelMode.pages ? Theme.of(context).colorScheme.primary : null,
               ),
             ],
           ),
@@ -169,7 +167,7 @@ class LeftView extends ConsumerWidget {
           child: switch (currentMode) {
             LeftPanelMode.addWidgets => _buildAddComponentSection(context, ref),
             LeftPanelMode.widgetTree => const WidgetTreeView(),
-            LeftPanelMode.pages      => const Center(child: Text("Page Management (Coming Soon!)")),
+            LeftPanelMode.pages      => const PageManagementView(),
           },
         ),
       ],

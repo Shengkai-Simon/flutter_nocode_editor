@@ -51,7 +51,7 @@ class AppLoader extends ConsumerWidget {
     }
 
     // Case 2: Project ID exists, watch the state of the data provider.
-    final asyncProject = ref.watch(projectProvider(projectId));
+    final asyncProject = ref.watch(projectDataFutureProvider(projectId));
 
     return asyncProject.when(
       loading: () => const LoadingScreen(),
@@ -61,7 +61,7 @@ class AppLoader extends ConsumerWidget {
         } else {
           return ErrorScreen(
             errorMessage: err.toString(),
-            onRetry: () => ref.invalidate(projectProvider(projectId)),
+            onRetry: () => ref.invalidate(projectDataFutureProvider(projectId)),
           );
         }
       },
@@ -71,9 +71,8 @@ class AppLoader extends ConsumerWidget {
         // conflict with the current build cycle.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
-            ref
-                .read(historyManagerProvider.notifier)
-                .resetWithInitialState(projectNode);
+            // 2. After the data is obtained, update the Status Management provider
+            ref.read(projectStateProvider.notifier).loadProject(projectNode);
 
             // After the data is successfully loaded and the state is initialized, a "flutterReady" message is sent
             communicationService.sendFlutterReady();
