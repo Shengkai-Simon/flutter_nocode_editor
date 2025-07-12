@@ -1,6 +1,7 @@
 import 'package:dart_style/dart_style.dart';
 import '../editor/components/core/widget_node.dart';
 import '../editor/components/core/component_definition.dart';
+import '../editor/models/page_node.dart';
 import '../editor/properties/core/property_definition.dart';
 import '../state/editor_state.dart';
 import '../utils/string_utils.dart';
@@ -40,6 +41,13 @@ class CodeGeneratorService {
     generatedFiles['main.dart'] = mainCode;
 
     return generatedFiles;
+  }
+
+  /// Generate Dart code strings for individual pages。
+  String generateSinglePageFile(PageNode page) {
+    final pageClassName = toUpperCamelCase(page.name);
+    // We simply reuse existing proprietary methods
+    return _generatePageCode(page.tree, pageClassName);
   }
 
   String _formatCode(String unformattedCode) {

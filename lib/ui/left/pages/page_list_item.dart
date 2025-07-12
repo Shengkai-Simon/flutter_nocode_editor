@@ -1,8 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../editor/components/core/component_registry.dart';
 import '../../../editor/models/page_node.dart';
+import '../../../services/code_generator_service.dart';
+import '../../../services/project_migrator_service.dart';
 import '../../../state/editor_state.dart';
+import '../../../utils/file_io_web.dart';
+import '../../../utils/string_utils.dart';
 import 'delete_confirmation_dialog.dart';
 import 'rename_page_dialog.dart';
 
@@ -46,33 +53,99 @@ class PageListItem extends ConsumerWidget {
               ),
               PopupMenuButton<String>(
                 onSelected: (value) async {
-                  if (value == 'rename') {
-                    final newName = await showDialog<String>(
-                      context: context,
-                      builder: (_) => RenamePageDialog(currentPageName: page.name),
-                    );
-                    if (newName != null && newName.isNotEmpty) {
-                      notifier.renamePage(page.id, newName);
-                    }
-                  } else if (value == 'delete') {
-                    // A secondary confirmation box pops up
-                    final bool? confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (_) =>
-                          DeleteConfirmationDialog(
-                            title: 'Delete Page?',
-                            content: 'Are you sure you want to delete the page "${page.name}"? This action cannot be undone.',
-                          ),
-                    );
-                    if (confirmed == true) {
-                      notifier.deletePage(page.id);
-                    }
+                  switch (value) {
+                    case 'rename':
+                      final newName = await showDialog<String>(
+                        context: context,
+                        builder: (_) =>
+                            RenamePageDialog(currentPageName: page.name),
+                      );
+                      if (newName != null && newName.isNotEmpty) {
+                        notifier.renamePage(page.id, newName);
+                      }
+                      break;
+
+                    case 'export_dart':
+                      final generator = CodeGeneratorService(
+                          registeredComponents);
+                      final code = generator.generateSinglePageFile(page);
+                      final fileName = '${toSnakeCase(page.name)}.dart';
+                      downloadFileOnWeb(code, fileName);
+                      break;
+
+                    case 'export_json':
+                      const jsonEncoder = JsonEncoder.withIndent('  ');
+                      final jsonString = jsonEncoder.convert(
+                          page.tree.toJson());
+                      final fileName = '${toSnakeCase(page.name)}.json';
+                      downloadFileOnWeb(jsonString, fileName);
+                      break;
+
+                    case 'import_json':
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (_) =>
+                            DeleteConfirmationDialog(
+                              title: 'Import Layout?',
+                              content: 'This will overwrite the current content of "${page.name}". This action can be undone.',
+                            ),
+                      );
+                      if (confirmed == true) {
+                        final jsonContent = await pickAndReadFileAsStringOnWeb(ref);
+                        if (jsonContent != null) {
+                          try {
+                            final jsonMap = jsonDecode(jsonContent) as Map<
+                                String,
+                                dynamic>;
+                            final migrator = ProjectMigratorService();
+                            final newTree = migrator.migrate(jsonMap);
+
+                            ref.read(projectStateProvider.notifier).importTreeForPage(page.id, newTree);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Layout imported to "${page.name}" successfully.')),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Failed to parse JSON file: $e'), backgroundColor: Colors.red),
+                            );
+                          }
+                        }
+                      }
+                      break;
+
+                    case 'delete':
+                      final bool? confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (_) =>
+                            DeleteConfirmationDialog(
+                              title: 'Delete Page?',
+                              content: 'Are you sure you want to delete the page "${page.name}"? This action cannot be undone.',
+                            ),
+                      );
+                      if (confirmed == true) {
+                        notifier.deletePage(page.id);
+                      }
+                      break;
                   }
                 },
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                itemBuilder: (BuildContext context) =>
+                <PopupMenuEntry<String>>[
                   const PopupMenuItem<String>(
                     value: 'rename',
                     child: Text('Rename'),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<String>(
+                    value: 'export_dart',
+                    child: Text('Export Page Code (.dart)'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'export_json',
+                    child: Text('Export Page Layout (.json)'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'import_json',
+                    child: Text('Import Page Layout...'),
                   ),
                   if (canDelete) ...[
                     const PopupMenuDivider(),
@@ -83,7 +156,7 @@ class PageListItem extends ConsumerWidget {
                         style: TextStyle(color: Colors.red),
                       ),
                     ),
-                  ],
+                  ]
                 ],
               ),
             ],

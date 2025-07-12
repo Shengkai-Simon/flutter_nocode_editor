@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:js_interop';
 
+import '../../constants/app_constants.dart';
+import '../../editor/models/page_node.dart';
 import '../../main.dart';
 import '../../providers/communication_providers.dart';
 import '../../providers/project_providers.dart';
@@ -71,15 +73,25 @@ class AppLoader extends ConsumerWidget {
         // conflict with the current build cycle.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
-            // 2. After the data is obtained, update the Status Management provider
-            ref.read(projectStateProvider.notifier).loadProject(projectNode);
+            final newInitialPage = PageNode(
+              id: uuid.v4(),
+              name: 'Main Page',
+              tree: projectNode,
+            );
 
-            // After the data is successfully loaded and the state is initialized, a "flutterReady" message is sent
+            final newProjectState = ProjectState(
+              pages: [newInitialPage],
+              activePageId: newInitialPage.id,
+              initialPageId: newInitialPage.id,
+            );
+
+            ref.read(projectStateProvider.notifier).loadProject(newProjectState);
+
             communicationService.sendFlutterReady();
           }
         });
         // Show the main editor UI.
-        return const EditorScaffold();
+        return const AppShell();
       },
     );
   }

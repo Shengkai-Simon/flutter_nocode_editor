@@ -9,7 +9,6 @@ import '../editor/components/core/widget_node_utils.dart';
 import '../editor/models/page_node.dart';
 import '../services/issue_reporter_service.dart';
 
-
 enum LeftPanelMode {
   addWidgets,
   widgetTree,
@@ -26,8 +25,9 @@ final selectedDeviceProvider = StateProvider<String>((ref) {
 class ProjectState {
   final List<PageNode> pages;
   final String activePageId;
+  final String initialPageId;
 
-  const ProjectState({required this.pages, required this.activePageId});
+  const ProjectState({required this.pages, required this.activePageId, required this.initialPageId});
 
   /// Gets the page that is currently being edited.
   PageNode get activePage => pages.firstWhere((p) => p.id == activePageId);
@@ -35,17 +35,40 @@ class ProjectState {
   ProjectState copyWith({
     List<PageNode>? pages,
     String? activePageId,
+    String? initialPageId,
   }) {
     return ProjectState(
       pages: pages ?? this.pages,
       activePageId: activePageId ?? this.activePageId,
+      initialPageId: initialPageId ?? this.initialPageId,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'pages': pages.map((p) => p.toJson()).toList(),
+      'activePageId': activePageId,
+      'initialPageId': initialPageId,
+    };
+  }
+
+  factory ProjectState.fromJson(Map<String, dynamic> json) {
+    final pages = (json['pages'] as List<dynamic>)
+        .map((pageJson) => PageNode.fromJson(pageJson as Map<String, dynamic>))
+        .toList();
+
+    return ProjectState(
+      pages: pages,
+      activePageId: json['activePageId'] as String? ?? pages.first.id,
+      initialPageId: json['initialPageId'] as String? ?? pages.first.id,
     );
   }
 }
 
 /// The core of the project state Notifier。
 class ProjectNotifier extends StateNotifier<ProjectState> {
-  ProjectNotifier() : super(_createInitialState());
+  final Ref ref;
+  ProjectNotifier(this.ref) : super(_createInitialState());
 
   static ProjectState _createInitialState() {
     final defaultPage = PageNode(
@@ -56,23 +79,17 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
     return ProjectState(
       pages: [defaultPage],
       activePageId: defaultPage.id,
+      initialPageId: defaultPage.id,
     );
   }
 
-  /// Load/reset the entire project state with a new widget tree.
-  void loadProject(WidgetNode rootTree) {
-    final newPage = PageNode(
-      id: uuid.v4(),
-      name: 'Main Page', // Or derive from project data if available
-      tree: rootTree,
-    );
-    state = ProjectState(
-      pages: [newPage],
-      activePageId: newPage.id,
-    );
+  /// Replaces the entire current project state with a new one.
+  /// This is used when loading a project from a file.
+  void loadProject(ProjectState newProjectState) {
+    state = newProjectState;
   }
 
-  /// Updates the widget tree of the currently active page.
+  /// Updates the currently active page's WidgetNode tree.
   void updateActivePageTree(WidgetNode newTree) {
     state = state.copyWith(
       pages: state.pages.map((page) {
@@ -84,9 +101,8 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
     );
   }
 
-  /// Add a new page
+  /// Adds a new page to the project.
   void addPage() {
-    // To avoid duplicate names, find a unique default name
     int pageCounter = 1;
     String newPageName;
     do {
@@ -104,37 +120,62 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
     state = state.copyWith(pages: newPages, activePageId: newPage.id);
   }
 
-  /// Delete a page.
+  /// Deletes a page from the project.
   void deletePage(String pageId) {
     if (state.pages.length <= 1) {
-      // Deletion of the last page is not allowed
-      IssueReporterService().reportWarning(
-          "Cannot delete the last page of the project.");
+      IssueReporterService().reportWarning("Cannot delete the last page of the project.");
       return;
     }
 
     final newPages = state.pages.where((p) => p.id != pageId).toList();
     String newActivePageId = state.activePageId;
+    String newInitialPageId = state.initialPageId;
 
-    // If the currently active page is deleted, the active page is switched to the first one in the list
     if (state.activePageId == pageId) {
       newActivePageId = newPages.first.id;
     }
+    // If the deleted page was the initial page, set the first page as the new initial.
+    if (state.initialPageId == pageId) {
+      newInitialPageId = newPages.first.id;
+    }
 
-    state = state.copyWith(pages: newPages, activePageId: newActivePageId);
+    state = state.copyWith(
+        pages: newPages,
+        activePageId: newActivePageId,
+        initialPageId: newInitialPageId
+    );
   }
 
-  /// Rename a page.
+  /// Import a WidgetNode tree and replace the contents of the specified page.
+  /// This action is tracked by the history
+  void importTreeForPage(String pageId, WidgetNode newTree) {
+    // Locate the page you want to replace
+    final targetPage = state.pages.firstWhere((p) => p.id == pageId);
+    // Create an updated page object
+    final updatedPage = targetPage.copyWith(tree: newTree);
+    // Replace the old page object in the entire page list
+    final newPages = state.pages.map((p) => p.id == pageId ? updatedPage : p).toList();
+    // Update the status
+    state = state.copyWith(pages: newPages);
+    // Record new trees into history
+    ref.read(historyManagerProvider.notifier).recordState(newTree);
+  }
+
+  /// Set up the project's splash page.
+  void setInitialPage(String pageId) {
+    if (state.pages.any((p) => p.id == pageId)) {
+      state = state.copyWith(initialPageId: pageId);
+    }
+  }
+
+  /// Renames a specific page.
   void renamePage(String pageId, String newName) {
-    if (newName
-        .trim()
-        .isEmpty) {
+    if (newName.trim().isEmpty) {
       IssueReporterService().reportWarning("Page name cannot be empty.");
       return;
     }
     if (state.pages.any((p) => p.name == newName && p.id != pageId)) {
-      IssueReporterService().reportWarning(
-          'Page name "$newName" already exists.');
+      IssueReporterService().reportWarning('Page name "$newName" already exists.');
       return;
     }
 
@@ -150,8 +191,7 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
 
   /// Set the currently active page.
   void setActivePage(String pageId) {
-    if (state.activePageId != pageId &&
-        state.pages.any((p) => p.id == pageId)) {
+    if (state.activePageId != pageId && state.pages.any((p) => p.id == pageId)) {
       state = state.copyWith(activePageId: pageId);
     }
   }
@@ -159,8 +199,8 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
 
 /// Globally unique project status provider.
 final projectStateProvider = StateNotifierProvider<ProjectNotifier, ProjectState>((ref) {
-  return ProjectNotifier();
- });
+  return ProjectNotifier(ref);
+});
 
 /// Derives the Widget tree from the currently active page.
 /// The UI component will listen to this provider, not directly to the projectProvider.

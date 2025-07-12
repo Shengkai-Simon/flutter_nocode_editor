@@ -1,3 +1,4 @@
+import '../../constants/app_constants.dart';
 import '../components/core/widget_node.dart';
 
 /// Represents an editable page in the editor。
@@ -21,6 +22,22 @@ class PageNode {
       id: id ?? this.id,
       name: name ?? this.name,
       tree: tree ?? this.tree,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'tree': tree.toJson(),
+    };
+  }
+
+  factory PageNode.fromJson(Map<String, dynamic> json) {
+    return PageNode(
+      id: json['id'] as String? ?? uuid.v4(),
+      name: json['name'] as String? ?? 'Untitled Page',
+      tree: WidgetNode.fromJson(json['tree'] as Map<String, dynamic>),
     );
   }
 }
