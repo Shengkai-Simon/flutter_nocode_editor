@@ -40,12 +40,12 @@ class PaletteComponentItem extends StatelessWidget {
               ),
             ],
           ),
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(4),
           alignment: Alignment.center,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(rc.icon ?? Icons.extension, size: 24, color: isHovering ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.primary),
+              Icon(rc.icon ?? Icons.extension, size: 20, color: isHovering ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.primary),
               const SizedBox(height: 4),
               Text(
                 rc.displayName,

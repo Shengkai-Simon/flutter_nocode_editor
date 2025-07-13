@@ -4,7 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../editor/components/core/widget_node.dart';
 
 // Panel Dimensions
-const double kLeftPanelWidth = 356.0;
+const double kLeftPanelWidth = 280.0;
 const double kRightPanelWidth = 300.0;
 
 // WidgetRenderer Visuals
