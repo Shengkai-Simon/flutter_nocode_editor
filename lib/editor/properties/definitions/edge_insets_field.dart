@@ -326,10 +326,7 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
                     .textTheme
                     .labelLarge)),
                 const SizedBox(width: 8),
-                Text("All:", style: Theme
-                    .of(context)
-                    .textTheme
-                    .bodyMedium),
+                Text("All:", style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(width: 4),
                 SizedBox(
                   width: 70,

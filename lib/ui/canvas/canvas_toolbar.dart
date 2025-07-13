@@ -10,11 +10,18 @@ import '../../state/editor_state.dart';
 import '../../utils/file_io_web.dart';
 import 'code_preview_dialog.dart';
 
-class CanvasToolbar extends ConsumerWidget {
+class CanvasToolbar extends ConsumerStatefulWidget {
   const CanvasToolbar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CanvasToolbar> createState() => _CanvasToolbarState();
+}
+
+class _CanvasToolbarState extends ConsumerState<CanvasToolbar> {
+  int _dropdownKeyCounter = 0;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
         const SizedBox(width: 16),
@@ -23,40 +30,6 @@ class CanvasToolbar extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  void _showExportDialog(BuildContext context, WidgetRef ref) {
-    final ProjectState currentProject = ref.read(projectStateProvider);
-    final generator = CodeGeneratorService(registeredComponents);
-    try {
-      final Map<String, String> generatedFiles = generator.generateProjectCode(currentProject);
-      showDialog(
-        context: context,
-        builder: (BuildContext dialogContext) {
-          return CodePreviewDialog(generatedFiles: generatedFiles);
-        },
-      );
-    } catch (e, s) {
-      IssueReporterService().reportError(
-        "Failed to generate project code.",
-        source: "CanvasToolbar._showExportDialog",
-        error: e,
-        stackTrace: s,
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error generating code: $e"), backgroundColor: Colors.red),
-      );
-    }
-  }
-
-  void _updateCanvasSize(Size newSize, String deviceName, WidgetRef ref) {
-    ref.read(selectedDeviceProvider.notifier).state = deviceName;
-    final currentTree = ref.read(activeCanvasTreeProvider);
-    final newProps = Map<String, dynamic>.from(currentTree.props);
-    newProps['width'] = newSize.width;
-    newProps['height'] = newSize.height;
-    final newTree = currentTree.copyWith(props: newProps);
-    ref.read(historyManagerProvider.notifier).recordState(newTree);
   }
 
   Widget _buildPageEditToolbar(BuildContext context, WidgetRef ref) {
@@ -84,45 +57,42 @@ class CanvasToolbar extends ConsumerWidget {
 
     return Row(
       children: [
-        Tooltip(
-          message: 'Save Current Page Layout (.json)',
-          child: IconButton(icon: const Icon(Icons.save_alt_outlined), onPressed: () => saveCurrentPageToFile(ref), iconSize: 20),
+        Tooltip(message: 'Save Current Page Layout (.json)',
+            child: IconButton(icon: const Icon(Icons.save_alt_outlined),
+                onPressed: () => saveCurrentPageToFile(ref), iconSize: 20)
         ),
-        Tooltip(
-          message: 'Load Layout to Current Page (.json)',
-          child: IconButton(icon: const Icon(Icons.file_upload_outlined), onPressed: () => loadAndReplaceCurrentPage(ref), iconSize: 20),
-        ),
-        const VerticalDivider(indent: 12, endIndent: 12),
-        Tooltip(
-          message: 'Undo',
-          child: IconButton(icon: const Icon(Icons.undo), onPressed: historyState.canUndo ? () => ref.read(historyManagerProvider.notifier).undo() : null, iconSize: 20),
-        ),
-        Tooltip(
-          message: 'Redo',
-          child: IconButton(icon: const Icon(Icons.redo), onPressed: historyState.canRedo ? () => ref.read(historyManagerProvider.notifier).redo() : null, iconSize: 20),
+        Tooltip(message: 'Load Layout to Current Page (.json)',
+            child: IconButton(icon: const Icon(Icons.file_upload_outlined),
+                onPressed: () => loadAndReplaceCurrentPage(ref), iconSize: 20)
         ),
         const VerticalDivider(indent: 12, endIndent: 12),
-        Tooltip(
-          message: 'Export Project Code (.zip)',
-          child: IconButton(icon: const Icon(Icons.code), onPressed: () => _showExportDialog(context, ref), iconSize: 20),
+        Tooltip(message: 'Undo',
+            child: IconButton(icon: const Icon(Icons.undo),
+                onPressed: historyState.canUndo ? () => ref.read(historyManagerProvider.notifier).undo() : null, iconSize: 20)
+        ),
+        Tooltip(message: 'Redo',
+            child: IconButton(icon: const Icon(Icons.redo),
+                onPressed: historyState.canRedo ? () => ref.read(historyManagerProvider.notifier).redo() : null, iconSize: 20)
+        ),
+        const VerticalDivider(indent: 12, endIndent: 12),
+        Tooltip(message: 'Export Project Code (.zip)',
+            child: IconButton(icon: const Icon(Icons.code),
+                onPressed: () => _showExportDialog(context, ref), iconSize: 20)
         ),
         const VerticalDivider(indent: 12, endIndent: 12),
         SizedBox(
           width: 250,
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
+              key: ValueKey('device_$_dropdownKeyCounter'),
               value: selectedDeviceName,
               isExpanded: true,
-              items: kPredefinedDeviceSizes.map((device) {
-                return DropdownMenuItem<String>(
-                  value: device.name,
-                  child: Text(
-                    device.name == 'Custom' ? 'Custom' : '${device.name} (${device.size.width} x ${device.size.height})',
-                    style: const TextStyle(fontSize: 14),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                );
-              }).toList(),
+              items: kPredefinedDeviceSizes.map((device) =>
+                  DropdownMenuItem<String>(value: device.name,
+                      child: Text(device.name == 'Custom' ? 'Custom' : '${device.name} (${device.size.width} x ${device.size.height})',
+                          style: const TextStyle(fontSize: 14),
+                          overflow: TextOverflow.ellipsis))
+              ).toList(),
               onChanged: (String? newDeviceName) async {
                 if (newDeviceName == null) return;
                 if (newDeviceName == 'Custom') {
@@ -136,6 +106,7 @@ class CanvasToolbar extends ConsumerWidget {
                   final selectedDevice = kPredefinedDeviceSizes.firstWhere((d) => d.name == newDeviceName);
                   _updateCanvasSize(selectedDevice.size, newDeviceName, ref);
                 }
+                setState(() => _dropdownKeyCounter++);
               },
             ),
           ),
@@ -144,38 +115,59 @@ class CanvasToolbar extends ConsumerWidget {
           child: Row(
             children: [
               const Spacer(),
-              Tooltip(
-                message: showLayoutBounds ? 'Hide Layout Bounds' : 'Show Layout Bounds',
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(showLayoutBounds ? Icons.grid_on_sharp : Icons.grid_off_sharp, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Switch(value: showLayoutBounds, onChanged: (value) { showLayoutBoundsNotifier.state = value; }),
-                  ],
-                ),
-              ),
+              Tooltip(message: showLayoutBounds
+                  ? 'Hide Layout Bounds'
+                  : 'Show Layout Bounds',
+                  child: Row(mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(showLayoutBounds ? Icons.grid_on_sharp : Icons
+                            .grid_off_sharp, size: 20, color: Theme
+                            .of(context)
+                            .colorScheme
+                            .onSurfaceVariant),
+                        const SizedBox(width: 4),
+                        Switch(value: showLayoutBounds, onChanged: (value) {
+                          showLayoutBoundsNotifier.state = value;
+                        })
+                      ])),
               const VerticalDivider(indent: 12, endIndent: 12),
-              if (isLoading)
-                const Padding(
+              if (isLoading) const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12.0),
-                  child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.5)),
-                ),
-              TextButton.icon(
-                icon: const Icon(Icons.playlist_add_check_circle_outlined, size: 20),
-                label: const Text('Project Issues'),
-                onPressed: () => _showProjectIssuesDialog(context, ref),
-              ),
-              Tooltip(
-                message: statusTooltip,
-                child: Icon(statusIconData, color: statusIconColor, size: 22),
-              ),
+                  child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.5))),
+              TextButton.icon(icon: const Icon(
+                  Icons.playlist_add_check_circle_outlined, size: 20),
+                  label: const Text('Project Issues'),
+                  onPressed: () => _showProjectIssuesDialog(context, ref)),
+              Tooltip(message: statusTooltip,
+                  child: Icon(statusIconData, color: statusIconColor, size: 22)),
               const SizedBox(width: 12),
             ],
           ),
         ),
       ],
     );
+  }
+
+  void _showExportDialog(BuildContext context, WidgetRef ref) {
+    final ProjectState currentProject = ref.read(projectStateProvider);
+    final generator = CodeGeneratorService(registeredComponents);
+    try {
+      final Map<String, String> generatedFiles = generator.generateProjectCode(currentProject);
+      showDialog(context: context, builder: (BuildContext dialogContext) => CodePreviewDialog(generatedFiles: generatedFiles));
+    } catch (e, s) {
+      IssueReporterService().reportError("Failed to generate project code", source: "CanvasToolbar._showExportDialog", error: e, stackTrace: s);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error generating code: $e"), backgroundColor: Colors.red));
+    }
+  }
+
+  void _updateCanvasSize(Size newSize, String deviceName, WidgetRef ref) {
+    ref.read(selectedDeviceProvider.notifier).state = deviceName;
+    final currentTree = ref.read(activeCanvasTreeProvider);
+    final newProps = Map<String, dynamic>.from(currentTree.props);
+    newProps['width'] = newSize.width;
+    newProps['height'] = newSize.height;
+    final newTree = currentTree.copyWith(props: newProps);
+    ref.read(historyManagerProvider.notifier).recordState(newTree);
   }
 
   void _showProjectIssuesDialog(BuildContext context, WidgetRef ref) {
@@ -212,15 +204,13 @@ class CanvasToolbar extends ConsumerWidget {
           ),
           actions: <Widget>[
             TextButton(
-              onPressed: () {
-                ref.read(projectErrorsNotifierProvider.notifier).clearIssues();
-                ref.read(projectWarningsNotifierProvider.notifier).clearIssues();
-              },
-              child: const Text('Clear Log'),
+                onPressed: () {
+                  ref.read(projectErrorsNotifierProvider.notifier).clearIssues();
+                  ref.read(projectWarningsNotifierProvider.notifier).clearIssues();
+                }, child: const Text('Clear Log')
             ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Close'),
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Close')
             ),
           ],
         );
@@ -229,15 +219,10 @@ class CanvasToolbar extends ConsumerWidget {
   }
 
   Widget _buildIssueListForTab(BuildContext context, List<String> issues, Color textColor, String emptyMessage) {
-    if (issues.isEmpty) {
-      return Center(child: Text(emptyMessage));
-    }
+    if (issues.isEmpty) return Center(child: Text(emptyMessage));
     return ListView.separated(
       itemCount: issues.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SelectableText(issues[index], style: TextStyle(color: textColor, fontFamily: 'monospace')),
-      ),
+      itemBuilder: (context, index) => Padding(padding: const EdgeInsets.all(8.0), child: SelectableText(issues[index], style: TextStyle(color: textColor, fontFamily: 'monospace'))),
       separatorBuilder: (context, index) => const Divider(height: 1),
     );
   }

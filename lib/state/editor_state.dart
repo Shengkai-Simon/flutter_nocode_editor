@@ -397,3 +397,21 @@ final historyManagerProvider =
 StateNotifierProvider<HistoryManager, HistoryInfoState>((ref) {
   return HistoryManager(ref);
 });
+
+/// Manage the zoom of the canvas.
+/// 1.0 = 100%, 0.5 = 50%。
+/// The special value of 0.0 represents the "Fit to Screen" mode.
+final canvasScaleProvider = StateProvider<double>((ref) => 0.0);
+
+/// 定义画布指针的模式
+enum CanvasPointerMode {
+  select, // Select Mode (Default)
+  pan,    // Pan/gripper mode
+}
+
+/// Manages the mode of the current canvas pointer
+final canvasPointerModeProvider = StateProvider<CanvasPointerMode>((ref) => CanvasPointerMode.select);
+
+/// Manages whether the Ctrl key is currently being pressed down.
+/// This is used to conditionally enable behaviors like scroll-to-zoom.
+final isCtrlPressedProvider = StateProvider<bool>((ref) => false);

@@ -15,6 +15,9 @@ class WidgetRenderer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tree = ref.watch(activeCanvasTreeProvider);
+    final parentNode = findParentNode(tree, node.id);
+
     final selectedId = ref.watch(selectedNodeIdProvider);
     final hoveredId = ref.watch(hoveredNodeIdProvider);
     final showLayoutBounds = ref.watch(showLayoutBoundsProvider);
@@ -43,9 +46,7 @@ class WidgetRenderer extends ConsumerWidget {
         ref.read(hoveredNodeIdProvider.notifier).state = node.id;
       },
       onExit: (_) {
-        if (ref.read(hoveredNodeIdProvider) == node.id) {
-          ref.read(hoveredNodeIdProvider.notifier).state = null;
-        }
+        ref.read(hoveredNodeIdProvider.notifier).state = parentNode?.id;
       },
       cursor: SystemMouseCursors.click,
       child: DragTarget<String>(
@@ -94,7 +95,7 @@ class WidgetRenderer extends ConsumerWidget {
                 ref.read(selectedNodeIdProvider.notifier).state = node.id;
               }
             },
-            behavior: HitTestBehavior.opaque,
+            behavior: HitTestBehavior.deferToChild,
             child: Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.topLeft,
@@ -102,6 +103,7 @@ class WidgetRenderer extends ConsumerWidget {
                 Container(
                   margin: const EdgeInsets.all(kRendererWrapperMargin),
                   decoration: BoxDecoration(
+                    color: Colors.transparent,
                     border: Border.all(
                       color: effectiveBorderColor,
                       width: effectiveBorderWidth,

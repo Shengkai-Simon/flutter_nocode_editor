@@ -113,25 +113,38 @@ class EditorScaffold extends ConsumerWidget {
         const VerticalDivider(width: 1, thickness: 1),
         // Central area
         Expanded(
-          child: Stack(
+          child: Column(
             children: [
-              // The canvas and its toolbar
-              Column(
-                children: const [
-                  CanvasToolbar(),
-                  Expanded(child: CanvasView()),
-                ],
-              ),
-              // Right Properties panel (animation slides in)
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                right: isRightPanelVisible ? 0 : -(kRightPanelWidth + 1),
-                top: 0,
-                bottom: 0,
-                child: Material(
-                  elevation: 8.0,
-                  child: SizedBox(width: kRightPanelWidth, child: const RightView()),
+              const CanvasToolbar(),
+              const Divider(height: 1, thickness: 1),
+              Expanded(
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: CanvasView(),
+                    ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      child: Material(
+                        elevation: 8.0,
+                        child: Container(
+                          width: isRightPanelVisible ? kRightPanelWidth : 0,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              left: BorderSide(
+                                color: Theme.of(context).dividerColor,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: ClipRect(
+                            child: const RightView(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

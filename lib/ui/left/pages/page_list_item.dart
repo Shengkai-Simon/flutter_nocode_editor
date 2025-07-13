@@ -101,13 +101,17 @@ class PageListItem extends ConsumerWidget {
                             final newTree = migrator.migrate(jsonMap);
 
                             ref.read(projectStateProvider.notifier).importTreeForPage(page.id, newTree);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Layout imported to "${page.name}" successfully.')),
-                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Layout imported to "${page.name}" successfully.')),
+                              );
+                            }
                           } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to parse JSON file: $e'), backgroundColor: Colors.red),
-                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to parse JSON file: $e'), backgroundColor: Colors.red),
+                              );
+                            }
                           }
                         }
                       }
