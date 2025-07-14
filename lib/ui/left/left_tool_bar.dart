@@ -30,8 +30,7 @@ class LeftToolBar extends ConsumerWidget {
             selectedIcon: const Icon(Icons.dashboard),
             onPressed: () => viewNotifier.state = MainView.overview,
           ),
-          const SizedBox(height: 8),
-          const Divider(indent: 12, endIndent: 12),
+          const Divider(indent: 12, endIndent: 12, height: 1),
           const SizedBox(height: 8),
           // Here are the buttons that are only enabled in editor mode
           // Add Component button

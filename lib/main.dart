@@ -87,30 +87,43 @@ class GlobalViewScaffold extends ConsumerWidget {
   const GlobalViewScaffold({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Project Overview'),
-        actions: [
-          IconButton(
-              icon: const Icon(Icons.code),
-              tooltip: 'View & Export Project Code',
-              onPressed: () {
-                final project = ref.read(projectStateProvider);
-                final generator = CodeGeneratorService(registeredComponents);
-                final files = generator.generateProjectCode(project);
-                showDialog(
-                    context: context,
-                    builder: (_) => CodePreviewDialog(generatedFiles: files)
-                );
-              }
+      body: Column(
+        children: [
+          SizedBox(
+            height: 48,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  Text('Project Overview', style: theme.textTheme.titleMedium),
+                  const Spacer(),
+                  IconButton(
+                      icon: const Icon(Icons.code),
+                      tooltip: 'View & Export Project Code',
+                      onPressed: () {
+                        final project = ref.read(projectStateProvider);
+                        final generator = CodeGeneratorService(registeredComponents);
+                        final files = generator.generateProjectCode(project);
+                        showDialog(
+                            context: context,
+                            builder: (_) => CodePreviewDialog(generatedFiles: files)
+                        );
+                      }
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(icon: const Icon(Icons.save_alt_outlined), tooltip: 'Save Project', onPressed: () => saveProjectToFile(ref)),
+                  const SizedBox(width: 8),
+                  IconButton(icon: const Icon(Icons.file_upload_outlined), tooltip: 'Load Project', onPressed: () => loadProjectFromFile(ref)),
+                ],
+              ),
+            ),
           ),
-          const VerticalDivider(indent: 12, endIndent: 12),
-          IconButton(icon: const Icon(Icons.save_alt_outlined), tooltip: 'Save Project', onPressed: () => saveProjectToFile(ref)),
-          IconButton(icon: const Icon(Icons.file_upload_outlined), tooltip: 'Load Project', onPressed: () => loadProjectFromFile(ref)),
-          const SizedBox(width: 16),
+          const Divider(height: 1),
+          const Expanded(child: GlobalView()),
         ],
       ),
-      body: const GlobalView(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           ref.read(projectStateProvider.notifier).addPage();

@@ -156,6 +156,7 @@ class RightView extends ConsumerWidget {
     final selectedId = ref.watch(selectedNodeIdProvider);
     final tree = ref.watch(activeCanvasTreeProvider);
     final WidgetNode? node = findNodeById(tree, selectedId);
+    final theme = Theme.of(context);
 
     if (node == null) {
       return const Center(child: Text("Select a widget to edit its properties."));
@@ -182,7 +183,7 @@ class RightView extends ConsumerWidget {
           Expanded(
             child: Text(
               'Editing: ${rc.displayName}',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -259,10 +260,7 @@ class RightView extends ConsumerWidget {
         // Title Section (with Switch for switchable categories)
         final titleWidget = Text(
           _getPropertyCategoryDisplayName(categoryEnumValue),
-          style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary),
+          style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary),
         );
 
         if (isSwitchable) {

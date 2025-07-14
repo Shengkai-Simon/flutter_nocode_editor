@@ -13,12 +13,47 @@ class LeftView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // LeftView displays different content depending on the state of the leftPanelModeProvider
-    return switch (ref.watch(leftPanelModeProvider)) {
-      LeftPanelMode.addWidgets => _buildAddComponentSection(context, ref),
-      LeftPanelMode.widgetTree => const WidgetTreeView(),
-      LeftPanelMode.pages      => const PageQuickNavView(),
-    };
+    final mode = ref.watch(leftPanelModeProvider);
+    final theme = Theme.of(context);
+
+    String title;
+    Widget content;
+
+    switch (mode) {
+      case LeftPanelMode.addWidgets:
+        title = 'Add Components';
+        content = _buildAddComponentSection(context, ref);
+        break;
+      case LeftPanelMode.widgetTree:
+        title = 'Widget Tree';
+        content = const WidgetTreeView();
+        break;
+      case LeftPanelMode.pages:
+        title = 'Pages';
+        content = const PageQuickNavView();
+        break;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 48,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                title,
+                style: theme.textTheme.titleMedium,
+              ),
+            ),
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(child: content),
+      ],
+    );
   }
 
   String _getCategoryDisplayName(ComponentCategory category) {
@@ -55,7 +90,7 @@ class LeftView extends ConsumerWidget {
             padding: const EdgeInsets.only(top: 16.0, left: 12.0, right: 12.0, bottom: 8.0),
             child: Text(
               _getCategoryDisplayName(category),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+              style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary),
             ),
           ),
         );
@@ -99,7 +134,7 @@ class LeftView extends ConsumerWidget {
       }
     }
     return ListView(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(top: 8, bottom: 12.0),
       children: sectionWidgets,
     );
   }
