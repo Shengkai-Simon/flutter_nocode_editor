@@ -94,6 +94,13 @@ class GlobalViewScaffold extends ConsumerWidget {
         ],
       ),
       body: const GlobalView(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          ref.read(projectStateProvider.notifier).addPage();
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Add Page'),
+      ),
     );
   }
 }

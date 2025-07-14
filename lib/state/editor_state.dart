@@ -30,7 +30,7 @@ class ProjectState {
   const ProjectState({required this.pages, required this.activePageId, required this.initialPageId});
 
   /// Gets the page that is currently being edited.
-  PageNode get activePage => pages.firstWhere((p) => p.id == activePageId);
+  PageNode get activePage => pages.firstWhere((p) => p.id == activePageId, orElse: () => pages.first);
 
   ProjectState copyWith({
     List<PageNode>? pages,
@@ -117,7 +117,7 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
     );
 
     final newPages = [...state.pages, newPage];
-    state = state.copyWith(pages: newPages, activePageId: newPage.id);
+    state = state.copyWith(pages: newPages);
   }
 
   /// Deletes a page from the project.
@@ -144,6 +144,17 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
         activePageId: newActivePageId,
         initialPageId: newInitialPageId
     );
+  }
+
+  /// Reorders a page in the list.
+  void reorderPage(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final newPages = List<PageNode>.from(state.pages);
+    final item = newPages.removeAt(oldIndex);
+    newPages.insert(newIndex, item);
+    state = state.copyWith(pages: newPages);
   }
 
   /// Import a WidgetNode tree and replace the contents of the specified page.
@@ -236,18 +247,9 @@ Set<String> _getAllInitiallyExpandedNodeIds(WidgetNode node) {
 
 class IssuesListNotifier extends StateNotifier<List<String>> {
   IssuesListNotifier() : super([]);
-
-  void addIssue(String issue) {
-    state = [...state, issue];
-  }
-
-  void addIssues(List<String> issues) {
-    state = [...state, ...issues];
-  }
-
-  void clearIssues() {
-    state = [];
-  }
+  void addIssue(String issue) => state = [...state, issue];
+  void addIssues(List<String> issues) => state = [...state, ...issues];
+  void clearIssues() => state = [];
 }
 
 final projectErrorsNotifierProvider = StateNotifierProvider<IssuesListNotifier, List<String>>((ref) {
@@ -298,16 +300,15 @@ class HistoryInfoState {
 
 /// An inner helper class that encapsulates the history of a single page.
 class _PageHistory {
-    final List<WidgetNode> stack = [];
-    int currentIndex = -1;
+  final List<WidgetNode> stack = [];
+  int currentIndex = -1;
 }
 
 class HistoryManager extends StateNotifier<HistoryInfoState> {
   final Ref _ref;
   final Map<String, _PageHistory> _pageHistories = {};
 
-  HistoryManager(this._ref)
-      : super(const HistoryInfoState(canUndo: false, canRedo: false)) {
+  HistoryManager(this._ref) : super(const HistoryInfoState(canUndo: false, canRedo: false)) {
     // Listen for changes in project status to react when pages are added, deleted, or switched.
     _ref.listen<ProjectState>(projectStateProvider, (previous, next) {
       _syncHistoriesWithProjectState(next);
@@ -403,7 +404,7 @@ StateNotifierProvider<HistoryManager, HistoryInfoState>((ref) {
 /// The special value of 0.0 represents the "Fit to Screen" mode.
 final canvasScaleProvider = StateProvider<double>((ref) => 0.0);
 
-/// 定义画布指针的模式
+/// Defines the pattern of the canvas pointer
 enum CanvasPointerMode {
   select, // Select Mode (Default)
   pan,    // Pan/gripper mode

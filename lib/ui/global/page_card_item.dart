@@ -42,10 +42,23 @@ class PageCardItem extends ConsumerWidget {
                         color: Colors.grey.shade400,
                       ),
                     ),
+                    if (isInitialPage)
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        child: Chip(
+                          label: const Text('Initial'),
+                          labelStyle: const TextStyle(fontSize: 10),
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.7),
+                        ),
+                      ),
                     Positioned(
                       top: 4,
                       right: 4,
                       child: PopupMenuButton<String>(
+                        tooltip: "Page Actions",
                         onSelected: (value) async {
                           switch (value) {
                             case 'rename':
@@ -80,7 +93,10 @@ class PageCardItem extends ConsumerWidget {
                             const PopupMenuItem<String>(value: 'set_initial', child: Text('Set as Initial Page')),
                           if (canDelete) ...[
                             const PopupMenuDivider(),
-                            const PopupMenuItem<String>(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                            PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Text('Delete', style: TextStyle(color: Colors.red.shade700)),
+                            ),
                           ]
                         ],
                       ),
@@ -90,10 +106,10 @@ class PageCardItem extends ConsumerWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(8.0),
               child: Text(
                 page.name,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: isInitialPage ? FontWeight.bold : FontWeight.normal),
+                style: Theme.of(context).textTheme.titleSmall,
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
               ),
