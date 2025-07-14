@@ -46,12 +46,16 @@ class PageCardItem extends ConsumerWidget {
                       Positioned(
                         top: 8,
                         left: 8,
-                        child: Chip(
-                          label: const Text('Initial'),
-                          labelStyle: const TextStyle(fontSize: 10),
-                          padding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.7),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(16.0),
+                          ),
+                          child: const Text(
+                            'Initial',
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+                          ),
                         ),
                       ),
                     Positioned(

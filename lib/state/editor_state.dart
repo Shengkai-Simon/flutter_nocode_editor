@@ -18,7 +18,8 @@ enum LeftPanelMode {
 final leftPanelModeProvider = StateProvider<LeftPanelMode>((ref) => LeftPanelMode.addWidgets);
 
 final selectedDeviceProvider = StateProvider<String>((ref) {
-  return kPredefinedDeviceSizes.first.name;
+  // Default to the first device in the first category
+  return kPredefinedDeviceCategories.first.devices.first.name;
 });
 
 /// Encapsulates the state of the entire project。

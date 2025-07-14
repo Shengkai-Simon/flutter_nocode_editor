@@ -23,17 +23,21 @@ class _CanvasToolbarState extends ConsumerState<CanvasToolbar> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildPageEditToolbar(context, ref),
-        ),
-      ],
+    return SizedBox(
+      height: 48,
+      child: Row(
+        children: [
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildPageEditToolbar(context, ref),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildPageEditToolbar(BuildContext context, WidgetRef ref) {
+    final projectState = ref.watch(projectStateProvider);
     final historyState = ref.watch(historyManagerProvider);
     final showLayoutBounds = ref.watch(showLayoutBoundsProvider);
     final showLayoutBoundsNotifier = ref.read(showLayoutBoundsProvider.notifier);
@@ -56,16 +60,115 @@ class _CanvasToolbarState extends ConsumerState<CanvasToolbar> {
       statusTooltip = "Project Status: ${warnings.length} Warning(s) found.";
     }
 
+    Widget pageSelector;
+    if (projectState.pages.length > 1) {
+      pageSelector = DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          focusColor: Colors.transparent,
+          value: projectState.activePageId,
+          items: projectState.pages.map((page) {
+            final isInitial = page.id == projectState.initialPageId;
+            return DropdownMenuItem<String>(
+              value: page.id,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      isInitial ? Icons.home_filled : Icons.article,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(page.name),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (newPageId) {
+            if (newPageId != null) {
+              ref.read(projectStateProvider.notifier).setActivePage(newPageId);
+            }
+          },
+        ),
+      );
+    } else {
+      pageSelector = Focus(
+        skipTraversal: true,
+        canRequestFocus: false,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.home_filled, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              const SizedBox(width: 8),
+              Text(
+                projectState.activePage.name,
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // --- Build Grouped Dropdown Items ---
+    final List<DropdownMenuItem<String>> dropdownItems = [];
+    for (var category in kPredefinedDeviceCategories) {
+      dropdownItems.add(
+        DropdownMenuItem(
+          enabled: false,
+          child: Row(
+            children: [
+              Icon(category.icon, size: 16, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                category.name,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (category.name != 'Other') {
+        dropdownItems.add(
+          const DropdownMenuItem(
+            enabled: false,
+            child: Divider(height: 1),
+          ),
+        );
+      }
+      for (var device in category.devices) {
+        dropdownItems.add(
+          DropdownMenuItem<String>(
+            value: device.name,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 32.0),
+              child: Text(
+                device.name == 'Custom' ? 'Custom...' : '${device.name} (${device.size.width.toInt()} x ${device.size.height.toInt()})',
+                style: const TextStyle(fontSize: 14),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Tooltip(message: 'Save Current Page Layout (.json)',
-            child: IconButton(icon: const Icon(Icons.save_alt_outlined),
-                onPressed: () => saveCurrentPageToFile(ref), iconSize: 20)
-        ),
-        Tooltip(message: 'Load Layout to Current Page (.json)',
-            child: IconButton(icon: const Icon(Icons.file_upload_outlined),
-                onPressed: () => loadAndReplaceCurrentPage(ref), iconSize: 20)
-        ),
+        // --- Left Group: Context & Actions ---
+        pageSelector,
         const VerticalDivider(indent: 12, endIndent: 12),
         Tooltip(message: 'Undo',
             child: IconButton(icon: const Icon(Icons.undo),
@@ -76,75 +179,88 @@ class _CanvasToolbarState extends ConsumerState<CanvasToolbar> {
                 onPressed: historyState.canRedo ? () => ref.read(historyManagerProvider.notifier).redo() : null, iconSize: 20)
         ),
         const VerticalDivider(indent: 12, endIndent: 12),
+        Tooltip(message: 'Save Current Page Layout (.json)',
+            child: IconButton(icon: const Icon(Icons.save_alt_outlined),
+                onPressed: () => saveCurrentPageToFile(ref), iconSize: 20)
+        ),
+        Tooltip(message: 'Load Layout to Current Page (.json)',
+            child: IconButton(icon: const Icon(Icons.file_upload_outlined),
+                onPressed: () => loadAndReplaceCurrentPage(ref), iconSize: 20)
+        ),
         Tooltip(message: 'View Current Page Code',
             child: IconButton(icon: const Icon(Icons.code),
                 onPressed: () => _showCurrentPageCodeDialog(context, ref), iconSize: 20)
         ),
         const VerticalDivider(indent: 12, endIndent: 12),
         SizedBox(
-          width: 250,
+          width: 280,
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               key: ValueKey('device_$_dropdownKeyCounter'),
+              focusColor: Colors.transparent,
               value: selectedDeviceName,
               isExpanded: true,
-              items: kPredefinedDeviceSizes.map((device) =>
-                  DropdownMenuItem<String>(value: device.name,
-                      child: Text(device.name == 'Custom' ? 'Custom' : '${device.name} (${device.size.width} x ${device.size.height})',
-                          style: const TextStyle(fontSize: 14),
-                          overflow: TextOverflow.ellipsis))
-              ).toList(),
+              items: dropdownItems,
               onChanged: (String? newDeviceName) async {
                 if (newDeviceName == null) return;
+
+                DeviceSize? selectedDevice;
+                for (var category in kPredefinedDeviceCategories) {
+                  for (var device in category.devices) {
+                    if (device.name == newDeviceName) {
+                      selectedDevice = device;
+                      break;
+                    }
+                  }
+                  if (selectedDevice != null) break;
+                }
+
                 if (newDeviceName == 'Custom') {
                   final currentRootNode = ref.read(activeCanvasTreeProvider);
                   final currentSize = Size((currentRootNode.props['width'] as num).toDouble(), (currentRootNode.props['height'] as num).toDouble());
                   final newCustomSize = await showDialog<Size>(context: context, builder: (_) => CustomSizeDialog(currentSize: currentSize));
                   if (newCustomSize != null) {
                     _updateCanvasSize(newCustomSize, 'Custom', ref);
+                    ref.read(canvasScaleProvider.notifier).state = 0.0;
                   }
-                } else {
-                  final selectedDevice = kPredefinedDeviceSizes.firstWhere((d) => d.name == newDeviceName);
+                } else if (selectedDevice != null) {
                   _updateCanvasSize(selectedDevice.size, newDeviceName, ref);
+                  ref.read(canvasScaleProvider.notifier).state = 0.0;
                 }
                 setState(() => _dropdownKeyCounter++);
               },
             ),
           ),
         ),
-        Expanded(
-          child: Row(
-            children: [
-              const Spacer(),
-              Tooltip(message: showLayoutBounds
-                  ? 'Hide Layout Bounds'
-                  : 'Show Layout Bounds',
-                  child: Row(mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(showLayoutBounds ? Icons.grid_on_sharp : Icons
-                            .grid_off_sharp, size: 20, color: Theme
-                            .of(context)
-                            .colorScheme
-                            .onSurfaceVariant),
-                        const SizedBox(width: 4),
-                        Switch(value: showLayoutBounds, onChanged: (value) {
-                          showLayoutBoundsNotifier.state = value;
-                        })
-                      ])),
-              const VerticalDivider(indent: 12, endIndent: 12),
-              if (isLoading) const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12.0),
-                  child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.5))),
-              TextButton.icon(icon: const Icon(
-                  Icons.playlist_add_check_circle_outlined, size: 20),
-                  label: const Text('Project Issues'),
-                  onPressed: () => _showProjectIssuesDialog(context, ref)),
-              Tooltip(message: statusTooltip,
-                  child: Icon(statusIconData, color: statusIconColor, size: 22)),
-              const SizedBox(width: 12),
-            ],
-          ),
-        ),
+
+        // --- Right Group: View Options & Status ---
+        const Spacer(),
+        Tooltip(message: showLayoutBounds
+            ? 'Hide Layout Bounds'
+            : 'Show Layout Bounds',
+            child: Row(mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(showLayoutBounds ? Icons.grid_on_sharp : Icons
+                      .grid_off_sharp, size: 20, color: Theme
+                      .of(context)
+                      .colorScheme
+                      .onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Switch(value: showLayoutBounds, onChanged: (value) {
+                    showLayoutBoundsNotifier.state = value;
+                  })
+                ])),
+        const VerticalDivider(indent: 12, endIndent: 12),
+        if (isLoading) const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.0),
+            child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.5))),
+        TextButton.icon(icon: const Icon(
+            Icons.playlist_add_check_circle_outlined, size: 20),
+            label: const Text('Project Issues'),
+            onPressed: () => _showProjectIssuesDialog(context, ref)),
+        Tooltip(message: statusTooltip,
+            child: Icon(statusIconData, color: statusIconColor, size: 22)),
+        const SizedBox(width: 12),
       ],
     );
   }
@@ -156,14 +272,25 @@ class _CanvasToolbarState extends ConsumerState<CanvasToolbar> {
       final String pageCode = generator.generateSinglePageFile(activePage);
       final String fileName = '${toSnakeCase(activePage.name)}.dart';
       final Map<String, String> generatedFile = {fileName: pageCode};
-      showDialog(context: context, builder: (BuildContext dialogContext) => CodePreviewDialog(generatedFiles: generatedFile));
+      showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) =>
+              CodePreviewDialog(generatedFiles: generatedFile)
+      );
     } catch (e, s) {
-      IssueReporterService().reportError("Failed to generate page code", source: "CanvasToolbar._showCurrentPageCodeDialog", error: e, stackTrace: s);
+      IssueReporterService().reportError(
+          "Failed to generate page code",
+          source: "CanvasToolbar._showCurrentPageCodeDialog",
+          error: e,
+          stackTrace: s
+      );
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error generating code: $e"), backgroundColor: Colors.red)
+          SnackBar(content: Text("Error generating code: $e"),
+              backgroundColor: Colors.red)
       );
     }
   }
+
 
   void _updateCanvasSize(Size newSize, String deviceName, WidgetRef ref) {
     ref.read(selectedDeviceProvider.notifier).state = deviceName;
