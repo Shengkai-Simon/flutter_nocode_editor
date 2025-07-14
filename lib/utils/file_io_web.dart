@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
+import 'dart:typed_data';
 
+import 'package:archive/archive_io.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web/web.dart' as web;
 
@@ -13,9 +15,9 @@ import '../services/project_migrator_service.dart';
 import '../state/editor_state.dart';
 
 /// Encapsulates the logic that triggers file downloads in a web environment.
-Future<void> downloadFileOnWeb(String content, String fileName) async {
+Future<void> downloadFileOnWeb(String content, String fileName, {String type = 'application/json'}) async {
   try {
-    final blob = web.Blob([content.toJS].toJS, web.BlobPropertyBag(type: 'application/json'));
+    final blob = web.Blob([content.toJS].toJS, web.BlobPropertyBag(type: type));
     final url = web.URL.createObjectURL(blob);
     final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
     anchor.href = url;
@@ -33,6 +35,45 @@ Future<void> downloadFileOnWeb(String content, String fileName) async {
     );
   }
 }
+
+/// Packages the given files into a ZIP and downloads it.
+Future<void> downloadProjectAsZip(Map<String, String> files, {String zipFileName = 'flutter_project.zip'}) async {
+  final issueService = IssueReporterService();
+  try {
+    final encoder = ZipEncoder();
+    final archive = Archive();
+
+    files.forEach((fileName, content) {
+      final fileBytes = utf8.encode(content);
+      final archiveFile = ArchiveFile(fileName, fileBytes.length, fileBytes);
+      archive.addFile(archiveFile);
+    });
+
+    final zipBytes = encoder.encode(archive);
+    if (zipBytes == null) {
+      issueService.reportError("Failed to encode zip file: encoder returned null.", source: "file_io_web.downloadProjectAsZip");
+      return;
+    }
+
+    final blob = web.Blob([Uint8List.fromList(zipBytes).toJS].toJS, web.BlobPropertyBag(type: 'application/zip'));
+    final url = web.URL.createObjectURL(blob);
+    final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
+    anchor.href = url;
+    anchor.download = zipFileName;
+    web.document.body?.append(anchor);
+    anchor.click();
+    anchor.remove();
+    web.URL.revokeObjectURL(url);
+  } catch (e, s) {
+    issueService.reportError(
+      "Error creating or downloading zip file",
+      source: "file_io_web.downloadProjectAsZip",
+      error: e,
+      stackTrace: s,
+    );
+  }
+}
+
 
 /// Encapsulates the logic of opening a file picker and reading the contents of a file in a web environment.
 /// If the user deselects, null is returned.

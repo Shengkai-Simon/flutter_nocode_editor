@@ -8,6 +8,7 @@ import '../../services/code_generator_service.dart';
 import '../../services/issue_reporter_service.dart';
 import '../../state/editor_state.dart';
 import '../../utils/file_io_web.dart';
+import '../../utils/string_utils.dart';
 import 'code_preview_dialog.dart';
 
 class CanvasToolbar extends ConsumerStatefulWidget {
@@ -75,9 +76,9 @@ class _CanvasToolbarState extends ConsumerState<CanvasToolbar> {
                 onPressed: historyState.canRedo ? () => ref.read(historyManagerProvider.notifier).redo() : null, iconSize: 20)
         ),
         const VerticalDivider(indent: 12, endIndent: 12),
-        Tooltip(message: 'Export Project Code (.zip)',
+        Tooltip(message: 'View Current Page Code',
             child: IconButton(icon: const Icon(Icons.code),
-                onPressed: () => _showExportDialog(context, ref), iconSize: 20)
+                onPressed: () => _showCurrentPageCodeDialog(context, ref), iconSize: 20)
         ),
         const VerticalDivider(indent: 12, endIndent: 12),
         SizedBox(
@@ -148,15 +149,19 @@ class _CanvasToolbarState extends ConsumerState<CanvasToolbar> {
     );
   }
 
-  void _showExportDialog(BuildContext context, WidgetRef ref) {
-    final ProjectState currentProject = ref.read(projectStateProvider);
+  void _showCurrentPageCodeDialog(BuildContext context, WidgetRef ref) {
+    final activePage = ref.read(projectStateProvider).activePage;
     final generator = CodeGeneratorService(registeredComponents);
     try {
-      final Map<String, String> generatedFiles = generator.generateProjectCode(currentProject);
-      showDialog(context: context, builder: (BuildContext dialogContext) => CodePreviewDialog(generatedFiles: generatedFiles));
+      final String pageCode = generator.generateSinglePageFile(activePage);
+      final String fileName = '${toSnakeCase(activePage.name)}.dart';
+      final Map<String, String> generatedFile = {fileName: pageCode};
+      showDialog(context: context, builder: (BuildContext dialogContext) => CodePreviewDialog(generatedFiles: generatedFile));
     } catch (e, s) {
-      IssueReporterService().reportError("Failed to generate project code", source: "CanvasToolbar._showExportDialog", error: e, stackTrace: s);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error generating code: $e"), backgroundColor: Colors.red));
+      IssueReporterService().reportError("Failed to generate page code", source: "CanvasToolbar._showCurrentPageCodeDialog", error: e, stackTrace: s);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error generating code: $e"), backgroundColor: Colors.red)
+      );
     }
   }
 

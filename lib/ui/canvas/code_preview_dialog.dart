@@ -1,20 +1,19 @@
-import 'dart:convert';
-import 'dart:js_interop';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_syntax_view/flutter_syntax_view.dart';
-import 'package:web/web.dart' as web;
-import 'package:archive/archive_io.dart';
+
+import '../../utils/file_io_web.dart';
 
 /// A dialog widget that displays a code preview with syntax highlighting,
 /// copy, and download actions.
 class CodePreviewDialog extends StatefulWidget {
   final Map<String, String> generatedFiles;
+  final String title;
 
   const CodePreviewDialog({
     super.key,
     required this.generatedFiles,
+    this.title = 'Generated Project Code'
   });
 
   @override
@@ -24,6 +23,7 @@ class CodePreviewDialog extends StatefulWidget {
 class _CodePreviewDialogState extends State<CodePreviewDialog>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  bool get _isSingleFileMode => widget.generatedFiles.length == 1;
 
   @override
   void initState() {
@@ -36,68 +36,6 @@ class _CodePreviewDialogState extends State<CodePreviewDialog>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  void _downloadFile(String content, String fileName) {
-    try {
-      final blob = web.Blob(
-          [content.toJS].toJS, web.BlobPropertyBag(type: 'text/dart'));
-      final url = web.URL.createObjectURL(blob);
-      final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
-      anchor.href = url;
-      anchor.download = fileName;
-      web.document.body?.append(anchor);
-      anchor.click();
-      anchor.remove();
-      web.URL.revokeObjectURL(url);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error downloading file: $e"),
-            backgroundColor: Colors.red),
-      );
-    }
-  }
-
-  /// Package all the files into a single ZIP file and download it.
-  void _downloadAllAsZip() {
-    // Create a ZIP encoder
-    final encoder = ZipEncoder();
-    // Create a new archive
-    final archive = Archive();
-
-    // Iterate through all the generated files and add them to the archive
-    widget.generatedFiles.forEach((fileName, content) {
-      // Convert file content to bytes
-      final fileBytes = utf8.encode(content);
-      // Create a zip file entry
-      final archiveFile = ArchiveFile(fileName, fileBytes.length, fileBytes);
-      // Add the file to the package
-      archive.addFile(archiveFile);
-    });
-
-    // Encode the entire archive to get the final ZIP file bytes
-    final zipBytes = encoder.encode(archive);
-
-    // Use the generic download logic to download this ZIP file
-    try {
-      final blob = web.Blob([Uint8List
-          .fromList(zipBytes)
-          .toJS
-      ].toJS, web.BlobPropertyBag(type: 'application/zip'));
-      final url = web.URL.createObjectURL(blob);
-      final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
-      anchor.href = url;
-      anchor.download = 'flutter_project.zip'; // The default file name of the package
-      web.document.body?.append(anchor);
-      anchor.click();
-      anchor.remove();
-      web.URL.revokeObjectURL(url);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error downloading zip file: $e"),
-            backgroundColor: Colors.red),
-      );
-    }
   }
 
   @override
@@ -127,9 +65,9 @@ class _CodePreviewDialogState extends State<CodePreviewDialog>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Generated Project Code',
-                      style: TextStyle(
+                    Text(
+                      _isSingleFileMode ? 'Generated Page Code' : widget.title,
+                      style: const TextStyle(
                         color: titleColor,
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
@@ -138,22 +76,23 @@ class _CodePreviewDialogState extends State<CodePreviewDialog>
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Tooltip(
-                          message: 'Download All as .zip',
-                          child: IconButton(
-                            icon: const Icon(Icons.archive_outlined, size: 20, color: iconColor),
-                            onPressed: _downloadAllAsZip,
+                        if (!_isSingleFileMode)
+                          Tooltip(
+                            message: 'Download All as .zip',
+                            child: IconButton(
+                              icon: const Icon(Icons.archive_outlined, size: 20, color: iconColor),
+                              onPressed: () => downloadProjectAsZip(widget.generatedFiles),
+                            ),
                           ),
-                        ),
-                        // This is the corrected part
-                        const SizedBox(
-                          height: 24, // Give the divider a specific height
-                          child: VerticalDivider(
-                            color: Colors.white,
-                            width: 20, // The total space the divider takes horizontally
-                            thickness: 1, // The thickness of the line itself
+                        if (!_isSingleFileMode)
+                          const SizedBox(
+                            height: 24, // Give the divider a specific height
+                            child: VerticalDivider(
+                              color: Colors.white,
+                              width: 20, // The total space the divider takes horizontally
+                              thickness: 1, // The thickness of the line itself
+                            ),
                           ),
-                        ),
                         Tooltip(
                           message: 'Copy to Clipboard',
                           child: IconButton(
@@ -178,7 +117,7 @@ class _CodePreviewDialogState extends State<CodePreviewDialog>
                             onPressed: () {
                               final fileName = fileNames[_tabController.index];
                               final fileContent = fileContents[_tabController.index];
-                              _downloadFile(fileContent, fileName);
+                              downloadFileOnWeb(fileContent, fileName, type: 'text/dart');
                             },
                           ),
                         ),
@@ -195,14 +134,15 @@ class _CodePreviewDialogState extends State<CodePreviewDialog>
                   ],
                 ),
               ),
-              Container(
-                color: const Color(0xFF2D2D2D),
-                child: TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  tabs: fileNames.map((name) => Tab(text: name)).toList(),
+              if (!_isSingleFileMode)
+                Container(
+                  color: const Color(0xFF2D2D2D),
+                  child: TabBar(
+                    controller: _tabController,
+                    isScrollable: true,
+                    tabs: fileNames.map((name) => Tab(text: name)).toList(),
+                  ),
                 ),
-              ),
               Flexible(
                 child: TabBarView(
                   controller: _tabController,

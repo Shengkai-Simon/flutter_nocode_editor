@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_editor/services/code_generator_service.dart';
 import 'package:flutter_editor/services/issue_reporter_service.dart';
 import 'package:flutter_editor/ui/common/app_error_handler.dart';
 import 'package:flutter_editor/ui/common/app_loader.dart';
@@ -11,9 +12,11 @@ import 'package:flutter_editor/utils/file_io_web.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'constants/app_constants.dart';
+import 'editor/components/core/component_registry.dart';
 import 'state/editor_state.dart';
 import 'ui/canvas/canvas_toolbar.dart';
 import 'ui/canvas/canvas_view.dart';
+import 'ui/canvas/code_preview_dialog.dart';
 import 'ui/left/left_view.dart';
 import 'ui/right/right_view.dart';
 
@@ -88,6 +91,20 @@ class GlobalViewScaffold extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Project Overview'),
         actions: [
+          IconButton(
+              icon: const Icon(Icons.code),
+              tooltip: 'View & Export Project Code',
+              onPressed: () {
+                final project = ref.read(projectStateProvider);
+                final generator = CodeGeneratorService(registeredComponents);
+                final files = generator.generateProjectCode(project);
+                showDialog(
+                    context: context,
+                    builder: (_) => CodePreviewDialog(generatedFiles: files)
+                );
+              }
+          ),
+          const VerticalDivider(indent: 12, endIndent: 12),
           IconButton(icon: const Icon(Icons.save_alt_outlined), tooltip: 'Save Project', onPressed: () => saveProjectToFile(ref)),
           IconButton(icon: const Icon(Icons.file_upload_outlined), tooltip: 'Load Project', onPressed: () => loadProjectFromFile(ref)),
           const SizedBox(width: 16),
