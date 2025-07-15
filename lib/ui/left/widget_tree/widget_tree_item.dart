@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,18 +7,16 @@ import '../../../editor/components/core/component_definition.dart';
 import '../../../editor/components/core/component_registry.dart';
 import '../../../editor/components/core/widget_node.dart';
 import '../../../editor/components/core/widget_node_utils.dart';
-import '../../../services/issue_reporter_service.dart';
 import '../../../state/editor_state.dart';
 import 'tree_line_painter.dart';
 
-// Enum to manage the drag-over state for a tree item
-enum _DragTargetInteractionState {
+// Define the drag intent
+enum _DropIntent {
   none,
-  canBeChild,
-  animatingForSibling,
-  cannotBeChildOrSibling,
+  insertBefore,  // Insert as a brother
+  addAsChild,    // As a child node
+  insertAfter,   // Insert as a brother
 }
-
 
 class WidgetTreeItem extends ConsumerStatefulWidget {
   final WidgetNode node;
@@ -39,53 +38,26 @@ class WidgetTreeItem extends ConsumerStatefulWidget {
   ConsumerState<WidgetTreeItem> createState() => _WidgetTreeItemState();
 }
 
-class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _redBorderFadeAnimation;
-  late Animation<double> _greenLineGrowAnimation;
-
-  _DragTargetInteractionState _dragTargetState = _DragTargetInteractionState.none;
-  String? _currentDraggedNodeId;
+class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
+  _DropIntent _dropIntent = _DropIntent.none;
+  bool _isValidIntent = false;
 
   static const double _treeItemHeight = 40.0;
   static const double _expanderButtonWidth = 28.0;
 
   @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..addListener(() {
-      if (mounted) {
-        setState(() {});
-      }
-    });
-
-    _redBorderFadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-    _greenLineGrowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.linear),
-    );
-  }
-
-  @override
   void dispose() {
-    _animationController.dispose();
     super.dispose();
   }
 
-  void _resetDragStateAndAnimation() {
-    if (!mounted) return;
-    _animationController.reset();
-    _currentDraggedNodeId = null;
-    // When resetting, make sure that the temporary collapsed state is cleared as well
-    ref.read(temporarilyCollapsedNodeIdsProvider.notifier).update((state) => {...state}..remove(widget.node.id));
-    if (_dragTargetState != _DragTargetInteractionState.none) {
-      setState(() {
-        _dragTargetState = _DragTargetInteractionState.none;
-      });
+  void _resetDragState() {
+    if (_dropIntent != _DropIntent.none || _isValidIntent) {
+      if(mounted){
+        setState(() {
+          _dropIntent = _DropIntent.none;
+          _isValidIntent = false;
+        });
+      }
     }
   }
 
@@ -99,7 +71,7 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
     return true;
   }
 
-  bool _canAcceptAsSiblingAfter(WidgetNode draggedNodeData) {
+  bool _canAcceptAsSibling(WidgetNode draggedNodeData) {
     final parentOfCurrentNode = findParentNode(widget.overallRootNode, widget.node.id);
     if (parentOfCurrentNode == null) return false;
     final parentRc = registeredComponents[parentOfCurrentNode.type];
@@ -111,7 +83,16 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
     return true;
   }
 
-  // Builds the main interactive content of the tree item (expander, icon, text)
+  _DropIntent _getIntentFromOffset(Offset localPosition, Size size) {
+    if (localPosition.dy < size.height * 0.25) {
+      return _DropIntent.insertBefore;
+    } else if (localPosition.dy > size.height * 0.75) {
+      return _DropIntent.insertAfter;
+    } else {
+      return _DropIntent.addAsChild;
+    }
+  }
+
   Widget _buildItemContentRow(BuildContext context,
       WidgetRef ref,
       IconData iconData,
@@ -120,7 +101,7 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
       Color itemTextColor,
       FontWeight itemFontWeight,
       bool hasChildren,
-      bool isEffectivelyExpanded, // Use the Active Expansion state
+      bool isEffectivelyExpanded,
       ) {
     final expandedIdsNotifier = ref.read(expandedNodeIdsProvider.notifier);
     return Padding(
@@ -178,7 +159,7 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
         onTap: () {
           selectedNodeNotifier.state = widget.node.id;
           ref.read(hoveredNodeIdProvider.notifier).state = null;
-          _resetDragStateAndAnimation();
+          _resetDragState();
         },
         child: Container(
           height: _treeItemHeight,
@@ -219,70 +200,6 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
     return tappableItem;
   }
 
-  // Builds the container that shows selection, hover, and drag feedback (borders, background)
-  Widget _buildStyledItemContainer(
-      BuildContext context,
-      WidgetRef ref,
-      Widget tappableItem,
-      bool isActuallySelected,
-      bool isTreeItemDirectlyHovered,
-      ) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, _) {
-        Color? currentBgColor; Border? currentBorder;
-        switch (_dragTargetState) {
-          case _DragTargetInteractionState.canBeChild:
-            currentBorder = Border.all(color: Colors.greenAccent.shade400, width: 1.5);
-            currentBgColor = Colors.green.withOpacity(0.1);
-            break;
-          case _DragTargetInteractionState.animatingForSibling:
-            currentBorder = Border.all(color: Colors.redAccent.shade400.withOpacity(_redBorderFadeAnimation.value), width: 1.5);
-            currentBgColor = Colors.red.withOpacity(0.08 * _redBorderFadeAnimation.value);
-            break;
-          case _DragTargetInteractionState.cannotBeChildOrSibling:
-            currentBorder = Border.all(color: Colors.redAccent.shade400, width: 1.5);
-            currentBgColor = Colors.red.withOpacity(0.08);
-            break;
-          default:
-            if (isActuallySelected) {
-              currentBgColor = Theme.of(context).colorScheme.primary.withOpacity(0.12);
-            } else if (isTreeItemDirectlyHovered) {
-              currentBgColor = kRendererHoverBorderColor.withOpacity(0.1);
-            }
-            break;
-        }
-        final rejected = ref.watch(dragRejectedDataProviderFor(widget.node.id));
-        if (rejected.isNotEmpty && _dragTargetState != _DragTargetInteractionState.animatingForSibling) {
-          currentBorder = Border.all(color: Colors.redAccent.shade400, width: 1.5);
-          currentBgColor = Colors.red.withOpacity(0.08);
-        }
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 1.0),
-          decoration: BoxDecoration(color: currentBgColor, border: currentBorder, borderRadius: BorderRadius.circular(4)),
-          child: tappableItem,
-        );
-      },
-    );
-  }
-
-  // Builds the green line indicator for sibling drop
-  Widget _buildSiblingDropIndicator(double treeLinesPainterAreaWidth) {
-    if (_dragTargetState == _DragTargetInteractionState.animatingForSibling && _greenLineGrowAnimation.value > 0.01) {
-      return Positioned(
-        left: treeLinesPainterAreaWidth,
-        right: 0,
-        bottom: 0,
-        child: FractionallySizedBox(
-          widthFactor: _greenLineGrowAnimation.value,
-          alignment: Alignment.centerLeft,
-          child: Container(height: 3.0, color: Colors.greenAccent.shade400),
-        ),
-      );
-    }
-    return const SizedBox.shrink(); // Return empty if not needed
-  }
-
   @override
   Widget build(BuildContext context) {
     final String? selectedNodeId = ref.watch(selectedNodeIdProvider);
@@ -293,7 +210,7 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
     final IconData iconData = rc?.icon ?? Icons.device_unknown;
 
     final bool isActuallySelected = widget.node.id == selectedNodeId;
-    final bool isTreeItemDirectlyHovered = currentHoveredIdByCanvas == widget.node.id && !isActuallySelected && _dragTargetState == _DragTargetInteractionState.none;
+    final bool isTreeItemDirectlyHovered = currentHoveredIdByCanvas == widget.node.id && !isActuallySelected && _dropIntent == _DropIntent.none;
 
     final Color itemIconColor = isActuallySelected ? Theme.of(context).colorScheme.primary : (isTreeItemDirectlyHovered ? kRendererHoverBorderColor : Theme.of(context).iconTheme.color?.withOpacity(0.7) ?? Colors.grey);
     final Color itemTextColor = isActuallySelected ? Theme.of(context).colorScheme.primary : (isTreeItemDirectlyHovered ? kRendererHoverBorderColor : Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black);
@@ -301,110 +218,172 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
 
     final bool hasChildren = widget.node.children.isNotEmpty;
 
-    // Combine global and temporary states to decide whether to expand on the UI
     final bool isGloballyExpanded = ref.watch(expandedNodeIdsProvider).contains(widget.node.id);
-    final bool isTemporarilyCollapsed = ref.watch(temporarilyCollapsedNodeIdsProvider.select((ids) => ids.contains(widget.node.id)));
-    final bool isEffectivelyExpanded = isGloballyExpanded && !isTemporarilyCollapsed;
+    final bool isEffectivelyExpanded = isGloballyExpanded;
 
     final double treeLinesPainterAreaWidth = widget.depth * TreeLinePainter.indentWidth;
 
     final Widget itemContent = _buildItemContentRow(context, ref, iconData, displayName, itemIconColor, itemTextColor, itemFontWeight, hasChildren, isEffectivelyExpanded);
     final Widget tappableAndDraggableItem = _buildTappableAndDraggableItem(context, ref, itemContent, rc, iconData, displayName);
-    final Widget styledItem = _buildStyledItemContainer(context, ref, tappableAndDraggableItem, isActuallySelected, isTreeItemDirectlyHovered);
-    final Widget siblingIndicator = _buildSiblingDropIndicator(treeLinesPainterAreaWidth);
 
     return DragTarget<String>(
-      onWillAcceptWithDetails: (details) {
+      onMove: (details) {
+        if (!mounted) return;
         final draggedNodeId = details.data;
-        _currentDraggedNodeId = draggedNodeId;
-        final tempCollapsedNotifier = ref.read(temporarilyCollapsedNodeIdsProvider.notifier);
-        final WidgetNode? draggedNodeInstance = findNodeById(widget.overallRootNode, draggedNodeId);
+        if (draggedNodeId == widget.node.id || isAncestor(widget.overallRootNode, draggedNodeId, widget.node.id)) {
+          _resetDragState();
+          return;
+        }
 
-        if (draggedNodeInstance == null || draggedNodeId == widget.node.id || isAncestor(widget.overallRootNode, draggedNodeId, widget.node.id)) {
-          if (mounted) {
-            _animationController.reset();
-            tempCollapsedNotifier.update((state) => {...state}..remove(widget.node.id));
-            setState(() => _dragTargetState = _DragTargetInteractionState.cannotBeChildOrSibling);
-          }
+        final WidgetNode? draggedNodeInstance = findNodeById(widget.overallRootNode, draggedNodeId);
+        if (draggedNodeInstance == null) {
+          _resetDragState();
+          return;
+        }
+
+        final renderBox = context.findRenderObject() as RenderBox;
+        final newIntent = _getIntentFromOffset(renderBox.globalToLocal(details.offset), renderBox.size);
+
+        bool isIntentValid;
+        switch (newIntent) {
+          case _DropIntent.addAsChild:
+            isIntentValid = _canAcceptAsChild(draggedNodeInstance);
+            break;
+          case _DropIntent.insertBefore:
+          case _DropIntent.insertAfter:
+            isIntentValid = _canAcceptAsSibling(draggedNodeInstance);
+            break;
+          case _DropIntent.none:
+            isIntentValid = false;
+            break;
+        }
+
+        if (newIntent != _dropIntent || isIntentValid != _isValidIntent) {
+          setState(() {
+            _dropIntent = newIntent;
+            _isValidIntent = isIntentValid;
+          });
+        }
+      },
+      onWillAcceptWithDetails: (details) {
+        // This callback is the authoritative gatekeeper.
+        // It performs its own validation, ignoring the widget's state,
+        // to avoid any race conditions with setState.
+        final draggedNodeId = details.data;
+        if (draggedNodeId == widget.node.id || isAncestor(widget.overallRootNode, draggedNodeId, widget.node.id)) {
           return false;
         }
 
-        bool canBeChild = _canAcceptAsChild(draggedNodeInstance);
-        bool canBeSibling = _canAcceptAsSiblingAfter(draggedNodeInstance);
-
-        if (canBeChild) {
-          if (mounted) {
-            _animationController.reset();
-            tempCollapsedNotifier.update((state) => {...state}..remove(widget.node.id));
-            setState(() => _dragTargetState = _DragTargetInteractionState.canBeChild);
-          }
-          return true;
-        } else if (canBeSibling) {
-          if (mounted) {
-            if (_dragTargetState != _DragTargetInteractionState.animatingForSibling) {
-              _animationController.forward(from: 0.0);
-            }
-            tempCollapsedNotifier.update((state) => {...state, widget.node.id});
-            setState(() => _dragTargetState = _DragTargetInteractionState.animatingForSibling);
-          }
-          return true;
-        } else {
-          if (mounted) {
-            _animationController.reset();
-            tempCollapsedNotifier.update((state) => {...state}..remove(widget.node.id));
-            setState(() => _dragTargetState = _DragTargetInteractionState.cannotBeChildOrSibling);
-          }
+        final WidgetNode? draggedNodeInstance = findNodeById(widget.overallRootNode, draggedNodeId);
+        if (draggedNodeInstance == null) {
           return false;
+        }
+
+        final renderBox = context.findRenderObject() as RenderBox;
+        final intent = _getIntentFromOffset(renderBox.globalToLocal(details.offset), renderBox.size);
+
+        switch (intent) {
+          case _DropIntent.addAsChild:
+            return _canAcceptAsChild(draggedNodeInstance);
+          case _DropIntent.insertBefore:
+          case _DropIntent.insertAfter:
+            return _canAcceptAsSibling(draggedNodeInstance);
+          case _DropIntent.none:
+          default:
+            return false;
         }
       },
       onAcceptWithDetails: (details) {
         final String draggedNodeId = details.data;
-        _currentDraggedNodeId = null;
         final WidgetNode? nodeToMoveOriginal = findNodeById(widget.overallRootNode, draggedNodeId);
         if (nodeToMoveOriginal == null) {
-          _resetDragStateAndAnimation();
+          _resetDragState();
           return;
         }
+
         final WidgetNode nodeToMove = deepCopyNode(nodeToMoveOriginal);
         WidgetNode currentTree = ref.read(activeCanvasTreeProvider);
         WidgetNode treeAfterRemoval = removeNodeById(currentTree, draggedNodeId);
-        WidgetNode finalTree = treeAfterRemoval;
+        WidgetNode? finalTree;
         bool actionTaken = false;
 
-        if (_dragTargetState == _DragTargetInteractionState.canBeChild) {
-          finalTree = addNodeAsChildRecursive(treeAfterRemoval, widget.node.id, nodeToMove);
-          actionTaken = true;
-        } else if (_dragTargetState == _DragTargetInteractionState.animatingForSibling) {
-          if (_animationController.isCompleted) {
+        // The final action is based on the state set by the last onMove event.
+        switch (_dropIntent) {
+          case _DropIntent.addAsChild:
+            finalTree = addNodeAsChildRecursive(treeAfterRemoval, widget.node.id, nodeToMove);
+            actionTaken = true;
+            break;
+          case _DropIntent.insertBefore:
+            finalTree = insertNodeAsSiblingRecursive(treeAfterRemoval, widget.node.id, nodeToMove, after: false);
+            actionTaken = true;
+            break;
+          case _DropIntent.insertAfter:
             finalTree = insertNodeAsSiblingRecursive(treeAfterRemoval, widget.node.id, nodeToMove, after: true);
             actionTaken = true;
-          } else {
-            IssueReporterService().reportWarning("Sibling drop for ${widget.node.type} cancelled: animation not completed.");
-          }
+            break;
+          case _DropIntent.none:
+            break;
         }
-        if (actionTaken) {
+
+        if (actionTaken && finalTree != null) {
           ref.read(projectStateProvider.notifier).updateActivePageTree(finalTree);
           ref.read(selectedNodeIdProvider.notifier).state = nodeToMove.id;
           ref.read(hoveredNodeIdProvider.notifier).state = null;
         }
-        _resetDragStateAndAnimation();
+        _resetDragState();
       },
       onLeave: (data) {
-        if (data == _currentDraggedNodeId) {
-          _resetDragStateAndAnimation();
-        }
+        _resetDragState();
       },
       builder: (context, candidateData, rejectedDataList) {
-        Future.microtask(() { if(mounted) ref.read(dragRejectedDataProviderFor(widget.node.id).notifier).state = rejectedDataList; });
+
+        Color? bgColor;
+        Border? border;
+        Widget? overlayLine;
+
+        final bool isDraggingOver = candidateData.isNotEmpty || rejectedDataList.isNotEmpty;
+
+        if (isDraggingOver) {
+          if (_isValidIntent) {
+            // Valid drop state
+            switch (_dropIntent) {
+              case _DropIntent.insertBefore:
+                overlayLine = Align(alignment: Alignment.topCenter, child: Container(height: 2.5, color: Colors.greenAccent.shade400));
+                break;
+              case _DropIntent.insertAfter:
+                overlayLine = Align(alignment: Alignment.bottomCenter, child: Container(height: 2.5, color: Colors.greenAccent.shade400));
+                break;
+              case _DropIntent.addAsChild:
+                bgColor = Colors.green.withOpacity(0.1);
+                border = Border.all(color: Colors.greenAccent.shade400, width: 1.5);
+                break;
+              case _DropIntent.none:
+                break;
+            }
+          } else {
+            // Invalid drop state
+            border = Border.all(color: Colors.redAccent.shade400, width: 1.5);
+            bgColor = Colors.red.withOpacity(0.08);
+          }
+        }
+
+        // Apply default selection/hover styles if not dragging
+        if (!isDraggingOver) {
+          if (isActuallySelected) {
+            bgColor = Theme.of(context).colorScheme.primary.withOpacity(0.12);
+          } else if (isTreeItemDirectlyHovered) {
+            bgColor = kRendererHoverBorderColor.withOpacity(0.1);
+          }
+        }
+
         return MouseRegion(
-          onEnter: (_) { if (_dragTargetState == _DragTargetInteractionState.none && _currentDraggedNodeId == null) ref.read(hoveredNodeIdProvider.notifier).state = widget.node.id; },
-          onExit: (_) { if (ref.read(hoveredNodeIdProvider) == widget.node.id && _dragTargetState == _DragTargetInteractionState.none && _currentDraggedNodeId == null) ref.read(hoveredNodeIdProvider.notifier).state = null; },
+          onEnter: (_) { if (_dropIntent == _DropIntent.none) ref.read(hoveredNodeIdProvider.notifier).state = widget.node.id; },
+          onExit: (_) { if (ref.read(hoveredNodeIdProvider) == widget.node.id) ref.read(hoveredNodeIdProvider.notifier).state = null; },
           cursor: SystemMouseCursors.click,
           child: SizedBox(
             height: _treeItemHeight + 3,
             child: Stack(
               clipBehavior: Clip.none,
-              alignment: Alignment.bottomLeft,
               children: [
                 Positioned.fill(
                   child: Row(
@@ -423,11 +402,21 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
                           ),
                         ),
                       ),
-                      Expanded(child: styledItem),
+                      Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 1.0),
+                          decoration: BoxDecoration(
+                            color: bgColor,
+                            border: border,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: tappableAndDraggableItem,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                siblingIndicator,
+                if (overlayLine != null) Positioned.fill(left: treeLinesPainterAreaWidth, child: overlayLine),
               ],
             ),
           ),
