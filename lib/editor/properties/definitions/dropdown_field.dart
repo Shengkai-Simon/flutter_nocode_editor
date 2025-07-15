@@ -13,7 +13,21 @@ class DropdownField extends StatelessWidget {
     return DropdownButtonFormField<String>(
       value: value,
       decoration: InputDecoration(labelText: label),
-      items: options.map((opt) => DropdownMenuItem(value: opt['id'], child: Text(opt['name'] ?? ''))).toList(),
+      // Set isExpanded to true. This allows the dropdown to fill the available
+      // horizontal space. The selected item text will automatically be handled
+      // to prevent overflow, typically by using an ellipsis.
+      isExpanded: true,
+      items: options.map((opt) {
+        return DropdownMenuItem(
+          value: opt['id'],
+          // For the items in the dropdown menu, we also ensure long text
+          // doesn't cause issues by using an ellipsis.
+          child: Text(
+            opt['name'] ?? '',
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
+      }).toList(),
       onChanged: (v) {
         if (v != null) onChanged(v);
       },

@@ -5,149 +5,50 @@ import '../../editor/components/core/widget_node.dart';
 import '../../editor/components/core/component_registry.dart';
 import '../../editor/components/core/widget_node_utils.dart';
 import '../../editor/properties/core/property_definition.dart';
-import '../../services/issue_reporter_service.dart';
 import '../../state/editor_state.dart';
-import '../../utils/parsing_util.dart';
+import 'property_editor.dart';
+import 'property_group_behaviors.dart';
 
 class RightView extends ConsumerWidget {
   const RightView({super.key});
 
-  static const Set<PropertyCategory> _switchableCategories = {
-    PropertyCategory.background,
-    PropertyCategory.border,
-    PropertyCategory.shadow,
+  /// A registry that maps a property category to its switchable behavior logic.
+  static final Map<PropertyCategory, SwitchablePropertyGroup> _switchableGroupBehaviors = {
+    PropertyCategory.background: BackgroundPropertyGroup(),
+    PropertyCategory.border: BorderPropertyGroup(),
+    PropertyCategory.shadow: ShadowPropertyGroup(),
   };
-
-  bool _isPropertyGroupEffectivelyEnabled(
-      PropertyCategory category,
-      Map<String, dynamic> props,
-      ) {
-    switch (category) {
-      case PropertyCategory.background:
-        final String? bgColor = props['backgroundColor'] as String?;
-        final bool hasBgColor = bgColor != null && bgColor.isNotEmpty && ParsingUtil.parseColor(bgColor).alpha != 0;
-        final String? gradientType = props['gradientType'] as String?;
-        final bool hasGradient = gradientType != null && gradientType != 'none';
-        return hasBgColor || hasGradient;
-      case PropertyCategory.border:
-        return (props['borderWidth'] as num? ?? 0) > 0;
-      case PropertyCategory.shadow:
-        final String? shadowColor = props['shadowColor'] as String?;
-        return shadowColor != null && shadowColor.isNotEmpty && ParsingUtil.parseColor(shadowColor).alpha != 0;
-      default:
-        return true;
-    }
-  }
-
-  Map<String, dynamic> _applyDefaultsForEnabledGroup(
-      PropertyCategory category,
-      Map<String, dynamic> currentProps,
-      ) {
-    final newProps = Map<String, dynamic>.from(currentProps);
-
-    switch (category) {
-      case PropertyCategory.background:
-        if (!_isPropertyGroupEffectivelyEnabled(PropertyCategory.background, newProps)) {
-          newProps['backgroundColor'] = '#FFF0F0F0';
-          newProps['gradientType'] = 'none';
-        } else {
-          if (newProps['backgroundColor'] == null && (newProps['gradientType'] == null || newProps['gradientType'] == 'none')) {
-            newProps['backgroundColor'] = '#FFF0F0F0';
-          }
-        }
-        break;
-      case PropertyCategory.border:
-        if (!_isPropertyGroupEffectivelyEnabled(PropertyCategory.border, newProps)) {
-          newProps['borderWidth'] = 1.0;
-          newProps['borderColor'] = '#FF000000';
-        } else {
-          if ((newProps['borderWidth'] as num? ?? 0) <= 0) {
-            newProps['borderWidth'] = 1.0;
-          }
-          newProps['borderColor'] ??= '#FF000000';
-        }
-        break;
-      case PropertyCategory.shadow:
-        if (!_isPropertyGroupEffectivelyEnabled(PropertyCategory.shadow, newProps)) {
-          newProps['shadowColor'] = '#8A000000';
-          newProps['shadowOffsetX'] ??= 0.0;
-          newProps['shadowOffsetY'] ??= 2.0;
-          newProps['shadowBlurRadius'] ??= 4.0;
-          newProps['shadowSpreadRadius'] ??= 0.0;
-        } else {
-          newProps['shadowColor'] ??= '#8A000000';
-        }
-        break;
-      default:
-        break;
-    }
-    return newProps;
-  }
-
-  Map<String, dynamic> _applyDefaultsForDisabledGroup(
-      PropertyCategory category,
-      Map<String, dynamic> currentProps,
-      ) {
-    final newProps = Map<String, dynamic>.from(currentProps);
-    switch (category) {
-      case PropertyCategory.background:
-        newProps['backgroundColor'] = null;
-        newProps['gradientType'] = 'none';
-        newProps.remove('gradientColor1');
-        newProps.remove('gradientColor2');
-        newProps.remove('gradientBeginAlignment');
-        newProps.remove('gradientEndAlignment');
-        break;
-      case PropertyCategory.border:
-        newProps['borderWidth'] = 0.0;
-        break;
-      case PropertyCategory.shadow:
-        newProps['shadowColor'] = null;
-        break;
-      default:
-        break;
-    }
-    return newProps;
-  }
 
   // Helper function to get a displayable string name for a PropertyCategory
   String _getPropertyCategoryDisplayName(PropertyCategory category) {
+    // (This function remains unchanged)
     switch (category) {
-    // Core Attributes
       case PropertyCategory.general:
-        return 'General'; // e.g., Text content, Button text, Radio item value
+        return 'General';
       case PropertyCategory.value:
-        return 'Value'; // e.g., Switch state, Slider position, TextField input
+        return 'Value';
       case PropertyCategory.dataSource:
-        return 'Data Source'; // e.g., Dropdown items
-
-    // Layout & Sizing
+        return 'Data Source';
       case PropertyCategory.sizing:
-        return 'Sizing & Dimensions'; // e.g., Width, Height, Flex factor
+        return 'Sizing & Dimensions';
       case PropertyCategory.spacing:
-        return 'Spacing & Indentation'; // e.g., Margin, Padding, Divider indents
+        return 'Spacing & Indentation';
       case PropertyCategory.layout:
-        return 'Layout & Alignment'; // e.g., Child alignment, Row/Column axis controls, Wrap properties
-
-    // Visual Styling
+        return 'Layout & Alignment';
       case PropertyCategory.appearance:
-        return 'Appearance'; // e.g., Icon choice, active/inactive colors, elevation, clip behavior
+        return 'Appearance';
       case PropertyCategory.textStyle:
-        return 'Text Style'; // e.g., Font properties, text alignment
-      case PropertyCategory.background: // Merged 'fill' and 'gradient'
-        return 'Background & Fill'; // e.g., Background color, gradients
+        return 'Text Style';
+      case PropertyCategory.background:
+        return 'Background & Fill';
       case PropertyCategory.border:
-        return 'Border & Corners'; // e.g., Border properties, corner radius
+        return 'Border & Corners';
       case PropertyCategory.shadow:
-        return 'Shadow'; // e.g., Box shadows, elevation shadows
-
-    // Specific Component Types
-      case PropertyCategory.image: // Merged 'imageSource' and 'imageAppearance'
-        return 'Image Properties'; // e.g., Image source, fit, repeat
-
-    // Behavior & Interaction
+        return 'Shadow';
+      case PropertyCategory.image:
+        return 'Image Properties';
       case PropertyCategory.behavior:
-        return 'Interaction & Behavior'; // Returns 'myCategory' from 'PropertyCategory.myCategory'
+        return 'Interaction & Behavior';
     }
   }
 
@@ -200,20 +101,7 @@ class RightView extends ConsumerWidget {
                 }
                 ref.read(selectedNodeIdProvider.notifier).state = null;
                 final newTree = removeNodeById(currentGlobalTree, node.id);
-                // The new approach should be to call a method on ProjectNotifier that handles deletion
-                // For now, let's assume a direct update that will be recorded.
-                // A better approach would be: ref.read(projectStateProvider.notifier).deleteNode(node.id);
-                // but that's out of scope of this refactor. So we create an updated tree manually.
-                final newPages = ref.read(projectStateProvider).pages.map((p) {
-                  if (p.id == ref.read(projectStateProvider).activePageId) {
-                    return p.copyWith(tree: newTree);
-                  }
-                  return p;
-                }).toList();
-                final newState = ref.read(projectStateProvider).copyWith(pages: newPages);
-                ref.read(projectStateProvider.notifier).loadProject(newState);
-                ref.read(historyManagerProvider.notifier).recordState(newState);
-
+                ref.read(projectStateProvider.notifier).updateActivePageTree(newTree);
               },
             ),
         ],
@@ -221,79 +109,18 @@ class RightView extends ConsumerWidget {
     );
     propertyWidgets.add(const Divider(height: 20));
 
-    // Function to build property fields for a category
-    List<Widget> buildFieldWidgets(List<PropField> fields) {
-      return fields.map<Widget>((field) {
-        final dynamic rawPropValue = node.props[field.name];
-        final dynamic currentValueForEditor = rawPropValue ?? field.defaultValue;
-
-        // Called for live updates (e.g., slider dragging). Does NOT record history.
-        onUpdate(dynamic newValueFromField) {
-          final Map<String, dynamic> updatedProps = Map<String, dynamic>.from(node.props);
-          updatedProps[field.name] = newValueFromField;
-
-          final updatedNode = node.copyWith(props: updatedProps);
-          final currentGlobalTree = ref.read(activeCanvasTreeProvider);
-          final newGlobalTree = replaceNodeInTree(currentGlobalTree, updatedNode);
-          ref.read(projectStateProvider.notifier).updateActivePageTreeForPreview(newGlobalTree);
-        }
-
-        // Called on final submission (e.g., focus loss, enter). Records history.
-        onCommit(dynamic newValueFromField) {
-          final Map<String, dynamic> updatedProps = Map<String, dynamic>.from(node.props);
-          updatedProps[field.name] = newValueFromField;
-
-          final updatedNode = node.copyWith(props: updatedProps);
-          ref.read(projectStateProvider.notifier).updateWidgetNode(updatedNode);
-        }
-
-        if (field.editorBuilder != null) {
-          if (field.editorBuilder is PropertyEditorBuilderWithUpdate) {
-            // This is a modern editor that supports live updates.
-            return field.editorBuilder!(
-              context,
-              node.props,
-              field,
-              currentValueForEditor,
-              onCommit,
-              onUpdate,
-            );
-          } else if (field.editorBuilder is PropertyEditorBuilder) {
-            // This is a legacy editor.
-            return field.editorBuilder!(
-              context,
-              node.props,
-              field,
-              currentValueForEditor,
-              onCommit,
-            );
-          }
-        }
-        // Fallback for no editor or wrong type
-        IssueReporterService().reportWarning("Warning: No valid editorBuilder for property '${field.name}' in '${rc.displayName}'.");
-        return ListTile(
-          title: Text(field.label),
-          subtitle: Text(currentValueForEditor?.toString() ?? 'N/A (No editor)'),
-        );
-      }).toList();
-    }
-
     // Iterate through ordered categories to build UI sections
     for (var categoryEnumValue in kPropertyCategoryOrder) {
       if (categorizedFields.containsKey(categoryEnumValue) &&
           categorizedFields[categoryEnumValue]!.isNotEmpty) {
 
-        bool isSwitchable = _switchableCategories.contains(categoryEnumValue);
+        bool isSwitchable = _switchableGroupBehaviors.containsKey(categoryEnumValue);
         bool isEffectivelyEnabled = true;
 
         if (isSwitchable) {
-          isEffectivelyEnabled = _isPropertyGroupEffectivelyEnabled(
-            categoryEnumValue,
-            node.props,
-          );
+          isEffectivelyEnabled = _switchableGroupBehaviors[categoryEnumValue]!.isEffectivelyEnabled(node.props);
         }
 
-        // Title Section (with Switch for switchable categories)
         final titleWidget = Text(
           _getPropertyCategoryDisplayName(categoryEnumValue),
           style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary),
@@ -310,17 +137,12 @@ class RightView extends ConsumerWidget {
                     Switch(
                       value: isEffectivelyEnabled,
                       onChanged: (bool newState) {
+                        final behavior = _switchableGroupBehaviors[categoryEnumValue]!;
                         Map<String, dynamic> newProps;
                         if (newState) {
-                          newProps = _applyDefaultsForEnabledGroup(
-                            categoryEnumValue,
-                            node.props,
-                          );
+                          newProps = behavior.getEnableDefaults(node.props);
                         } else {
-                          newProps = _applyDefaultsForDisabledGroup(
-                            categoryEnumValue,
-                            node.props,
-                          );
+                          newProps = behavior.getDisableDefaults(node.props);
                         }
                         final updatedNode = node.copyWith(props: newProps);
                         ref.read(projectStateProvider.notifier).updateWidgetNode(updatedNode);
@@ -340,12 +162,20 @@ class RightView extends ConsumerWidget {
         }
 
         if (isEffectivelyEnabled) {
-          propertyWidgets.addAll(buildFieldWidgets(categorizedFields[categoryEnumValue]!));
+          // Now we map each field to our new PropertyEditor widget.
+          propertyWidgets.addAll(
+            categorizedFields[categoryEnumValue]!.map((field) => PropertyEditor(
+              key: ValueKey('${node.id}-${field.name}'),
+              node: node,
+              field: field,
+            )),
+          );
         }
         propertyWidgets.add(const SizedBox(height: 8));
       }
     }
 
+    // This part for unordered categories remains the same
     final Set<PropertyCategory> orderedCategories = Set.from(kPropertyCategoryOrder);
     categorizedFields.forEach((categoryEnumValue, fieldsList) {
       if (!orderedCategories.contains(categoryEnumValue) && fieldsList.isNotEmpty) {
@@ -358,7 +188,13 @@ class RightView extends ConsumerWidget {
             ),
           ),
         );
-        propertyWidgets.addAll(buildFieldWidgets(fieldsList));
+        propertyWidgets.addAll(
+          fieldsList.map((field) => PropertyEditor(
+            key: ValueKey('${node.id}-${field.name}'),
+            node: node,
+            field: field,
+          )),
+        );
         propertyWidgets.add(const SizedBox(height: 8));
       }
     });

@@ -168,24 +168,35 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
             minScale: 0.1,
             maxScale: 4.0,
             builder: (BuildContext context, viewport) {
+              // Get the scale for the current animation frame directly from the controller.
+              final double frameScale = _transformationController.value.getMaxScaleOnAxis();
+              // Ensure the scale is never zero to prevent division errors.
+              final double safeFrameScale = max(0.1, frameScale);
+
               return Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
                   WidgetRenderer(node: tree),
                   Positioned(
-                    top: -32, // Adjust this value for appropriate spacing
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        activePageName,
-                        style: TextStyle(
-                          fontSize: 14 / currentScale, // Scale font size with the canvas
-                          color: Colors.white,
+                    // Scale the position as well to maintain a constant visual distance.
+                    top: -32 / safeFrameScale,
+                    child: Transform.scale(
+                      // Counter-scale the widget to keep its visual size constant.
+                      scale: 1 / safeFrameScale,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          activePageName,
+                          // Use a fixed font size, as the scaling is now handled by Transform.
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),

@@ -19,7 +19,13 @@ class SwitchField extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: Theme.of(context).textTheme.titleMedium),
+          // Wrap the Text widget with Expanded.
+          // This allows the text to wrap to the next line if it's too long
+          // to fit on a single line, preventing a horizontal overflow.
+          Expanded(
+            child: Text(label, style: Theme.of(context).textTheme.titleMedium),
+          ),
+          const SizedBox(width: 16), // Add some spacing
           Switch(
             value: value,
             onChanged: onChanged,
