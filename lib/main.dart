@@ -88,6 +88,8 @@ class GlobalViewScaffold extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final historyState = ref.watch(historyManagerProvider);
+
     return Scaffold(
       body: Column(
         children: [
@@ -99,6 +101,16 @@ class GlobalViewScaffold extends ConsumerWidget {
                 children: [
                   Text('Project Overview', style: theme.textTheme.titleMedium),
                   const Spacer(),
+                  Tooltip(
+                      message: 'Undo',
+                      child: IconButton(icon: const Icon(Icons.undo), onPressed: historyState.canUndo ? () => ref.read(historyManagerProvider.notifier).undo() : null, iconSize: 20)
+                  ),
+                  Tooltip(
+                      message: 'Redo',
+                      child: IconButton(icon: const Icon(Icons.redo), onPressed: historyState.canRedo ? () => ref.read(historyManagerProvider.notifier).redo() : null, iconSize: 20)
+                  ),
+                  const SizedBox(width: 8),
+                  const VerticalDivider(indent: 12, endIndent: 12),
                   IconButton(
                       icon: const Icon(Icons.code),
                       tooltip: 'View & Export Project Code',

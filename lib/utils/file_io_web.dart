@@ -215,7 +215,7 @@ Future<void> loadAndReplaceCurrentPage(WidgetRef ref) async {
       final jsonMap = jsonDecode(fileContent) as Map<String, dynamic>;
       final migrator = ProjectMigratorService();
       final WidgetNode newTree = migrator.migrate(jsonMap);
-      ref.read(historyManagerProvider.notifier).recordState(newTree);
+      ref.read(projectStateProvider.notifier).updateActivePageTree(newTree);
     } catch (e, s) {
       IssueReporterService().reportError("Failed to parse page layout from file.", error: e, stackTrace: s);
     }

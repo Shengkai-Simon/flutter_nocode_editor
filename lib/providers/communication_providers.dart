@@ -47,7 +47,7 @@ final iframeMessageCoordinatorProvider = Provider<void>((ref) {
           canvasTree.children.add(WidgetNode.fromJson(deepCastedPayload));
 
           // 4. Update the status
-          ref.read(historyManagerProvider.notifier).recordState(canvasTree);
+          ref.read(projectStateProvider.notifier).updateActivePageTree(canvasTree);
 
           print('[Flutter Coordinator] Successfully applied new layout from applyJsonPatch.');
 

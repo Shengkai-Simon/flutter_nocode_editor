@@ -170,7 +170,7 @@ class WidgetRenderer extends ConsumerWidget {
           final currentTree = ref.read(activeCanvasTreeProvider);
           final newTree = addNodeAsChildRecursive(currentTree, node.id, newNode);
 
-          ref.read(historyManagerProvider.notifier).recordState(newTree);
+          ref.read(projectStateProvider.notifier).updateActivePageTree(newTree);
           ref.read(selectedNodeIdProvider.notifier).state = newNode.id;
         },
       ),

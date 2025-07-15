@@ -299,7 +299,7 @@ class _CanvasToolbarState extends ConsumerState<CanvasToolbar> {
     newProps['width'] = newSize.width;
     newProps['height'] = newSize.height;
     final newTree = currentTree.copyWith(props: newProps);
-    ref.read(historyManagerProvider.notifier).recordState(newTree);
+    ref.read(projectStateProvider.notifier).updateActivePageTree(newTree);
   }
 
   void _showProjectIssuesDialog(BuildContext context, WidgetRef ref) {

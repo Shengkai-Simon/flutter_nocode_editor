@@ -13,6 +13,15 @@ class WidgetNode {
     this.children = const [],
   });
 
+  WidgetNode deepCopy() {
+    return WidgetNode(
+      id: id, // id is preserved in a deep copy
+      type: type,
+      props: Map<String, dynamic>.from(props), // Create a new map for props
+      children: children.map((child) => child.deepCopy()).toList(), // Recursively deep copy children
+    );
+  }
+
   WidgetNode copyWith({
     String? id,
     String? type,

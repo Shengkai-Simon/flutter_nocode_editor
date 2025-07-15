@@ -370,7 +370,7 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
           }
         }
         if (actionTaken) {
-          ref.read(historyManagerProvider.notifier).recordState(finalTree);
+          ref.read(projectStateProvider.notifier).updateActivePageTree(finalTree);
           ref.read(selectedNodeIdProvider.notifier).state = nodeToMove.id;
           ref.read(hoveredNodeIdProvider.notifier).state = null;
         }

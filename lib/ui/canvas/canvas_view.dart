@@ -123,6 +123,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     final currentScale = ref.watch(canvasScaleProvider);
     final isPanMode = pointerMode == CanvasPointerMode.pan;
     final isCtrlPressed = ref.watch(isCtrlPressedProvider);
+    final activePageName = ref.watch(projectStateProvider.select((p) => p.activePage.name));
 
     return Focus(
       focusNode: _focusNode,
@@ -148,6 +149,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
         return KeyEventResult.ignored;
       },
       child: Stack(
+        alignment: Alignment.center,
         children: [
           InteractiveViewer.builder(
             transformationController: _transformationController,
@@ -166,10 +168,29 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
             minScale: 0.1,
             maxScale: 4.0,
             builder: (BuildContext context, viewport) {
-              return Container(
-                color: Theme.of(context).canvasColor,
+              return Stack(
+                clipBehavior: Clip.none,
                 alignment: Alignment.center,
-                child: WidgetRenderer(node: tree),
+                children: [
+                  WidgetRenderer(node: tree),
+                  Positioned(
+                    top: -32, // Adjust this value for appropriate spacing
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        activePageName,
+                        style: TextStyle(
+                          fontSize: 14 / currentScale, // Scale font size with the canvas
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),

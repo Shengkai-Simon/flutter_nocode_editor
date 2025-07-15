@@ -200,7 +200,20 @@ class RightView extends ConsumerWidget {
                 }
                 ref.read(selectedNodeIdProvider.notifier).state = null;
                 final newTree = removeNodeById(currentGlobalTree, node.id);
-                ref.read(historyManagerProvider.notifier).recordState(newTree);
+                // The new approach should be to call a method on ProjectNotifier that handles deletion
+                // For now, let's assume a direct update that will be recorded.
+                // A better approach would be: ref.read(projectStateProvider.notifier).deleteNode(node.id);
+                // but that's out of scope of this refactor. So we create an updated tree manually.
+                final newPages = ref.read(projectStateProvider).pages.map((p) {
+                  if (p.id == ref.read(projectStateProvider).activePageId) {
+                    return p.copyWith(tree: newTree);
+                  }
+                  return p;
+                }).toList();
+                final newState = ref.read(projectStateProvider).copyWith(pages: newPages);
+                ref.read(projectStateProvider.notifier).loadProject(newState);
+                ref.read(historyManagerProvider.notifier).recordState(newState);
+
               },
             ),
         ],
@@ -231,9 +244,7 @@ class RightView extends ConsumerWidget {
           updatedProps[field.name] = newValueFromField;
 
           final updatedNode = node.copyWith(props: updatedProps);
-          final currentGlobalTree = ref.read(activeCanvasTreeProvider); // Get current tree to apply changes
-          final newGlobalTree = replaceNodeInTree(currentGlobalTree, updatedNode);
-          ref.read(historyManagerProvider.notifier).recordState(newGlobalTree);
+          ref.read(projectStateProvider.notifier).updateWidgetNode(updatedNode);
         }
 
         if (field.editorBuilder != null) {
@@ -312,9 +323,7 @@ class RightView extends ConsumerWidget {
                           );
                         }
                         final updatedNode = node.copyWith(props: newProps);
-                        final currentGlobalTree = ref.read(activeCanvasTreeProvider); // Get current tree
-                        final newGlobalTree = replaceNodeInTree(currentGlobalTree, updatedNode);
-                        ref.read(historyManagerProvider.notifier).recordState(newGlobalTree);
+                        ref.read(projectStateProvider.notifier).updateWidgetNode(updatedNode);
                       },
                     ),
                   ],

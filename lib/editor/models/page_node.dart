@@ -13,6 +13,14 @@ class PageNode {
     required this.tree,
   });
 
+  PageNode deepCopy() {
+    return PageNode(
+      id: id,
+      name: name,
+      tree: tree.deepCopy(), // Deep copy the widget tree
+    );
+  }
+
   PageNode copyWith({
     String? id,
     String? name,
