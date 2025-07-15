@@ -127,16 +127,9 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
 
     return Focus(
       focusNode: _focusNode,
+      // The spacebar handling is now moved to the parent EditorScaffold.
+      // We only handle keys that are specific to the canvas interaction here.
       onKeyEvent: (node, event) {
-        if (event.logicalKey == LogicalKeyboardKey.space) {
-          if (event is KeyDownEvent) {
-            ref.read(canvasPointerModeProvider.notifier).state = CanvasPointerMode.pan;
-          } else if (event is KeyUpEvent) {
-            ref.read(canvasPointerModeProvider.notifier).state = CanvasPointerMode.select;
-          }
-          return KeyEventResult.handled;
-        }
-
         if (event.logicalKey == LogicalKeyboardKey.controlLeft || event.logicalKey == LogicalKeyboardKey.controlRight) {
           if (event is KeyDownEvent) {
             ref.read(isCtrlPressedProvider.notifier).state = true;
