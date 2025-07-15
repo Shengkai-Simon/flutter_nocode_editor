@@ -320,6 +320,9 @@ final expandedNodeIdsProvider = StateProvider<Set<String>>((ref) {
   return _getAllInitiallyExpandedNodeIds(rootNode);
 });
 
+/// A set of node IDs that are temporarily collapsed for UI feedback during drag-and-drop.
+final temporarilyCollapsedNodeIdsProvider = StateProvider<Set<String>>((ref) => {});
+
 /// Used to obtain the IDs of all nodes in the tree that have child nodes.
 Set<String> _getAllInitiallyExpandedNodeIds(WidgetNode node) {
   final Set<String> ids = {};

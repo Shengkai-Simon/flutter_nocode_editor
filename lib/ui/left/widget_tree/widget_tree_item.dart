@@ -80,6 +80,8 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
     if (!mounted) return;
     _animationController.reset();
     _currentDraggedNodeId = null;
+    // When resetting, make sure that the temporary collapsed state is cleared as well
+    ref.read(temporarilyCollapsedNodeIdsProvider.notifier).update((state) => {...state}..remove(widget.node.id));
     if (_dragTargetState != _DragTargetInteractionState.none) {
       setState(() {
         _dragTargetState = _DragTargetInteractionState.none;
@@ -118,10 +120,11 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
       Color itemTextColor,
       FontWeight itemFontWeight,
       bool hasChildren,
-      bool isCurrentlyExpanded,) {
+      bool isEffectivelyExpanded, // Use the Active Expansion state
+      ) {
     final expandedIdsNotifier = ref.read(expandedNodeIdsProvider.notifier);
     return Padding(
-        padding: EdgeInsets.only(left: 10),
+        padding: const EdgeInsets.only(left: 10),
         child: Row(mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
@@ -129,7 +132,7 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
               width: _expanderButtonWidth,
               height: _treeItemHeight,
               child: hasChildren ? IconButton(
-                icon: Icon(isCurrentlyExpanded ? Icons.arrow_drop_down : Icons
+                icon: Icon(isEffectivelyExpanded ? Icons.arrow_drop_down : Icons
                     .arrow_right),
                 iconSize: 20.0,
                 padding: EdgeInsets.zero,
@@ -297,10 +300,15 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
     final FontWeight itemFontWeight = isActuallySelected ? FontWeight.bold : FontWeight.normal;
 
     final bool hasChildren = widget.node.children.isNotEmpty;
-    final bool isCurrentlyExpanded = ref.watch(expandedNodeIdsProvider).contains(widget.node.id);
+
+    // Combine global and temporary states to decide whether to expand on the UI
+    final bool isGloballyExpanded = ref.watch(expandedNodeIdsProvider).contains(widget.node.id);
+    final bool isTemporarilyCollapsed = ref.watch(temporarilyCollapsedNodeIdsProvider.select((ids) => ids.contains(widget.node.id)));
+    final bool isEffectivelyExpanded = isGloballyExpanded && !isTemporarilyCollapsed;
+
     final double treeLinesPainterAreaWidth = widget.depth * TreeLinePainter.indentWidth;
 
-    final Widget itemContent = _buildItemContentRow(context, ref, iconData, displayName, itemIconColor, itemTextColor, itemFontWeight, hasChildren, isCurrentlyExpanded);
+    final Widget itemContent = _buildItemContentRow(context, ref, iconData, displayName, itemIconColor, itemTextColor, itemFontWeight, hasChildren, isEffectivelyExpanded);
     final Widget tappableAndDraggableItem = _buildTappableAndDraggableItem(context, ref, itemContent, rc, iconData, displayName);
     final Widget styledItem = _buildStyledItemContainer(context, ref, tappableAndDraggableItem, isActuallySelected, isTreeItemDirectlyHovered);
     final Widget siblingIndicator = _buildSiblingDropIndicator(treeLinesPainterAreaWidth);
@@ -309,39 +317,44 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
       onWillAcceptWithDetails: (details) {
         final draggedNodeId = details.data;
         _currentDraggedNodeId = draggedNodeId;
+        final tempCollapsedNotifier = ref.read(temporarilyCollapsedNodeIdsProvider.notifier);
         final WidgetNode? draggedNodeInstance = findNodeById(widget.overallRootNode, draggedNodeId);
 
         if (draggedNodeInstance == null || draggedNodeId == widget.node.id || isAncestor(widget.overallRootNode, draggedNodeId, widget.node.id)) {
           if (mounted) {
             _animationController.reset();
+            tempCollapsedNotifier.update((state) => {...state}..remove(widget.node.id));
             setState(() => _dragTargetState = _DragTargetInteractionState.cannotBeChildOrSibling);
           }
           return false;
         }
+
         bool canBeChild = _canAcceptAsChild(draggedNodeInstance);
+        bool canBeSibling = _canAcceptAsSiblingAfter(draggedNodeInstance);
+
         if (canBeChild) {
           if (mounted) {
             _animationController.reset();
+            tempCollapsedNotifier.update((state) => {...state}..remove(widget.node.id));
             setState(() => _dragTargetState = _DragTargetInteractionState.canBeChild);
           }
           return true;
-        } else {
-          bool canBeSibling = _canAcceptAsSiblingAfter(draggedNodeInstance);
-          if (canBeSibling) {
-            if (mounted) {
-              if (_dragTargetState != _DragTargetInteractionState.animatingForSibling) {
-                _animationController.forward(from: 0.0);
-              }
-              setState(() => _dragTargetState = _DragTargetInteractionState.animatingForSibling);
+        } else if (canBeSibling) {
+          if (mounted) {
+            if (_dragTargetState != _DragTargetInteractionState.animatingForSibling) {
+              _animationController.forward(from: 0.0);
             }
-            return true;
-          } else {
-            if (mounted) {
-              _animationController.reset();
-              setState(() => _dragTargetState = _DragTargetInteractionState.cannotBeChildOrSibling);
-            }
-            return false;
+            tempCollapsedNotifier.update((state) => {...state, widget.node.id});
+            setState(() => _dragTargetState = _DragTargetInteractionState.animatingForSibling);
           }
+          return true;
+        } else {
+          if (mounted) {
+            _animationController.reset();
+            tempCollapsedNotifier.update((state) => {...state}..remove(widget.node.id));
+            setState(() => _dragTargetState = _DragTargetInteractionState.cannotBeChildOrSibling);
+          }
+          return false;
         }
       },
       onAcceptWithDetails: (details) {
@@ -376,7 +389,11 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> with SingleTick
         }
         _resetDragStateAndAnimation();
       },
-      onLeave: (data) { if (data == _currentDraggedNodeId) _resetDragStateAndAnimation(); },
+      onLeave: (data) {
+        if (data == _currentDraggedNodeId) {
+          _resetDragStateAndAnimation();
+        }
+      },
       builder: (context, candidateData, rejectedDataList) {
         Future.microtask(() { if(mounted) ref.read(dragRejectedDataProviderFor(widget.node.id).notifier).state = rejectedDataList; });
         return MouseRegion(

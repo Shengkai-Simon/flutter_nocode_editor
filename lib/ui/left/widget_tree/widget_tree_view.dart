@@ -13,6 +13,8 @@ class WidgetTreeView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final WidgetNode rootCanvasNode = ref.watch(activeCanvasTreeProvider);
     final Set<String> expandedIds = ref.watch(expandedNodeIdsProvider);
+    // Listen for the temporary collapse state
+    final Set<String> temporarilyCollapsedIds = ref.watch(temporarilyCollapsedNodeIdsProvider);
 
     List<Widget> buildTreeWidgetsRecursive(
         WidgetNode node,
@@ -33,7 +35,11 @@ class WidgetTreeView extends ConsumerWidget {
         ),
       );
 
-      if (node.children.isNotEmpty && expandedIds.contains(node.id)) {
+      // Depending on the global expansion state and the temporary collapse state, the child node is rendered or not
+      final bool isGloballyExpanded = expandedIds.contains(node.id);
+      final bool isTemporarilyCollapsed = temporarilyCollapsedIds.contains(node.id);
+
+      if (node.children.isNotEmpty && isGloballyExpanded && !isTemporarilyCollapsed) {
         for (int i = 0; i < node.children.length; i++) {
           final child = node.children[i];
           final bool isChildLastInSiblings = i == node.children.length - 1;
