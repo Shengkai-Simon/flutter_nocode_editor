@@ -8,8 +8,9 @@ class LeftToolBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentView = ref.watch(mainViewProvider);
-    final viewNotifier = ref.read(mainViewProvider.notifier);
+    // The source of truth for the current view is now the project state.
+    final currentView = ref.watch(projectStateProvider.select((s) => s.view));
+    final projectNotifier = ref.read(projectStateProvider.notifier);
     final leftPanelNotifier = ref.read(leftPanelModeProvider.notifier);
     final currentLeftPanel = ref.watch(leftPanelModeProvider);
 
@@ -28,7 +29,8 @@ class LeftToolBar extends ConsumerWidget {
             tooltip: 'Project Overview',
             isSelected: currentView == MainView.overview,
             selectedIcon: const Icon(Icons.dashboard),
-            onPressed: () => viewNotifier.state = MainView.overview,
+            // Use the new method to switch to overview and record history
+            onPressed: () => projectNotifier.showOverview(),
           ),
           const Divider(indent: 12, endIndent: 12, height: 1),
           const SizedBox(height: 8),
@@ -41,7 +43,7 @@ class LeftToolBar extends ConsumerWidget {
             selectedIcon: const Icon(Icons.add_box),
             // If not in editor mode, the button will be disabled (onPressed: null)
             onPressed: inEditorMode ? () {
-              viewNotifier.state = MainView.editor;
+              // No need to set view here, just the panel mode
               leftPanelNotifier.state = LeftPanelMode.addWidgets;
             } : null,
           ),
@@ -53,7 +55,6 @@ class LeftToolBar extends ConsumerWidget {
             isSelected: inEditorMode && currentLeftPanel == LeftPanelMode.widgetTree,
             selectedIcon: const Icon(Icons.account_tree),
             onPressed: inEditorMode ? () {
-              viewNotifier.state = MainView.editor;
               leftPanelNotifier.state = LeftPanelMode.widgetTree;
             } : null,
           ),
@@ -65,7 +66,6 @@ class LeftToolBar extends ConsumerWidget {
             isSelected: inEditorMode && currentLeftPanel == LeftPanelMode.pages,
             selectedIcon: const Icon(Icons.layers),
             onPressed: inEditorMode ? () {
-              viewNotifier.state = MainView.editor;
               leftPanelNotifier.state = LeftPanelMode.pages;
             } : null,
           ),

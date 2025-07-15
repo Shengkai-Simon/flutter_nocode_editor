@@ -9,6 +9,7 @@ import '../../providers/communication_providers.dart';
 import '../../providers/project_providers.dart';
 import '../../services/project_api_service.dart';
 import '../../state/editor_state.dart';
+import '../../state/view_mode_state.dart';
 
 // Define the type required to interact with the browser's window.location API
 @JS('window')
@@ -83,6 +84,7 @@ class AppLoader extends ConsumerWidget {
               pages: [newInitialPage],
               activePageId: newInitialPage.id,
               initialPageId: newInitialPage.id,
+              view: MainView.overview,
             );
 
             ref.read(projectStateProvider.notifier).loadProject(newProjectState);

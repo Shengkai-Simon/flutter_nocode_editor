@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../editor/models/page_node.dart';
 import '../../state/editor_state.dart';
-import '../../state/view_mode_state.dart';
 import '../left/pages/delete_confirmation_dialog.dart';
 import '../left/pages/rename_page_dialog.dart';
 
@@ -22,9 +21,8 @@ class PageCardItem extends ConsumerWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        // When the card is tapped, switch to the editor view
+        // When the card is tapped, switch to the editor view and record history
         onTap: () {
-          ref.read(mainViewProvider.notifier).state = MainView.editor;
           notifier.setActivePage(page.id);
         },
         child: Column(

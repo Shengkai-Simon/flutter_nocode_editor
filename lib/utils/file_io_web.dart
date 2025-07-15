@@ -13,6 +13,7 @@ import '../editor/models/page_node.dart';
 import '../services/issue_reporter_service.dart';
 import '../services/project_migrator_service.dart';
 import '../state/editor_state.dart';
+import '../state/view_mode_state.dart';
 
 /// Encapsulates the logic that triggers file downloads in a web environment.
 Future<void> downloadFileOnWeb(String content, String fileName, {String type = 'application/json'}) async {
@@ -178,7 +179,12 @@ Future<void> loadProjectFromFile(WidgetRef ref) async {
         final migrator = ProjectMigratorService();
         final WidgetNode newTree = migrator.migrate(jsonMap);
         final newPage = PageNode(id: uuid.v4(), name: 'Imported Page', tree: newTree);
-        final newProjectState = ProjectState(pages: [newPage], activePageId: newPage.id, initialPageId: newPage.id);
+        final newProjectState = ProjectState(
+          pages: [newPage],
+          activePageId: newPage.id,
+          initialPageId: newPage.id,
+          view: MainView.overview,
+        );
         ref.read(projectStateProvider.notifier).loadProject(newProjectState);
       }
     } catch (e, s) {

@@ -28,8 +28,14 @@ class ProjectState {
   final List<PageNode> pages;
   final String activePageId;
   final String initialPageId;
+  final MainView view;
 
-  const ProjectState({required this.pages, required this.activePageId, required this.initialPageId});
+  const ProjectState({
+    required this.pages,
+    required this.activePageId,
+    required this.initialPageId,
+    required this.view,
+  });
 
   /// Gets the page that is currently being edited.
   PageNode get activePage => pages.firstWhere((p) => p.id == activePageId, orElse: () => pages.first);
@@ -39,6 +45,7 @@ class ProjectState {
       pages: pages.map((p) => p.deepCopy()).toList(),
       activePageId: activePageId,
       initialPageId: initialPageId,
+      view: view,
     );
   }
 
@@ -46,11 +53,13 @@ class ProjectState {
     List<PageNode>? pages,
     String? activePageId,
     String? initialPageId,
+    MainView? view,
   }) {
     return ProjectState(
       pages: pages ?? this.pages,
       activePageId: activePageId ?? this.activePageId,
       initialPageId: initialPageId ?? this.initialPageId,
+      view: view ?? this.view,
     );
   }
 
@@ -59,6 +68,7 @@ class ProjectState {
       'pages': pages.map((p) => p.toJson()).toList(),
       'activePageId': activePageId,
       'initialPageId': initialPageId,
+      'view': view.name,
     };
   }
 
@@ -71,6 +81,10 @@ class ProjectState {
       pages: pages,
       activePageId: json['activePageId'] as String? ?? pages.first.id,
       initialPageId: json['initialPageId'] as String? ?? pages.first.id,
+      view: MainView.values.firstWhere(
+            (e) => e.name == (json['view'] as String? ?? 'overview'),
+        orElse: () => MainView.overview,
+      ),
     );
   }
 }
@@ -90,16 +104,15 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
       pages: [defaultPage],
       activePageId: defaultPage.id,
       initialPageId: defaultPage.id,
+      view: MainView.overview,
     );
   }
 
   /// Replaces the entire current project state with a new one.
-  /// This is used when loading a project from a file.
+  /// This is used when loading a project from a file or restoring history.
+  /// It does NOT record history itself.
   void loadProject(ProjectState newProjectState) {
     state = newProjectState;
-    // We don't record history here as this is a "load" operation,
-    // which should clear the existing history. The caller can decide
-    // to record an initial state if needed.
   }
 
   /// Updates a specific widget node within the active page.
@@ -161,7 +174,8 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
     );
 
     final newPages = [...state.pages, newPage];
-    state = state.copyWith(pages: newPages);
+    // After adding a page, ensure we are in the overview and record history.
+    state = state.copyWith(pages: newPages, view: MainView.overview);
     ref.read(historyManagerProvider.notifier).recordState(state);
   }
 
@@ -184,11 +198,12 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
       newInitialPageId = newPages.first.id;
     }
 
+    // After deleting, ensure we are in the overview and record history.
     state = state.copyWith(
         pages: newPages,
         activePageId: newActivePageId,
-        initialPageId: newInitialPageId
-    );
+        initialPageId: newInitialPageId,
+        view: MainView.overview);
     ref.read(historyManagerProvider.notifier).recordState(state);
   }
 
@@ -241,7 +256,8 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
     state = state.copyWith(
       pages: state.pages.map((p) {
         if (p.id == pageId) {
-          p.name = newName;
+          // Create a new PageNode instance instead of mutating
+          return p.copyWith(name: newName);
         }
         return p;
       }).toList(),
@@ -249,12 +265,28 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
     ref.read(historyManagerProvider.notifier).recordState(state);
   }
 
-  /// Set the currently active page.
+  /// Set the currently active page AND switch to the editor view.
+  /// This is a navigation action and is recorded in history.
   void setActivePage(String pageId) {
-    if (state.activePageId != pageId && state.pages.any((p) => p.id == pageId)) {
-      state = state.copyWith(activePageId: pageId);
-      // Switching pages is not a state change that should be recorded in history.
+    if (state.pages.any((p) => p.id == pageId)) {
+      // If already in editor mode on this page, do nothing.
+      if (state.view == MainView.editor && state.activePageId == pageId) {
+        return;
+      }
+      // Create a new state representing this navigation action.
+      state = state.copyWith(
+        activePageId: pageId,
+        view: MainView.editor,
+      );
+      ref.read(historyManagerProvider.notifier).recordState(state);
     }
+  }
+
+  /// Switches to the overview page and records this as a navigation action.
+  void showOverview() {
+    if (state.view == MainView.overview) return;
+    state = state.copyWith(view: MainView.overview);
+    ref.read(historyManagerProvider.notifier).recordState(state);
   }
 }
 
@@ -386,34 +418,23 @@ class HistoryManager extends StateNotifier<HistoryInfoState> {
 
   void _restoreState(ProjectState historicState) {
     final selectedIdBeforeRestore = _ref.read(selectedNodeIdProvider);
-    final activePageIdBeforeRestore = _ref.read(projectStateProvider).activePageId;
 
-    ProjectState stateToLoad;
-    final pageExists = historicState.pages.any((p) => p.id == activePageIdBeforeRestore);
+    // Load the new state. This will update projectStateProvider and trigger UI rebuilds.
+    _ref.read(projectStateProvider.notifier).loadProject(historicState);
 
-    if (pageExists) {
-      // The page we were on still exists, so we keep it active.
-      stateToLoad = historicState.copyWith(activePageId: activePageIdBeforeRestore);
-    } else {
-      // The page was deleted by this undo/redo. Reset to the historic state's own
-      // active page (which is guaranteed to be valid) and switch to the overview.
-      stateToLoad = historicState;
-      _ref.read(mainViewProvider.notifier).state = MainView.overview;
-    }
-
-    _ref.read(projectStateProvider.notifier).loadProject(stateToLoad);
-
-    // Restore selected node if it still exists on the active page
+    // After loading, check if the previously selected node still exists.
     if (selectedIdBeforeRestore != null) {
-      final activePage = stateToLoad.pages.firstWhere((p) => p.id == stateToLoad.activePageId, orElse: () => stateToLoad.pages.first);
-      final nodeStillExists = findNodeById(activePage.tree, selectedIdBeforeRestore) != null;
+      final activePageAfterRestore = historicState.pages.firstWhere((p) => p.id == historicState.activePageId);
+      final nodeStillExists = findNodeById(activePageAfterRestore.tree, selectedIdBeforeRestore) != null;
       if (!nodeStillExists) {
+        // If it doesn't exist, clear the selection.
         _ref.read(selectedNodeIdProvider.notifier).state = null;
       }
     }
     _ref.read(hoveredNodeIdProvider.notifier).state = null;
     _updateState();
   }
+
 
   void undo() {
     if (_historyIndex <= 0) return;
