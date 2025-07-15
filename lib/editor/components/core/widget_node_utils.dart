@@ -61,7 +61,7 @@ WidgetNode addNodeAsChildRecursive(WidgetNode currentNode, String targetParentId
       return currentNode;
     }
 
-    final List<WidgetNode> updatedChildren = List.from(currentNode.children)..add(newChild);
+    final List<WidgetNode> updatedChildren = List.from(currentNode.children)..insert(0, newChild);
     return currentNode.copyWith(children: updatedChildren);
   }
 
