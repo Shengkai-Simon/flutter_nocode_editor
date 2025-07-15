@@ -48,7 +48,16 @@ typedef PropertyEditorBuilder = Widget Function(
     Map<String, dynamic> allProps,
     PropField field,
     dynamic currentValue,
-    void Function(dynamic newValue) onChanged,
+    void Function(dynamic newValue) onCommit,
+);
+
+typedef PropertyEditorBuilderWithUpdate = Widget Function(
+    BuildContext context,
+    Map<String, dynamic> allProps,
+    PropField field,
+    dynamic currentValue,
+    void Function(dynamic newValue) onCommit,
+    void Function(dynamic newValue) onUpdate,
 );
 
 /// Support displaying component field a property
@@ -58,7 +67,7 @@ class PropField {
   final FieldType fieldType;
   final dynamic defaultValue;
   final List<Map<String, String>>? options;
-  final PropertyEditorBuilder? editorBuilder;
+  final Function? editorBuilder; // Can be PropertyEditorBuilder or PropertyEditorBuilderWithUpdate
   final Map<String, dynamic>? editorConfig;
   final PropertyCategory propertyCategory;
   final PropValueToCodeFormatter? toCode;

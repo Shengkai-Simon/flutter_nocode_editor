@@ -102,6 +102,19 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
     );
   }
 
+  /// Updates the currently active page's WidgetNode tree FOR PREVIEW ONLY.
+  /// This does NOT record a history state.
+  void updateActivePageTreeForPreview(WidgetNode newTree) {
+    state = state.copyWith(
+      pages: state.pages.map((page) {
+        if (page.id == state.activePageId) {
+          return page.copyWith(tree: newTree);
+        }
+        return page;
+      }).toList(),
+    );
+  }
+
   /// Adds a new page to the project.
   void addPage() {
     int pageCounter = 1;
@@ -369,11 +382,19 @@ class HistoryManager extends StateNotifier<HistoryInfoState> {
     final history = _pageHistories[activePageId];
     if (history == null || history.currentIndex <= 0) return;
 
+    final selectedIdBeforeUndo = _ref.read(selectedNodeIdProvider);
+
     history.currentIndex--;
     final historicState = history.stack[history.currentIndex];
 
     _ref.read(projectStateProvider.notifier).updateActivePageTree(deepCopyNode(historicState));
-    _ref.read(selectedNodeIdProvider.notifier).state = null;
+
+    if (selectedIdBeforeUndo != null) {
+      final nodeStillExists = findNodeById(historicState, selectedIdBeforeUndo) != null;
+      if (!nodeStillExists) {
+        _ref.read(selectedNodeIdProvider.notifier).state = null;
+      }
+    }
     _ref.read(hoveredNodeIdProvider.notifier).state = null;
     _updateState(activePageId);
   }
@@ -385,11 +406,19 @@ class HistoryManager extends StateNotifier<HistoryInfoState> {
       return;
     }
 
+    final selectedIdBeforeRedo = _ref.read(selectedNodeIdProvider);
+
     history.currentIndex++;
     final historicState = history.stack[history.currentIndex];
 
     _ref.read(projectStateProvider.notifier).updateActivePageTree(deepCopyNode(historicState));
-    _ref.read(selectedNodeIdProvider.notifier).state = null;
+
+    if (selectedIdBeforeRedo != null) {
+      final nodeStillExists = findNodeById(historicState, selectedIdBeforeRedo) != null;
+      if (!nodeStillExists) {
+        _ref.read(selectedNodeIdProvider.notifier).state = null;
+      }
+    }
     _ref.read(hoveredNodeIdProvider.notifier).state = null;
     _updateState(activePageId);
   }

@@ -4,13 +4,15 @@ import 'package:flutter/services.dart';
 class EdgeInsetsField extends StatefulWidget {
   final String label;
   final String value;
-  final void Function(String) onChanged;
+  final void Function(String) onCommit;
+  final void Function(String)? onUpdate;
 
   const EdgeInsetsField({
     super.key,
     required this.label,
     required this.value,
-    required this.onChanged,
+    required this.onCommit,
+    this.onUpdate,
   });
 
   @override
@@ -18,13 +20,20 @@ class EdgeInsetsField extends StatefulWidget {
 }
 
 class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
-  late TextEditingController _leftController;
-  late TextEditingController _topController;
-  late TextEditingController _rightController;
-  late TextEditingController _bottomController;
-  late TextEditingController _allController;
+  late final TextEditingController _leftController;
+  late final TextEditingController _topController;
+  late final TextEditingController _rightController;
+  late final TextEditingController _bottomController;
+  late final TextEditingController _allController;
+
+  late final FocusNode _leftFocus;
+  late final FocusNode _topFocus;
+  late final FocusNode _rightFocus;
+  late final FocusNode _bottomFocus;
+  late final FocusNode _allFocus;
 
   bool _isProgrammaticUpdate = false;
+  late String _lastCommittedValue;
 
   @override
   void initState() {
@@ -35,137 +44,94 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
     _bottomController = TextEditingController();
     _allController = TextEditingController();
 
+    _leftFocus = FocusNode();
+    _topFocus = FocusNode();
+    _rightFocus = FocusNode();
+    _bottomFocus = FocusNode();
+    _allFocus = FocusNode();
+
+    _lastCommittedValue = widget.value;
     _parseValueAndSetControllers(widget.value);
 
-    _allController.addListener(_onAllControllerTextChangedByUser);
-    _leftController.addListener(_onIndividualControllerTextChangedByUser);
-    _topController.addListener(_onIndividualControllerTextChangedByUser);
-    _rightController.addListener(_onIndividualControllerTextChangedByUser);
-    _bottomController.addListener(_onIndividualControllerTextChangedByUser);
+    // Add listeners to commit changes when focus is lost
+    _leftFocus.addListener(() => _handleFocusChange(_leftFocus));
+    _topFocus.addListener(() => _handleFocusChange(_topFocus));
+    _rightFocus.addListener(() => _handleFocusChange(_rightFocus));
+    _bottomFocus.addListener(() => _handleFocusChange(_bottomFocus));
+    _allFocus.addListener(() => _handleFocusChange(_allFocus));
   }
 
   @override
   void didUpdateWidget(covariant EdgeInsetsField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
-      _isProgrammaticUpdate = true;
+      // When the parent widget rebuilds (e.g., due to undo/redo or live updates),
+      // update the controllers without triggering a new history record.
       _parseValueAndSetControllers(widget.value);
-      _isProgrammaticUpdate = false;
     }
   }
 
-  void _updateControllerTextIfNeeded(TextEditingController controller, String newText) {
-    if (controller.text != newText) {
-      controller.value = TextEditingValue(
-        text: newText,
-        selection: TextSelection.fromPosition(TextPosition(offset: newText.length)),
-      );
+  @override
+  void dispose() {
+    _leftController.dispose();
+    _topController.dispose();
+    _rightController.dispose();
+    _bottomController.dispose();
+    _allController.dispose();
+
+    _leftFocus.dispose();
+    _topFocus.dispose();
+    _rightFocus.dispose();
+    _bottomFocus.dispose();
+    _allFocus.dispose();
+    super.dispose();
+  }
+
+  void _handleFocusChange(FocusNode focusNode) {
+    if (!focusNode.hasFocus) {
+      _commitChange();
     }
   }
 
-  String _formatDouble(double val) {
-    if (val == val.truncateToDouble()) {
-      return val.truncate().toString();
-    }
-    return val.toStringAsFixed(1);
-  }
+  String _getCurrentValueAsString() {
+    final lVal = double.tryParse(_leftController.text) ?? 0;
+    final tVal = double.tryParse(_topController.text) ?? 0;
+    final rVal = double.tryParse(_rightController.text) ?? 0;
+    final bVal = double.tryParse(_bottomController.text) ?? 0;
 
-  void _parseValueAndSetControllers(String edgeInsetsStr) {
-    _isProgrammaticUpdate = true;
+    final bool areAllEqual = (lVal == tVal && lVal == rVal && lVal == bVal);
 
-    final normalized = edgeInsetsStr.toLowerCase().replaceAll(' ', '');
-
-    if (normalized.startsWith('all:')) {
-      try {
-        final valStr = normalized.substring(4);
-        final valDouble = double.tryParse(valStr) ?? 0;
-        final formattedVal = _formatDouble(valDouble);
-
-        _updateControllerTextIfNeeded(_allController, formattedVal);
-        _updateControllerTextIfNeeded(_leftController, formattedVal);
-        _updateControllerTextIfNeeded(_topController, formattedVal);
-        _updateControllerTextIfNeeded(_rightController, formattedVal);
-        _updateControllerTextIfNeeded(_bottomController, formattedVal);
-      } catch (_) {
-        _clearAllControllersToZero();
-      }
+    if (areAllEqual) {
+      return 'all:${_formatDouble(lVal)}';
     } else {
-      String toParse = normalized;
-      if (normalized.startsWith('only:')) {
-        toParse = normalized.substring(5);
-      }
-
-      final RegExp lReg = RegExp(r'l(-?[\d.]+)');
-      final RegExp tReg = RegExp(r't(-?[\d.]+)');
-      final RegExp rReg = RegExp(r'r(-?[\d.]+)');
-      final RegExp bReg = RegExp(r'b(-?[\d.]+)');
-
-      double l = 0, t = 0, r = 0, b = 0;
-
-      bool hasExplicitL = lReg.hasMatch(toParse);
-      bool hasExplicitT = tReg.hasMatch(toParse);
-      bool hasExplicitR = rReg.hasMatch(toParse);
-      bool hasExplicitB = bReg.hasMatch(toParse);
-
-      if (hasExplicitL || hasExplicitT || hasExplicitR || hasExplicitB) {
-        l = double.tryParse(lReg.firstMatch(toParse)?.group(1) ?? '0') ?? 0;
-        t = double.tryParse(tReg.firstMatch(toParse)?.group(1) ?? '0') ?? 0;
-        r = double.tryParse(rReg.firstMatch(toParse)?.group(1) ?? '0') ?? 0;
-        b = double.tryParse(bReg.firstMatch(toParse)?.group(1) ?? '0') ?? 0;
-      } else {
-        final parts = toParse.split(',');
-        if (parts.length == 4) {
-          l = double.tryParse(parts[0]) ?? 0;
-          t = double.tryParse(parts[1]) ?? 0;
-          r = double.tryParse(parts[2]) ?? 0;
-          b = double.tryParse(parts[3]) ?? 0;
-        } else if (parts.length == 1 && parts[0].isNotEmpty && double.tryParse(parts[0]) != null) {
-          final singleVal = double.tryParse(parts[0])!;
-          l = t = r = b = singleVal;
-        } else {
-          l = t = r = b = 0;
-        }
-      }
-
-      final String lStr = _formatDouble(l);
-      final String tStr = _formatDouble(t);
-      final String rStr = _formatDouble(r);
-      final String bStr = _formatDouble(b);
-
-      _updateControllerTextIfNeeded(_leftController, lStr);
-      _updateControllerTextIfNeeded(_topController, tStr);
-      _updateControllerTextIfNeeded(_rightController, rStr);
-      _updateControllerTextIfNeeded(_bottomController, bStr);
-
-      if (lStr == tStr && lStr == rStr && lStr == bStr && double.tryParse(lStr) != null) {
-        _updateControllerTextIfNeeded(_allController, lStr);
-      } else {
-        _updateControllerTextIfNeeded(_allController, '--');
-      }
+      return 'only:L${_formatDouble(lVal)}T${_formatDouble(tVal)}R${_formatDouble(rVal)}B${_formatDouble(bVal)}';
     }
-    _isProgrammaticUpdate = false;
   }
 
-  void _clearAllControllersToZero() {
-    _updateControllerTextIfNeeded(_allController, "0");
-    _updateControllerTextIfNeeded(_leftController, "0");
-    _updateControllerTextIfNeeded(_topController, "0");
-    _updateControllerTextIfNeeded(_rightController, "0");
-    _updateControllerTextIfNeeded(_bottomController, "0");
-  }
-
-  void _onAllControllerTextChangedByUser() {
+  void _handleUpdate() {
     if (_isProgrammaticUpdate) return;
+    widget.onUpdate?.call(_getCurrentValueAsString());
+  }
 
-    final String allText = _allController.text;
+  /// Commits the current state of the text fields to the parent widget,
+  /// which in turn records a single history entry.
+  void _commitChange() {
+    if (_isProgrammaticUpdate || !mounted) return;
 
-    if (allText == '--') {
-      return;
-    }
+    final newValue = _getCurrentValueAsString();
 
-    if (_validateNumericInput(allText, isAllField: true) != null && allText.isNotEmpty) {
-      return;
-    }
+    if (newValue == _lastCommittedValue) return;
+
+    // Only call onCommit when the final value is submitted.
+    _lastCommittedValue = newValue;
+    widget.onCommit(newValue);
+  }
+
+  /// Updates the internal state of the L/T/R/B fields based on the "All" field.
+  /// This does NOT record history.
+  void _syncIndividualFieldsFromAll(String allText) {
+    if (_isProgrammaticUpdate) return;
+    if (allText == '--' || _validateNumericInput(allText, isAllField: true) != null) return;
 
     final double valDouble = (allText.isEmpty) ? 0 : double.tryParse(allText) ?? 0;
     final String valueToSet = _formatDouble(valDouble);
@@ -175,16 +141,14 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
     _updateControllerTextIfNeeded(_topController, valueToSet);
     _updateControllerTextIfNeeded(_rightController, valueToSet);
     _updateControllerTextIfNeeded(_bottomController, valueToSet);
-
-    if (double.tryParse(allText) != null && _allController.text != valueToSet) {
-      _updateControllerTextIfNeeded(_allController, valueToSet);
-    }
     _isProgrammaticUpdate = false;
 
-    _triggerOnChange();
+    _handleUpdate();
   }
 
-  void _onIndividualControllerTextChangedByUser() {
+  /// Updates the internal state of the "All" field based on the L/T/R/B fields.
+  /// This does NOT record history.
+  void _syncAllFieldFromIndividuals() {
     if (_isProgrammaticUpdate) return;
 
     final String lText = _leftController.text;
@@ -199,6 +163,7 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
       _isProgrammaticUpdate = true;
       _updateControllerTextIfNeeded(_allController, '--');
       _isProgrammaticUpdate = false;
+      _handleUpdate();
       return;
     }
 
@@ -214,64 +179,74 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
       _updateControllerTextIfNeeded(_allController, '--');
     }
     _isProgrammaticUpdate = false;
-
-    _triggerOnChange();
+    _handleUpdate();
   }
 
-  void _triggerOnChange() {
-    if (_isProgrammaticUpdate || !mounted) return;
+  // --- Helper Methods ---
 
-    String newValue;
-    final String allText = _allController.text;
+  void _parseValueAndSetControllers(String edgeInsetsStr) {
+    _isProgrammaticUpdate = true;
+    final normalized = edgeInsetsStr.toLowerCase().replaceAll(' ', '');
 
-    final lVal = double.tryParse(_leftController.text) ?? 0;
-    final tVal = double.tryParse(_topController.text) ?? 0;
-    final rVal = double.tryParse(_rightController.text) ?? 0;
-    final bVal = double.tryParse(_bottomController.text) ?? 0;
-
-    final bool ltrbAreEqual = (lVal == tVal && lVal == rVal && lVal == bVal);
-
-    final double? allValParsed = (allText.isNotEmpty && allText != '--')
-        ? double.tryParse(allText)
-        : null;
-
-    if (allValParsed != null &&
-        allValParsed == lVal &&
-        allValParsed == tVal &&
-        allValParsed == rVal &&
-        allValParsed == bVal) {
-      newValue = 'all:${_formatDouble(allValParsed)}';
-    } else if (ltrbAreEqual) {
-      newValue = 'all:${_formatDouble(lVal)}';
+    if (normalized.startsWith('all:')) {
+      final valStr = normalized.substring(4);
+      final valDouble = double.tryParse(valStr) ?? 0;
+      final formattedVal = _formatDouble(valDouble);
+      _updateControllerTextIfNeeded(_allController, formattedVal);
+      _updateControllerTextIfNeeded(_leftController, formattedVal);
+      _updateControllerTextIfNeeded(_topController, formattedVal);
+      _updateControllerTextIfNeeded(_rightController, formattedVal);
+      _updateControllerTextIfNeeded(_bottomController, formattedVal);
     } else {
-      newValue = 'only:L${_formatDouble(lVal)}T${_formatDouble(tVal)}R${_formatDouble(rVal)}B${_formatDouble(bVal)}';
+      String toParse = normalized.startsWith('only:') ? normalized.substring(5) : normalized;
+      final l = double.tryParse(RegExp(r'l(-?[\d.]+)').firstMatch(toParse)?.group(1) ?? '0') ?? 0;
+      final t = double.tryParse(RegExp(r't(-?[\d.]+)').firstMatch(toParse)?.group(1) ?? '0') ?? 0;
+      final r = double.tryParse(RegExp(r'r(-?[\d.]+)').firstMatch(toParse)?.group(1) ?? '0') ?? 0;
+      final b = double.tryParse(RegExp(r'b(-?[\d.]+)').firstMatch(toParse)?.group(1) ?? '0') ?? 0;
+
+      _updateControllerTextIfNeeded(_leftController, _formatDouble(l));
+      _updateControllerTextIfNeeded(_topController, _formatDouble(t));
+      _updateControllerTextIfNeeded(_rightController, _formatDouble(r));
+      _updateControllerTextIfNeeded(_bottomController, _formatDouble(b));
+
+      if (l == t && l == r && l == b) {
+        _updateControllerTextIfNeeded(_allController, _formatDouble(l));
+      } else {
+        _updateControllerTextIfNeeded(_allController, '--');
+      }
     }
-
-    widget.onChanged(newValue);
+    _isProgrammaticUpdate = false;
   }
 
-  @override
-  void dispose() {
-    _leftController.removeListener(_onIndividualControllerTextChangedByUser);
-    _topController.removeListener(_onIndividualControllerTextChangedByUser);
-    _rightController.removeListener(_onIndividualControllerTextChangedByUser);
-    _bottomController.removeListener(_onIndividualControllerTextChangedByUser);
-    _allController.removeListener(_onAllControllerTextChangedByUser);
-
-    _leftController.dispose();
-    _topController.dispose();
-    _rightController.dispose();
-    _bottomController.dispose();
-    _allController.dispose();
-    super.dispose();
+  void _updateControllerTextIfNeeded(TextEditingController controller, String newText) {
+    if (controller.text != newText) {
+      controller.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.fromPosition(TextPosition(offset: newText.length)),
+      );
+    }
   }
 
-  Widget _buildTextField(String label, TextEditingController controller) {
+  String _formatDouble(double val) {
+    return val == val.truncateToDouble() ? val.truncate().toString() : val.toStringAsFixed(1);
+  }
+
+  String? _validateNumericInput(String? value, {bool isAllField = false}) {
+    if (value == null || value.isEmpty || (isAllField && value == '--')) return null;
+    return double.tryParse(value) == null ? 'Invalid' : null;
+  }
+
+  // --- Widget Build ---
+
+  Widget _buildTextField(String label, TextEditingController controller, FocusNode focusNode, Function(String) onChanged) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4.0),
         child: TextFormField(
           controller: controller,
+          focusNode: focusNode,
+          onChanged: onChanged,
+          onFieldSubmitted: (_) => _commitChange(),
           decoration: InputDecoration(
             labelText: label,
             isDense: true,
@@ -281,31 +256,14 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
             errorMaxLines: 1,
           ),
           textAlign: TextAlign.center,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: false),
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*'))],
           autovalidateMode: AutovalidateMode.onUserInteraction,
           validator: (value) => _validateNumericInput(value),
-          onTap: () {
-            if (controller.text.isNotEmpty) {
-              controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
-            }
-          },
+          onTap: () => controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length),
         ),
       ),
     );
-  }
-
-  String? _validateNumericInput(String? value, {bool isAllField = false}) {
-    if (value == null || value.isEmpty) {
-      return null;
-    }
-    if (isAllField && value == '--') {
-      return null;
-    }
-    if (double.tryParse(value) == null) {
-      return 'Invalid';
-    }
-    return null;
   }
 
   @override
@@ -321,10 +279,7 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
           children: [
             Row(
               children: [
-                Expanded(child: Text(widget.label, style: Theme
-                    .of(context)
-                    .textTheme
-                    .labelLarge)),
+                Expanded(child: Text(widget.label, style: Theme.of(context).textTheme.labelLarge)),
                 const SizedBox(width: 8),
                 Text("All:", style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(width: 4),
@@ -332,34 +287,24 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
                   width: 70,
                   child: TextFormField(
                     controller: _allController,
+                    focusNode: _allFocus,
+                    onChanged: _syncIndividualFieldsFromAll,
+                    onFieldSubmitted: (_) => _commitChange(),
                     decoration: InputDecoration(
                       isDense: true,
                       border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: 8.0),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
                       errorStyle: const TextStyle(fontSize: 9, height: 0.8),
                       errorMaxLines: 1,
                     ),
                     textAlign: TextAlign.center,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true, signed: false),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
-                    ],
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*'))],
                     autovalidateMode: AutovalidateMode.onUserInteraction,
-                    validator: (value) =>
-                        _validateNumericInput(value, isAllField: true),
+                    validator: (value) => _validateNumericInput(value, isAllField: true),
                     onTap: () {
-                      _isProgrammaticUpdate =
-                      true;
-                      if (_allController.text == '--') {
-                        _allController.text = '';
-                      } else if (_allController.text.isNotEmpty) {
-                        _allController.selection = TextSelection(
-                            baseOffset: 0, extentOffset: _allController.text
-                            .length);
-                      }
-                      _isProgrammaticUpdate = false;
+                      if (_allController.text == '--') _allController.clear();
+                      _allController.selection = TextSelection(baseOffset: 0, extentOffset: _allController.text.length);
                     },
                   ),
                 ),
@@ -369,10 +314,10 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildTextField("L", _leftController),
-                _buildTextField("T", _topController),
-                _buildTextField("R", _rightController),
-                _buildTextField("B", _bottomController),
+                _buildTextField("L", _leftController, _leftFocus, (_) => _syncAllFieldFromIndividuals()),
+                _buildTextField("T", _topController, _topFocus, (_) => _syncAllFieldFromIndividuals()),
+                _buildTextField("R", _rightController, _rightFocus, (_) => _syncAllFieldFromIndividuals()),
+                _buildTextField("B", _bottomController, _bottomFocus, (_) => _syncAllFieldFromIndividuals()),
               ],
             ),
           ],

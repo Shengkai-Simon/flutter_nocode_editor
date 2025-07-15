@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 class IntegerStepperField extends StatefulWidget {
   final String label;
   final int? value;
-  final void Function(int? newValue) onChanged;
+  final void Function(int? newValue) onCommit;
+  final void Function(int? newValue)? onUpdate;
   final int? minValue;
   final int? maxValue;
   final int step;
@@ -13,7 +14,8 @@ class IntegerStepperField extends StatefulWidget {
     super.key,
     required this.label,
     this.value,
-    required this.onChanged,
+    required this.onCommit,
+    this.onUpdate,
     this.minValue,
     this.maxValue,
     this.step = 1,
@@ -27,11 +29,13 @@ class _IntegerStepperFieldState extends State<IntegerStepperField> {
   late TextEditingController _textController;
   late FocusNode _focusNode;
   int? _currentValue;
+  int? _lastCommittedValue;
 
   @override
   void initState() {
     super.initState();
     _currentValue = widget.value;
+    _lastCommittedValue = widget.value;
     _textController = TextEditingController(text: _currentValue?.toString() ?? '');
     _focusNode = FocusNode();
 
@@ -41,56 +45,77 @@ class _IntegerStepperFieldState extends State<IntegerStepperField> {
   @override
   void didUpdateWidget(IntegerStepperField oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // When the parent widget rebuilds (e.g., due to undo/redo),
+    // update the controller's text if it doesn't match the current value.
     if (widget.value != oldWidget.value && widget.value != _currentValue) {
-      _updateValue(widget.value, fromInput: false);
+      _updateValue(widget.value, fromUserInput: false);
     }
   }
 
   void _onFocusChange() {
     if (!_focusNode.hasFocus) {
-      _handleTextSubmit(_textController.text);
+      _commitChange();
     }
   }
 
-  void _updateValue(int? newValue, {bool fromInput = true}) {
-    int? validatedValue = newValue;
+  void _commitChange() {
+    final int? parsedValue = _textController.text.isEmpty ? null : int.tryParse(_textController.text);
+    final validatedValue = _validateValue(parsedValue);
 
-    if (validatedValue != null) {
-      if (widget.minValue != null && validatedValue < widget.minValue!) {
-        validatedValue = widget.minValue;
-      }
-      if (widget.maxValue != null && validatedValue! > widget.maxValue!) {
-        validatedValue = widget.maxValue;
-      }
+    if (validatedValue == _lastCommittedValue) return;
+
+    _lastCommittedValue = validatedValue;
+    widget.onCommit(validatedValue);
+    _updateTextField(validatedValue);
+  }
+
+  int? _validateValue(int? value) {
+    if (value == null) return null;
+    int validated = value;
+    if (widget.minValue != null && validated < widget.minValue!) {
+      validated = widget.minValue!;
     }
+    if (widget.maxValue != null && validated > widget.maxValue!) {
+      validated = widget.maxValue!;
+    }
+    return validated;
+  }
 
-    bool valueChanged = _currentValue != validatedValue;
+  void _updateTextField(int? value) {
+    final textValue = value?.toString() ?? '';
+    if (_textController.text != textValue) {
+      _textController.text = textValue;
+      _textController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _textController.text.length),
+      );
+    }
+  }
+
+  void _updateValue(int? newValue, {bool fromUserInput = true}) {
+    int? validatedValue = _validateValue(newValue);
+
+    if (_currentValue == validatedValue) return;
 
     setState(() {
       _currentValue = validatedValue;
-      if (fromInput || _textController.text != (_currentValue?.toString() ?? '')) {
-        if (_textController.text != (_currentValue?.toString() ?? '')) {
-          _textController.text = _currentValue?.toString() ?? '';
-          _textController.selection = TextSelection.fromPosition(
-            TextPosition(offset: _textController.text.length),
-          );
-        }
+      if (!fromUserInput) {
+        _updateTextField(_currentValue);
       }
     });
 
-    if (valueChanged) {
-      widget.onChanged(_currentValue);
-    } else if (fromInput && newValue != validatedValue) {
-      widget.onChanged(validatedValue);
+    if (fromUserInput) {
+      widget.onUpdate?.call(_currentValue);
     }
   }
 
-  void _handleTextSubmit(String text) {
+  void _handleTextUpdate(String text) {
     if (text.isEmpty) {
       _updateValue(null);
     } else {
       final int? parsedValue = int.tryParse(text);
-      _updateValue(parsedValue);
+      if (parsedValue != null) {
+        _updateValue(parsedValue);
+      }
     }
   }
 
@@ -98,12 +123,17 @@ class _IntegerStepperFieldState extends State<IntegerStepperField> {
     int currentValueForIncrement = _currentValue ?? (widget.minValue ?? 0) - widget.step;
     int newValue = currentValueForIncrement + widget.step;
     _updateValue(newValue);
+    _commitChange();
   }
 
   void _decrement() {
-    int currentValueForDecrement = _currentValue ?? (widget.minValue ?? widget.step) + widget.step;
+    int currentValueForDecrement = _currentValue ?? (widget.minValue ?? widget.step);
+    if(widget.minValue != null && _currentValue == null){
+      currentValueForDecrement = widget.minValue! + widget.step;
+    }
     int newValue = currentValueForDecrement - widget.step;
     _updateValue(newValue);
+    _commitChange();
   }
 
   @override
@@ -141,7 +171,8 @@ class _IntegerStepperFieldState extends State<IntegerStepperField> {
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly
                   ],
-                  onFieldSubmitted: _handleTextSubmit,
+                  onChanged: _handleTextUpdate,
+                  onFieldSubmitted: (_) => _commitChange(),
                 ),
               ),
               IconButton(
