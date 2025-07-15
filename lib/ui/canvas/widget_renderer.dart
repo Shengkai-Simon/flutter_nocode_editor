@@ -44,9 +44,11 @@ class WidgetRenderer extends ConsumerWidget {
     return MouseRegion(
       onEnter: (_) {
         ref.read(hoveredNodeIdProvider.notifier).state = node.id;
+        ref.read(dragTargetNodeIdProvider.notifier).state = node.id;
       },
       onExit: (_) {
         ref.read(hoveredNodeIdProvider.notifier).state = parentNode?.id;
+        ref.read(dragTargetNodeIdProvider.notifier).state = parentNode?.id;
       },
       cursor: SystemMouseCursors.click,
       child: DragTarget<String>(
@@ -65,9 +67,12 @@ class WidgetRenderer extends ConsumerWidget {
             effectiveBorderWidth = 2.0;
             effectiveHoverBackgroundColor = Colors.green.withOpacity(0.15);
           } else if (rejectedDataList.isNotEmpty) {
-            effectiveBorderColor = Colors.redAccent.shade400;
-            effectiveBorderWidth = 2.0;
-            effectiveHoverBackgroundColor = Colors.red.withOpacity(0.12);
+            final activeDragTargetId = ref.watch(dragTargetNodeIdProvider);
+            if (activeDragTargetId == node.id) {
+              effectiveBorderColor = Colors.redAccent.shade400;
+              effectiveBorderWidth = 2.0;
+              effectiveHoverBackgroundColor = Colors.red.withOpacity(0.12);
+            }
           } else {
             if (isActuallySelected) {
               effectiveBorderColor = selectedBorderColor;
@@ -147,6 +152,11 @@ class WidgetRenderer extends ConsumerWidget {
           );
         },
         onWillAcceptWithDetails: (DragTargetDetails<String> details) {
+          final activeDragTargetId = ref.read(dragTargetNodeIdProvider);
+          if (activeDragTargetId != node.id) {
+            return false;
+          }
+
           if (rc.childPolicy == ChildAcceptancePolicy.none) {
             return false;
           }

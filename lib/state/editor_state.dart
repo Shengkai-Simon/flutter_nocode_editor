@@ -310,6 +310,8 @@ final isLoadingProjectProvider = StateProvider<bool>((ref) => false);
 final hoveredNodeIdProvider = StateProvider<String?>((ref) => null);
 final showLayoutBoundsProvider = StateProvider<bool>((ref) => false);
 
+final dragTargetNodeIdProvider = StateProvider<String?>((ref) => null);
+
 final dragRejectedDataProviderFor = StateProvider.family<List<dynamic>, String>((ref, nodeId) => []);
 
 /// Stores the ID collection of all expanded WidgetNodes.
