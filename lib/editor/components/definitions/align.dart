@@ -13,7 +13,7 @@ import '../core/component_types.dart' as ct;
 final RegisteredComponent alignComponentDefinition = RegisteredComponent(
   type: ct.align,
   displayName: ct.align,
-  icon: Icons.border_outer,
+  icon: Icons.align_vertical_bottom,
   defaultProps: {
     ...ChildAlignmentProps.defaults,
     'widthFactor': null,
@@ -23,22 +23,22 @@ final RegisteredComponent alignComponentDefinition = RegisteredComponent(
     ...ChildAlignmentProps.fields,
 
     PropField(
-      name: 'widthFactor',
-      label: 'Width Factor',
-      fieldType: FieldType.number,
-      defaultValue: null,
-      editorBuilder: kDefaultNumberInputEditor,
-      propertyCategory: PropertyCategory.sizing,
-      toCode: kNumberCodeFormatter
+        name: 'widthFactor',
+        label: 'Width Factor',
+        fieldType: FieldType.number,
+        defaultValue: null,
+        editorBuilder: kDefaultNumberInputEditor,
+        propertyCategory: PropertyCategory.sizing,
+        toCode: kNumberCodeFormatter
     ),
     PropField(
-      name: 'heightFactor',
-      label: 'Height Factor',
-      fieldType: FieldType.number,
-      defaultValue: null,
-      editorBuilder: kDefaultNumberInputEditor,
-      propertyCategory: PropertyCategory.sizing,
-      toCode: kNumberCodeFormatter
+        name: 'heightFactor',
+        label: 'Height Factor',
+        fieldType: FieldType.number,
+        defaultValue: null,
+        editorBuilder: kDefaultNumberInputEditor,
+        propertyCategory: PropertyCategory.sizing,
+        toCode: kNumberCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,
@@ -66,5 +66,5 @@ final RegisteredComponent alignComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
-  category: ComponentCategory.layout,
+  category: ComponentCategory.singleChildLayout,
 );

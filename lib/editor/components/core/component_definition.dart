@@ -4,11 +4,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../properties/core/property_definition.dart';
 import 'widget_node.dart';
 
+/// Defines the categorization of components in the editor's left panel.
+/// This is structured based on a user's typical UI building workflow.
 enum ComponentCategory {
-  layout,
+  /// For widgets that arrange multiple children, like Row, Column, Stack, Wrap.
+  multiChildLayout,
+
+  /// For widgets that decorate or position a single child, like Container, Padding, Center.
+  singleChildLayout,
+
+  /// For Flex-specific children that only work inside Row/Column.
+  flexChild,
+
+  /// For displaying static content.
   content,
+
+  /// For user interaction and forms.
   input,
-  other,
 }
 
 /// support how many children a component can have

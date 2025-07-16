@@ -57,5 +57,5 @@ final RegisteredComponent expandedComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
-  category: ComponentCategory.layout,
+  category: ComponentCategory.flexChild,
 );

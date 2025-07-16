@@ -96,5 +96,5 @@ final RegisteredComponent stackComponentDefinition = RegisteredComponent(
       children: childrenWidgets,
     );
   },
-  category: ComponentCategory.layout,
+  category: ComponentCategory.multiChildLayout,
 );

@@ -18,14 +18,14 @@ final RegisteredComponent aspectRatioComponentDefinition = RegisteredComponent(
   },
   propFields: [
     PropField(
-      name: 'aspectRatio',
-      label: 'Aspect Ratio (width/height)',
-      fieldType: FieldType.number,
-      defaultValue: 1.0,
-      editorBuilder: kSliderNumberInputEditor,
-      editorConfig: {'minValue': 0.1, 'maxValue': 4.0, 'divisions': 39, 'decimalPlaces': 2},
-      propertyCategory: PropertyCategory.sizing,
-      toCode: kNumberCodeFormatter
+        name: 'aspectRatio',
+        label: 'Aspect Ratio (width/height)',
+        fieldType: FieldType.number,
+        defaultValue: 1.0,
+        editorBuilder: kSliderNumberInputEditor,
+        editorConfig: {'minValue': 0.1, 'maxValue': 4.0, 'divisions': 39, 'decimalPlaces': 2},
+        propertyCategory: PropertyCategory.sizing,
+        toCode: kNumberCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,
@@ -62,5 +62,5 @@ final RegisteredComponent aspectRatioComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
-  category: ComponentCategory.layout,
+  category: ComponentCategory.singleChildLayout,
 );

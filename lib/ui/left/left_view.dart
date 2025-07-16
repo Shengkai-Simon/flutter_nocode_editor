@@ -58,10 +58,11 @@ class LeftView extends ConsumerWidget {
 
   String _getCategoryDisplayName(ComponentCategory category) {
     switch (category) {
-      case ComponentCategory.layout: return 'Layout Widgets';
-      case ComponentCategory.content: return 'Content & Display';
-      case ComponentCategory.input: return 'Input & Controls';
-      case ComponentCategory.other: return 'Other Widgets';
+      case ComponentCategory.multiChildLayout: return 'Multi-Subcomponent';
+      case ComponentCategory.singleChildLayout: return 'Single Subcomponent';
+      case ComponentCategory.flexChild: return 'Flex Subassembly';
+      case ComponentCategory.content: return 'Content display';
+      case ComponentCategory.input: return 'Input & Actions';
     }
   }
 
@@ -74,11 +75,13 @@ class LeftView extends ConsumerWidget {
       (categorizedComponents[component.category] ??= []).add(component);
     }
 
+    // Defines the display order of component categories in the panel.
     final List<ComponentCategory> categoryOrder = [
-      ComponentCategory.layout,
+      ComponentCategory.multiChildLayout,
+      ComponentCategory.singleChildLayout,
+      ComponentCategory.flexChild,
       ComponentCategory.content,
       ComponentCategory.input,
-      ComponentCategory.other,
     ];
 
     List<Widget> sectionWidgets = [];

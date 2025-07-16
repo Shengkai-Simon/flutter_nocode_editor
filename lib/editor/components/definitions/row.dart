@@ -73,5 +73,5 @@ final RegisteredComponent rowComponentDefinition = RegisteredComponent(
     }
     return rowWidget;
   },
-  category: ComponentCategory.layout,
+  category: ComponentCategory.multiChildLayout,
 );

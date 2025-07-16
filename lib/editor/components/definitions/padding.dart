@@ -37,5 +37,5 @@ final RegisteredComponent paddingComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
-  category: ComponentCategory.layout,
+  category: ComponentCategory.singleChildLayout,
 );

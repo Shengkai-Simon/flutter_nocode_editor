@@ -54,14 +54,14 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       toCode: kEnumCodeFormatter('WrapAlignment'),
     ),
     PropField(
-      name: 'spacing',
-      label: 'Spacing (Main Axis)',
-      fieldType: FieldType.number,
-      defaultValue: 0.0,
-      editorBuilder: kSliderNumberInputEditor,
-      editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'decimalPlaces': 1},
-      propertyCategory: PropertyCategory.spacing,
-      toCode: kNumberCodeFormatter
+        name: 'spacing',
+        label: 'Spacing (Main Axis)',
+        fieldType: FieldType.number,
+        defaultValue: 0.0,
+        editorBuilder: kSliderNumberInputEditor,
+        editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'decimalPlaces': 1},
+        propertyCategory: PropertyCategory.spacing,
+        toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'runAlignment',
@@ -81,14 +81,14 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       toCode: kEnumCodeFormatter('WrapAlignment'),
     ),
     PropField(
-      name: 'runSpacing',
-      label: 'Run Spacing (Cross Axis)',
-      fieldType: FieldType.number,
-      defaultValue: 0.0,
-      editorBuilder: kSliderNumberInputEditor,
-      editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'decimalPlaces': 1},
-      propertyCategory: PropertyCategory.spacing,
-      toCode: kNumberCodeFormatter
+        name: 'runSpacing',
+        label: 'Run Spacing (Cross Axis)',
+        fieldType: FieldType.number,
+        defaultValue: 0.0,
+        editorBuilder: kSliderNumberInputEditor,
+        editorConfig: {'minValue': 0.0, 'maxValue': 100.0, 'decimalPlaces': 1},
+        propertyCategory: PropertyCategory.spacing,
+        toCode: kNumberCodeFormatter
     ),
     PropField(
       name: 'crossAxisAlignment',
@@ -166,5 +166,5 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       children: childrenWidgets,
     );
   },
-  category: ComponentCategory.layout,
+  category: ComponentCategory.multiChildLayout,
 );

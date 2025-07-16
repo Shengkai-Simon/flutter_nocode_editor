@@ -10,7 +10,7 @@ import '../core/component_types.dart' as ct;
 
 final RegisteredComponent spacerComponentDefinition = RegisteredComponent(
   type: ct.spacer,
-  displayName: ct.spacer,
+  displayName: 'Spacer',
   icon: Icons.space_bar,
   defaultProps: {
     'flex': 1,
@@ -43,5 +43,5 @@ final RegisteredComponent spacerComponentDefinition = RegisteredComponent(
       flex: flex,
     );
   },
-  category: ComponentCategory.layout,
+  category: ComponentCategory.flexChild,
 );

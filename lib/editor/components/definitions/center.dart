@@ -18,22 +18,22 @@ final RegisteredComponent centerComponentDefinition = RegisteredComponent(
   },
   propFields: [
     PropField(
-      name: 'widthFactor',
-      label: 'Width Factor',
-      fieldType: FieldType.number,
-      defaultValue: null,
-      editorBuilder: kDefaultNumberInputEditor,
-      propertyCategory: PropertyCategory.sizing,
-      toCode: kNumberCodeFormatter
+        name: 'widthFactor',
+        label: 'Width Factor',
+        fieldType: FieldType.number,
+        defaultValue: null,
+        editorBuilder: kDefaultNumberInputEditor,
+        propertyCategory: PropertyCategory.sizing,
+        toCode: kNumberCodeFormatter
     ),
     PropField(
-      name: 'heightFactor',
-      label: 'Height Factor',
-      fieldType: FieldType.number,
-      defaultValue: null,
-      editorBuilder: kDefaultNumberInputEditor,
-      propertyCategory: PropertyCategory.sizing,
-      toCode: kNumberCodeFormatter
+        name: 'heightFactor',
+        label: 'Height Factor',
+        fieldType: FieldType.number,
+        defaultValue: null,
+        editorBuilder: kDefaultNumberInputEditor,
+        propertyCategory: PropertyCategory.sizing,
+        toCode: kNumberCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,
@@ -55,5 +55,5 @@ final RegisteredComponent centerComponentDefinition = RegisteredComponent(
       child: childWidget,
     );
   },
-  category: ComponentCategory.layout,
+  category: ComponentCategory.singleChildLayout,
 );
