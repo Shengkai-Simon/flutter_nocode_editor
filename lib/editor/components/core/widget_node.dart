@@ -37,18 +37,24 @@ class WidgetNode {
   }
 
   Map<String, dynamic> toJson() {
+    // Filter out internal, editor-only properties that start with an underscore.
+    final filteredProps = Map<String, dynamic>.from(props);
+    filteredProps.removeWhere((key, value) => key.startsWith('_'));
+
     return {
       'id': id,
       'type': type,
-      'props': props,
+      'props': filteredProps, // Use the filtered props
       'children': children.map((child) => child.toJson()).toList(),
     };
   }
 
   Map<String, dynamic> toJsonWithoutIds() {
+    final filteredProps = Map<String, dynamic>.from(props);
+    filteredProps.removeWhere((key, value) => key.startsWith('_'));
     return {
       'type': type,
-      'props': props,
+      'props': filteredProps,
       'children': children.map((child) => child.toJsonWithoutIds()).toList(),
     };
   }

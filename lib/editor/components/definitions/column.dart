@@ -32,9 +32,10 @@ final RegisteredComponent columnComponentDefinition = RegisteredComponent(
       Widget Function(WidgetNode childNode) renderChild,
       ) {
     final props = node.props;
+    final bool isNewlyAdded = (props['_isNewlyAdded'] as bool?) ?? false;
 
-    // If the Column is empty, render a placeholder with a minimum height.
-    if (node.children.isEmpty) {
+    // Only show placeholder if it's a newly added, empty Column.
+    if (node.children.isEmpty && isNewlyAdded) {
       return Container(
         constraints: const BoxConstraints(minHeight: 50),
         decoration: BoxDecoration(
@@ -44,7 +45,7 @@ final RegisteredComponent columnComponentDefinition = RegisteredComponent(
         ),
         alignment: Alignment.center,
         child: Text(
-          'Column (Drag and drop sub-components here)',
+          'Column (add children)',
           style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         ),
       );

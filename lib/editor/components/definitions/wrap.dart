@@ -128,6 +128,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
       Widget Function(WidgetNode childNode) renderChild,
       ) {
     final props = node.props;
+    final bool isNewlyAdded = (props['_isNewlyAdded'] as bool?) ?? false;
 
     final Axis direction = ParsingUtil.parseAxis(props['direction'] as String?);
     final WrapAlignment alignment = ParsingUtil.parseWrapAlignment(props['alignment'] as String?);
@@ -140,8 +141,10 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
 
     final List<Widget> childrenWidgets = node.children.map((childNode) => renderChild(childNode)).toList();
 
-    if (childrenWidgets.isEmpty) {
+    // Only show placeholder if it's a newly added, empty Wrap.
+    if (childrenWidgets.isEmpty && isNewlyAdded) {
       return Container(
+        constraints: const BoxConstraints(minHeight: 50),
         padding: const EdgeInsets.all(8),
         alignment: Alignment.center,
         decoration: BoxDecoration(
@@ -150,7 +153,7 @@ final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
         ),
         child: Text(
           'Wrap (add children)',
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         ),
       );
     }

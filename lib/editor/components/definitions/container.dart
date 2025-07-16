@@ -171,6 +171,7 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
   childPolicy: ChildAcceptancePolicy.single,
   builder: (WidgetNode node, WidgetRef ref, Widget Function(WidgetNode childNode) renderChild) {
     final props = node.props;
+    final bool isNewlyAdded = (props['_isNewlyAdded'] as bool?) ?? false;
 
     final double? width = (props['width'] as num?)?.toDouble();
     final double? height = (props['height'] as num?)?.toDouble();
@@ -261,18 +262,18 @@ final RegisteredComponent containerComponentDefinition = RegisteredComponent(
     Widget? childWidgetInstance;
     if (node.children.isNotEmpty) {
       childWidgetInstance = renderChild(node.children.first);
-    } else {
-      // If the container is empty, provide a placeholder text child.
+    } else if (isNewlyAdded) {
+      // Only show placeholder if it's a newly added, empty container.
       childWidgetInstance = Center(
         child: Text(
-          'Container (Drag and drop sub-components here)',
+          'Container (add children)',
           style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         ),
       );
     }
 
     BoxConstraints? constraints;
-    if (node.children.isEmpty && width == null && height == null) {
+    if (node.children.isEmpty && isNewlyAdded && width == null && height == null) {
       constraints = const BoxConstraints(
         minWidth: 50,
         minHeight: 50,

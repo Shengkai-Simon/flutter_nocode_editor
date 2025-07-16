@@ -106,12 +106,17 @@ class WidgetRenderer extends ConsumerWidget {
     final String droppedComponentType = details.data;
     final RegisteredComponent? droppedRc = registeredComponents[droppedComponentType];
     if (droppedRc == null) return;
+
+    // Add the transient '_isNewlyAdded' flag when creating a new node.
     final newNode = WidgetNode(
       id: uuid.v4(),
       type: droppedComponentType,
-      props: Map<String, dynamic>.from(droppedRc.defaultProps),
+      props: {
+        ...Map<String, dynamic>.from(droppedRc.defaultProps),
+        '_isNewlyAdded': true,
+      },
     );
-    // **FIX**: Correctly pass the newNode as the third argument.
+    // Correctly pass the newNode as the third argument.
     final newTree = addNodeAsChildRecursive(tree, node.id, newNode, insertAtStart: false);
     ref.read(projectStateProvider.notifier).updateActivePageTree(newTree);
     ref.read(selectedNodeIdProvider.notifier).state = newNode.id;
