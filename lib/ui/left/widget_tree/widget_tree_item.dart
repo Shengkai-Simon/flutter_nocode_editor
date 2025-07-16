@@ -191,6 +191,12 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
     if (canBeDragged) {
       tappableItem = LongPressDraggable<String>(
         data: widget.node.id,
+        onDragStarted: () {
+          ref.read(currentlyDraggedNodeIdProvider.notifier).state = widget.node.id;
+        },
+        onDragEnd: (details) {
+          ref.read(currentlyDraggedNodeIdProvider.notifier).state = null;
+        },
         feedback: Material(
           elevation: 4.0,
           color: Colors.transparent,
@@ -221,6 +227,7 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
   Widget build(BuildContext context) {
     final String? selectedNodeId = ref.watch(selectedNodeIdProvider);
     final String? currentHoveredIdByCanvas = ref.watch(hoveredNodeIdProvider);
+    final String? currentlyDraggedNodeId = ref.watch(currentlyDraggedNodeIdProvider);
 
     final RegisteredComponent? rc = registeredComponents[widget.node.type];
     final String displayName = rc?.displayName ?? widget.node.type;
@@ -236,7 +243,8 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
     final bool hasChildren = widget.node.children.isNotEmpty;
 
     final bool isGloballyExpanded = ref.watch(expandedNodeIdsProvider).contains(widget.node.id);
-    final bool isEffectivelyExpanded = isGloballyExpanded;
+    final bool isBeingDragged = widget.node.id == currentlyDraggedNodeId;
+    final bool isEffectivelyExpanded = isGloballyExpanded && !isBeingDragged;
 
     final double treeLinesPainterAreaWidth = widget.depth * TreeLinePainter.indentWidth;
 
