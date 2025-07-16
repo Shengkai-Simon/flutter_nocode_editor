@@ -67,19 +67,15 @@ final RegisteredComponent flexibleComponentDefinition = RegisteredComponent(
     if (node.children.isNotEmpty) {
       childWidget = renderChild(node.children.first);
     } else {
+      // A placeholder is needed so the Flexible widget is visible in the editor.
       childWidget = Container(
         constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-        padding: const EdgeInsets.all(4),
-        color: Colors.grey.shade200,
-        alignment: Alignment.center,
-        child: Text(
-          'Child for Flexible',
-          style: TextStyle(fontSize: 9, color: Colors.grey.shade600),
-          textAlign: TextAlign.center,
-        ),
+        color: Colors.grey.withOpacity(0.1),
       );
     }
 
+    // Return the pure, original widget without any wrappers.
+    // This guarantees correct Flex layout behavior.
     return Flexible(
       flex: effectiveFlex,
       fit: fit,

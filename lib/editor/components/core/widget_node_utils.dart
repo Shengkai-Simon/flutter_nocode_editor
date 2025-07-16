@@ -41,7 +41,13 @@ WidgetNode replaceNodeInTree(WidgetNode root, WidgetNode updatedNode) {
 }
 
 /// Adds a new child node to a target parent node within the tree.
-WidgetNode addNodeAsChildRecursive(WidgetNode currentNode, String targetParentId, WidgetNode newChild) {
+/// **NEW**: [insertAtStart] determines if the child is added to the beginning or end of the list.
+WidgetNode addNodeAsChildRecursive(
+    WidgetNode currentNode,
+    String targetParentId,
+    WidgetNode newChild, {
+      bool insertAtStart = false, // Default to adding at the end
+    }) {
   if (currentNode.id == targetParentId) {
     final parentDef = registeredComponents[currentNode.type];
     if (parentDef == null) {
@@ -61,15 +67,20 @@ WidgetNode addNodeAsChildRecursive(WidgetNode currentNode, String targetParentId
       return currentNode;
     }
 
-    // Inserts the new node at the beginning of the list, not at the end
-    final List<WidgetNode> updatedChildren = List.from(currentNode.children)..insert(0, newChild);
+    // Use the new parameter to decide where to add the child.
+    final List<WidgetNode> updatedChildren = List.from(currentNode.children);
+    if (insertAtStart) {
+      updatedChildren.insert(0, newChild); // For widget tree re-parenting
+    } else {
+      updatedChildren.add(newChild); // For adding new components from palette
+    }
     return currentNode.copyWith(children: updatedChildren);
   }
 
   List<WidgetNode> newChildrenList = [];
   bool childrenChanged = false;
   for (var child in currentNode.children) {
-    final updatedChild = addNodeAsChildRecursive(child, targetParentId, newChild);
+    final updatedChild = addNodeAsChildRecursive(child, targetParentId, newChild, insertAtStart: insertAtStart);
     if (!identical(child, updatedChild)) {
       childrenChanged = true;
     }

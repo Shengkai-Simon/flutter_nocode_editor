@@ -21,8 +21,8 @@ final RegisteredComponent spacerComponentDefinition = RegisteredComponent(
         label: 'Flex Factor',
         fieldType: FieldType.number,
         defaultValue: 1,
-        editorBuilder: kSliderNumberInputEditor,
-        editorConfig: {'minValue': 1.0, 'maxValue': 10.0, 'divisions': 9, 'decimalPlaces': 0},
+        editorBuilder: kIntegerStepperEditor,
+        editorConfig: {'minValue': 1, 'step': 1},
         propertyCategory: PropertyCategory.sizing,
         toCode: kNumberCodeFormatter
     ),
@@ -37,6 +37,8 @@ final RegisteredComponent spacerComponentDefinition = RegisteredComponent(
     final props = node.props;
     final int flex = (props['flex'] as num?)?.toInt() ?? 1;
 
+    // Return the pure, original widget without any wrappers.
+    // This guarantees correct Flex layout behavior.
     return Spacer(
       flex: flex,
     );

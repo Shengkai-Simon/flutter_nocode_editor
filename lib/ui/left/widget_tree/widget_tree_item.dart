@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -192,9 +191,11 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
       tappableItem = LongPressDraggable<String>(
         data: widget.node.id,
         onDragStarted: () {
+          ref.read(interactionModeProvider.notifier).state = InteractionMode.dragging;
           ref.read(currentlyDraggedNodeIdProvider.notifier).state = widget.node.id;
         },
         onDragEnd: (details) {
+          ref.read(interactionModeProvider.notifier).state = InteractionMode.normal;
           ref.read(currentlyDraggedNodeIdProvider.notifier).state = null;
         },
         feedback: Material(
@@ -335,7 +336,8 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
         // The final action is based on the state set by the last onMove event.
         switch (_dropIntent) {
           case _DropIntent.addAsChild:
-            finalTree = addNodeAsChildRecursive(treeAfterRemoval, widget.node.id, nodeToMove);
+          // When re-parenting from the tree, insert at the start.
+            finalTree = addNodeAsChildRecursive(treeAfterRemoval, widget.node.id, nodeToMove, insertAtStart: true);
             actionTaken = true;
             break;
           case _DropIntent.insertBefore:

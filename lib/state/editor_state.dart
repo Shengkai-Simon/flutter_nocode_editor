@@ -10,6 +10,18 @@ import '../editor/models/page_node.dart';
 import '../services/issue_reporter_service.dart';
 import 'view_mode_state.dart';
 
+// Enum to represent the exclusive interaction mode of the canvas.
+enum InteractionMode {
+  /// Default mode for hovering and clicking.
+  normal,
+  /// Mode when a component is being dragged.
+  dragging,
+}
+
+// Provider to manage the current interaction mode.
+final interactionModeProvider = StateProvider<InteractionMode>((ref) => InteractionMode.normal);
+
+
 enum LeftPanelMode {
   addWidgets,
   widgetTree,

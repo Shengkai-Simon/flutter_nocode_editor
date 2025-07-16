@@ -33,6 +33,23 @@ final RegisteredComponent columnComponentDefinition = RegisteredComponent(
       ) {
     final props = node.props;
 
+    // If the Column is empty, render a placeholder with a minimum height.
+    if (node.children.isEmpty) {
+      return Container(
+        constraints: const BoxConstraints(minHeight: 50),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
+          color: Colors.grey.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          'Column (Drag and drop sub-components here)',
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+        ),
+      );
+    }
+
     final double? width = (props['width'] as num?)?.toDouble();
     final double? height = (props['height'] as num?)?.toDouble();
     final MainAxisAlignment mainAxisAlignment = ParsingUtil.parseMainAxisAlignment(props['mainAxisAlignment']?.toString());

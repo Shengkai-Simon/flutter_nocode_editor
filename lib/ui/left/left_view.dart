@@ -106,6 +106,14 @@ class LeftView extends ConsumerWidget {
             children: componentsInCategory.map((rc) {
               return Draggable<String>(
                 data: rc.type,
+                // Set the interaction mode to dragging when drag starts.
+                onDragStarted: () {
+                  ref.read(interactionModeProvider.notifier).state = InteractionMode.dragging;
+                },
+                // Reset the interaction mode when drag ends.
+                onDragEnd: (_) {
+                  ref.read(interactionModeProvider.notifier).state = InteractionMode.normal;
+                },
                 feedback: Material(
                   elevation: 4.0,
                   color: Colors.transparent,

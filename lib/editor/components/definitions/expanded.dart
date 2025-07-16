@@ -42,17 +42,16 @@ final RegisteredComponent expandedComponentDefinition = RegisteredComponent(
     if (node.children.isNotEmpty) {
       childWidget = renderChild(node.children.first);
     } else {
+      // A placeholder is needed so the Expanded widget is visible in the editor
+      // when it has no children. This does not affect the final layout.
       childWidget = Container(
-        constraints: const BoxConstraints.expand(),
-        color: Colors.grey.shade200,
-        alignment: Alignment.center,
-        child: Text(
-          'Child for Expanded',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
+        constraints: const BoxConstraints(minHeight: 24),
+        color: Colors.grey.withOpacity(0.1),
       );
     }
 
+    // Return the pure, original widget without any wrappers.
+    // This guarantees correct Flex layout behavior.
     return Expanded(
       flex: effectiveFlex,
       child: childWidget,
