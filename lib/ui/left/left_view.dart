@@ -5,7 +5,6 @@ import '../../editor/components/core/component_registry.dart';
 import '../../editor/components/core/component_definition.dart';
 import '../../state/editor_state.dart';
 import 'palette_component_item.dart';
-import 'pages/page_quick_nav_view.dart';
 import 'widget_tree/widget_tree_view.dart';
 
 class LeftView extends ConsumerWidget {
@@ -27,10 +26,6 @@ class LeftView extends ConsumerWidget {
       case LeftPanelMode.widgetTree:
         title = 'Widget Tree';
         content = const WidgetTreeView();
-        break;
-      case LeftPanelMode.pages:
-        title = 'Pages';
-        content = const PageQuickNavView();
         break;
     }
 

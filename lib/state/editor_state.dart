@@ -25,7 +25,6 @@ final interactionModeProvider = StateProvider<InteractionMode>((ref) => Interact
 enum LeftPanelMode {
   addWidgets,
   widgetTree,
-  pages,
 }
 
 final leftPanelModeProvider = StateProvider<LeftPanelMode>((ref) => LeftPanelMode.addWidgets);

@@ -58,17 +58,6 @@ class LeftToolBar extends ConsumerWidget {
               leftPanelNotifier.state = LeftPanelMode.widgetTree;
             } : null,
           ),
-          const SizedBox(height: 8),
-          // Page Management button
-          IconButton(
-            icon: const Icon(Icons.layers_outlined),
-            tooltip: 'Pages',
-            isSelected: inEditorMode && currentLeftPanel == LeftPanelMode.pages,
-            selectedIcon: const Icon(Icons.layers),
-            onPressed: inEditorMode ? () {
-              leftPanelNotifier.state = LeftPanelMode.pages;
-            } : null,
-          ),
         ],
       ),
     );
