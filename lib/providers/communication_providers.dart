@@ -35,6 +35,11 @@ final iframeMessageCoordinatorProvider = Provider<void>((ref) {
         ref.read(projectErrorsNotifierProvider.notifier).clearIssues();
         ref.read(projectWarningsNotifierProvider.notifier).clearIssues();
         try {
+          // Get the current canvas dimensions from the active page's state.
+          final activeTree = ref.read(activeCanvasTreeProvider);
+          final currentWidth = (activeTree.props['width'] as num?)?.toDouble() ?? kRendererWidth;
+          final currentHeight = (activeTree.props['height'] as num?)?.toDouble() ?? kRendererHeight;
+
           // 2. Use a new helper function for deep transformation
           final Map<String, dynamic>? deepCastedPayload = _deepCastMap(payload as Map?);
 
@@ -43,8 +48,10 @@ final iframeMessageCoordinatorProvider = Provider<void>((ref) {
           }
 
           // 3. It is now safe to use fromJson
-          final WidgetNode canvasTree = createDefaultCanvasTree();
-          canvasTree.children.add(WidgetNode.fromJson(deepCastedPayload));
+          final WidgetNode canvasTree = WidgetNode.fromJson(deepCastedPayload);
+          // Update the root container's size to the current dynamic size.
+          canvasTree.props['width'] = currentWidth;
+          canvasTree.props['height'] = currentHeight;
 
           // 4. Update the status
           ref.read(projectStateProvider.notifier).updateActivePageTree(canvasTree);
@@ -64,11 +71,7 @@ final iframeMessageCoordinatorProvider = Provider<void>((ref) {
       case 'GET_LAYOUT_REQUEST':
         final WidgetNode tree = ref.read(activeCanvasTreeProvider);
         final Map<String, dynamic> treeNodeToJson = tree.toJsonWithoutIds();
-        if(treeNodeToJson['children'].isNotEmpty && treeNodeToJson['children'][0].isNotEmpty){
-          communicationService.sendLayout(message['requestId'], treeNodeToJson['children'][0]);
-        }else{
-          communicationService.sendLayout(message['requestId'], {});
-        }
+        communicationService.sendLayout(message['requestId'], treeNodeToJson);
         break;
       default:
         print('[Flutter Coordinator] Received unknown message type: $type');
