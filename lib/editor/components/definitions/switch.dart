@@ -5,12 +5,13 @@ import '../../../utils/parsing_util.dart';
 import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
+import '../core/component_types.dart' as ct;
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
 
 final RegisteredComponent switchComponentDefinition = RegisteredComponent(
-  type: 'Switch',
-  displayName: 'Switch',
+  type: ct.switchWidget,
+  displayName: ct.switchWidget,
   icon: Icons.toggle_on_outlined,
   defaultProps: {
     'value': false,

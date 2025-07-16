@@ -7,10 +7,11 @@ import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent sliderComponentDefinition = RegisteredComponent(
-  type: 'Slider',
-  displayName: 'Slider',
+  type: ct.slider,
+  displayName: ct.slider,
   icon: Icons.linear_scale,
   defaultProps: {
     'value': 0.5,

@@ -6,27 +6,29 @@ import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent spacerComponentDefinition = RegisteredComponent(
-  type: 'Spacer',
-  displayName: 'Spacer',
+  type: ct.spacer,
+  displayName: ct.spacer,
   icon: Icons.space_bar,
   defaultProps: {
     'flex': 1,
   },
   propFields: [
     PropField(
-      name: 'flex',
-      label: 'Flex Factor',
-      fieldType: FieldType.number,
-      defaultValue: 1,
-      editorBuilder: kSliderNumberInputEditor,
-      editorConfig: {'minValue': 1.0, 'maxValue': 10.0, 'divisions': 9, 'decimalPlaces': 0},
-      propertyCategory: PropertyCategory.sizing,
-      toCode: kNumberCodeFormatter
+        name: 'flex',
+        label: 'Flex Factor',
+        fieldType: FieldType.number,
+        defaultValue: 1,
+        editorBuilder: kSliderNumberInputEditor,
+        editorConfig: {'minValue': 1.0, 'maxValue': 10.0, 'divisions': 9, 'decimalPlaces': 0},
+        propertyCategory: PropertyCategory.sizing,
+        toCode: kNumberCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,
+  requiredParentTypes: [ct.row, ct.column],
   builder: (
       WidgetNode node,
       WidgetRef ref,

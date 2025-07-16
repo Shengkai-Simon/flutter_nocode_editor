@@ -62,6 +62,14 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
   }
 
   bool _canAcceptAsChild(WidgetNode draggedNodeData) {
+    // Verify that the dragged component accepts the current node as its parent
+    final draggedRc = registeredComponents[draggedNodeData.type];
+    if (draggedRc?.requiredParentTypes != null &&
+        !draggedRc!.requiredParentTypes!.contains(widget.node.type)) {
+      return false;
+    }
+
+    // Verify that the current node accepts the dragged component as its child
     final targetRc = registeredComponents[widget.node.type];
     if (targetRc == null) return false;
     if (targetRc.childPolicy == ChildAcceptancePolicy.none) return false;
@@ -74,6 +82,15 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
   bool _canAcceptAsSibling(WidgetNode draggedNodeData) {
     final parentOfCurrentNode = findParentNode(widget.overallRootNode, widget.node.id);
     if (parentOfCurrentNode == null) return false;
+
+    // Verify that the dragged component accepts a future parent
+    final draggedRc = registeredComponents[draggedNodeData.type];
+    if (draggedRc?.requiredParentTypes != null &&
+        !draggedRc!.requiredParentTypes!.contains(parentOfCurrentNode.type)) {
+      return false;
+    }
+
+    // Verify that the future parent accepts the new child
     final parentRc = registeredComponents[parentOfCurrentNode.type];
     if (parentRc == null) return false;
     if (parentRc.childPolicy == ChildAcceptancePolicy.none) return false;

@@ -5,10 +5,11 @@ import '../../../utils/parsing_util.dart';
 import '../../properties/core/property_common_groups.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent columnComponentDefinition = RegisteredComponent(
-  type: 'Column',
-  displayName: 'Column',
+  type: ct.column,
+  displayName: ct.column,
   icon: Icons.horizontal_distribute,
   defaultProps: {
     ...SizingProps.defaults,

@@ -8,10 +8,11 @@ import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent alignComponentDefinition = RegisteredComponent(
-  type: 'Align',
-  displayName: 'Align',
+  type: ct.align,
+  displayName: ct.align,
   icon: Icons.border_outer,
   defaultProps: {
     ...ChildAlignmentProps.defaults,

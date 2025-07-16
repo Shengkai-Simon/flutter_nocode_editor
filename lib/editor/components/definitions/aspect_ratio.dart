@@ -7,9 +7,10 @@ import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent aspectRatioComponentDefinition = RegisteredComponent(
-  type: 'AspectRatio',
+  type: ct.aspectRatio,
   displayName: 'Aspect Ratio',
   icon: Icons.aspect_ratio,
   defaultProps: {

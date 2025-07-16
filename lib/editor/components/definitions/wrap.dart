@@ -5,12 +5,13 @@ import '../../../utils/parsing_util.dart';
 import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
+import '../core/component_types.dart' as ct;
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
 
 final RegisteredComponent wrapComponentDefinition = RegisteredComponent(
-  type: 'Wrap',
-  displayName: 'Wrap',
+  type: ct.wrap,
+  displayName: ct.wrap,
   icon: Icons.wrap_text,
   defaultProps: {
     'direction': 'horizontal',

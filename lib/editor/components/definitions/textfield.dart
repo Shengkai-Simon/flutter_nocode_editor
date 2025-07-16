@@ -7,6 +7,7 @@ import '../../properties/core/property_common_groups.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 import '../core/widget_node.dart';
 
 final Map<String, dynamic> _textFieldDefaultProps = {
@@ -24,7 +25,7 @@ final Map<String, dynamic> _textFieldDefaultProps = {
 };
 
 final RegisteredComponent textFieldComponentDefinition = RegisteredComponent(
-  type: 'TextField',
+  type: ct.textField,
   displayName: 'Text Field',
   icon: Icons.edit_note,
   defaultProps: _textFieldDefaultProps,

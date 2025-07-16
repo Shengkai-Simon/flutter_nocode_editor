@@ -8,6 +8,7 @@ import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final Map<String, dynamic> _dropdownButtonDefaultProps = {
   'itemsString': 'Option 1,Option 2,Option 3',
@@ -20,7 +21,7 @@ final Map<String, dynamic> _dropdownButtonDefaultProps = {
 };
 
 final RegisteredComponent dropdownButtonComponentDefinition = RegisteredComponent(
-  type: 'DropdownButton',
+  type: ct.dropdownButton,
   displayName: 'Dropdown',
   icon: Icons.arrow_drop_down_circle_outlined,
   defaultProps: _dropdownButtonDefaultProps,

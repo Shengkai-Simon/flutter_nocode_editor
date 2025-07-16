@@ -7,10 +7,11 @@ import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
-  type: 'Divider',
-  displayName: 'Divider',
+  type: ct.divider,
+  displayName: ct.divider,
   icon: Icons.horizontal_rule,
   defaultProps: {
     'height': 16.0,

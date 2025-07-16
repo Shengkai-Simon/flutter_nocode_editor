@@ -7,6 +7,7 @@ import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 const Map<String, IconData> _availableIcons = {
   'Settings': Icons.settings, 'Favorite': Icons.favorite, 'Home': Icons.home,
@@ -57,8 +58,8 @@ String? _iconDataToCode(dynamic value) {
 }
 
 final RegisteredComponent iconComponentDefinition = RegisteredComponent(
-  type: 'Icon',
-  displayName: 'Icon',
+  type: ct.icon,
+  displayName: ct.icon,
   icon: Icons.insert_emoticon,
   defaultProps: {
     'iconName': 'Favorite',
@@ -68,7 +69,7 @@ final RegisteredComponent iconComponentDefinition = RegisteredComponent(
   propFields: [
     PropField(
       name: 'iconName',
-      label: 'Icon',
+      label: ct.icon,
       fieldType: FieldType.select,
       defaultValue: 'Favorite',
       options: _availableIcons.keys.map((name) => {'id': name, 'name': name}).toList(),

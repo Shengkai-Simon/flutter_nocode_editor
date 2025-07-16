@@ -6,6 +6,7 @@ import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 FlexFit _parseFlexFit(String? fitString) {
   switch (fitString) {
@@ -18,7 +19,7 @@ FlexFit _parseFlexFit(String? fitString) {
 }
 
 final RegisteredComponent flexibleComponentDefinition = RegisteredComponent(
-  type: 'Flexible',
+  type: ct.flexible,
   displayName: 'Flexible',
   icon: Icons.settings_overscan,
   defaultProps: {
@@ -51,6 +52,7 @@ final RegisteredComponent flexibleComponentDefinition = RegisteredComponent(
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,
+  requiredParentTypes: [ct.row, ct.column],
   builder: (
       WidgetNode node,
       WidgetRef ref,

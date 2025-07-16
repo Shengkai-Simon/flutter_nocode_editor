@@ -8,9 +8,10 @@ import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent elevatedButtonComponentDefinition = RegisteredComponent(
-  type: 'ElevatedButton',
+  type: ct.elevatedButton,
   displayName: 'Button',
   icon: Icons.smart_button_outlined,
   defaultProps: {

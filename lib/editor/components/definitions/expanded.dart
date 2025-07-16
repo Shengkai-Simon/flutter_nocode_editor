@@ -6,9 +6,10 @@ import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent expandedComponentDefinition = RegisteredComponent(
-  type: 'Expanded',
+  type: ct.expanded,
   displayName: 'Expanded',
   icon: Icons.fit_screen,
   defaultProps: {
@@ -16,17 +17,18 @@ final RegisteredComponent expandedComponentDefinition = RegisteredComponent(
   },
   propFields: [
     PropField(
-      name: 'flex',
-      label: 'Flex Factor',
-      fieldType: FieldType.number,
-      defaultValue: 1,
-      editorBuilder: kIntegerStepperEditor,
-      editorConfig: {'minValue': 1, 'step': 1},
-      propertyCategory: PropertyCategory.sizing,
-      toCode: kNumberCodeFormatter
+        name: 'flex',
+        label: 'Flex Factor',
+        fieldType: FieldType.number,
+        defaultValue: 1,
+        editorBuilder: kIntegerStepperEditor,
+        editorConfig: {'minValue': 1, 'step': 1},
+        propertyCategory: PropertyCategory.sizing,
+        toCode: kNumberCodeFormatter
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,
+  requiredParentTypes: [ct.row, ct.column],
   builder: (
       WidgetNode node,
       WidgetRef ref,

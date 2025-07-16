@@ -6,10 +6,11 @@ import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent centerComponentDefinition = RegisteredComponent(
-  type: 'Center',
-  displayName: 'Center',
+  type: ct.center,
+  displayName: ct.center,
   icon: Icons.align_horizontal_center,
   defaultProps: {
     'widthFactor': null,

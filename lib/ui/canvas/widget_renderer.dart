@@ -157,11 +157,20 @@ class WidgetRenderer extends ConsumerWidget {
             return false;
           }
 
-          if (rc.childPolicy == ChildAcceptancePolicy.none) {
-            return false;
-          }
-          if (rc.childPolicy == ChildAcceptancePolicy.single && node.children.isNotEmpty) {
-            return false;
+          // Parent-to-Child check (existing logic)
+          if (rc.childPolicy == ChildAcceptancePolicy.none) return false;
+          if (rc.childPolicy == ChildAcceptancePolicy.single && node.children.isNotEmpty) return false;
+
+          // Child-to-Parent check (new logic)
+          final String draggedComponentType = details.data;
+          final RegisteredComponent? draggedRc = registeredComponents[draggedComponentType];
+          if (draggedRc == null) return false; // Should not happen
+
+          if (draggedRc.requiredParentTypes != null &&
+              draggedRc.requiredParentTypes!.isNotEmpty) {
+            if (!draggedRc.requiredParentTypes!.contains(node.type)) {
+              return false; // The dragged component requires a different parent
+            }
           }
           return true;
         },

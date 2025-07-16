@@ -7,10 +7,11 @@ import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent checkboxComponentDefinition = RegisteredComponent(
-  type: 'Checkbox',
-  displayName: 'Checkbox',
+  type: ct.checkbox,
+  displayName: ct.checkbox,
   icon: Icons.check_box_outlined,
   defaultProps: {
     'value': false,

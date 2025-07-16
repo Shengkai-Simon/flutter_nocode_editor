@@ -6,6 +6,7 @@ import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
+import '../core/component_types.dart' as ct;
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
 
@@ -30,8 +31,8 @@ Clip _parseClipBehavior(String? clipString) {
 }
 
 final RegisteredComponent stackComponentDefinition = RegisteredComponent(
-  type: 'Stack',
-  displayName: 'Stack',
+  type: ct.stack,
+  displayName: ct.stack,
   icon: Icons.layers,
   defaultProps: {
     ...ChildAlignmentProps.defaults,

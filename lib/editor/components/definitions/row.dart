@@ -5,10 +5,11 @@ import '../../../utils/parsing_util.dart';
 import '../../properties/core/property_common_groups.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent rowComponentDefinition = RegisteredComponent(
-  type: 'Row',
-  displayName: 'Row',
+  type: ct.row,
+  displayName: ct.row,
   icon: Icons.vertical_distribute,
   defaultProps: {
     ...SizingProps.defaults,

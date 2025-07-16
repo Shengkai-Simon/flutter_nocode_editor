@@ -8,6 +8,7 @@ import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 BoxFit _parseBoxFit(String? fitString) {
   switch (fitString) {
@@ -23,8 +24,8 @@ BoxFit _parseBoxFit(String? fitString) {
 }
 
 final RegisteredComponent imageComponentDefinition = RegisteredComponent(
-  type: 'Image',
-  displayName: 'Image',
+  type: ct.image,
+  displayName: ct.image,
   icon: Icons.image_outlined,
   defaultProps: {
     ...SizingProps.defaults,

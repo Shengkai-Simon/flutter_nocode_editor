@@ -8,10 +8,11 @@ import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent containerComponentDefinition = RegisteredComponent(
-  type: 'Container',
-  displayName: 'Container',
+  type: ct.container,
+  displayName: ct.container,
   icon: Icons.crop_square,
   defaultProps: {
     ...SizingProps.defaults,

@@ -8,10 +8,11 @@ import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
+import '../core/component_types.dart' as ct;
 
 final RegisteredComponent cardComponentDefinition = RegisteredComponent(
-  type: 'Card',
-  displayName: 'Card',
+  type: ct.card,
+  displayName: ct.card,
   icon: Icons.credit_card_outlined,
   defaultProps: {
     ...BackgroundColorProp.defaults,

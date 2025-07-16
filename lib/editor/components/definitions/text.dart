@@ -6,12 +6,13 @@ import '../../properties/core/property_code_formatters.dart';
 import '../../properties/core/property_editor_registry.dart';
 import '../../properties/core/property_definition.dart';
 import '../../properties/core/property_common_groups.dart';
+import '../core/component_types.dart' as ct;
 import '../core/widget_node.dart';
 import '../core/component_definition.dart';
 
 final RegisteredComponent textComponentDefinition = RegisteredComponent(
-  type: 'Text',
-  displayName: 'Text',
+  type: ct.text,
+  displayName: ct.text,
   icon: Icons.text_fields,
   defaultProps: {
     ...BasicTextStyleProps.defaults,
