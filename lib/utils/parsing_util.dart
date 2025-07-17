@@ -158,7 +158,7 @@ class ParsingUtil {
   static FontStyle parseFontStyle(String? style) {
     switch (style?.toLowerCase()) {
       case 'italic': return FontStyle.italic;
-      case 'normal':
+      case 'normal': return FontStyle.normal;
       default:
         return _handleUnrecognizedValueAndReport(
           inputValue: style,
