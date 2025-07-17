@@ -157,67 +157,58 @@ class EditorScaffold extends ConsumerWidget {
     final selectedNodeId = ref.watch(selectedNodeIdProvider);
     final isRightPanelVisible = selectedNodeId != null;
 
-    return GestureDetector(
-      // When the user clicks on any non-interactive part of the scaffold,
-      // clear the selection. This also helps in removing focus from text fields.
-      onTap: () {
-        ref.read(selectedNodeIdProvider.notifier).state = null;
-        FocusScope.of(context).unfocus();
-      },
-      child: Row(
-        children: [
-          // The left panel, which is part of the editor
-          SizedBox(width: kLeftPanelWidth, child: const LeftView()),
-          const VerticalDivider(width: 1, thickness: 1),
-          // Central area
-          Expanded(
-            child: Column(
-              children: [
-                const CanvasToolbar(),
-                const Divider(height: 1, thickness: 1),
-                Expanded(
-                  // This GestureDetector now wraps the entire canvas area.
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque, // Ensures it catches taps on its empty space.
-                    onTap: () {
-                      // When the background area is tapped, clear the selection.
-                      ref.read(selectedNodeIdProvider.notifier).state = null;
-                    },
-                    child: Row(
-                      children: [
-                        const Expanded(
-                          child: CanvasView(),
-                        ),
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                          child: Material(
-                            elevation: 8.0,
-                            child: Container(
-                              width: isRightPanelVisible ? kRightPanelWidth : 0,
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  left: BorderSide(
-                                    color: Theme.of(context).dividerColor,
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                              child: ClipRect(
-                                child: const RightView(),
+    return Row(
+      children: [
+        // The left panel, which is part of the editor
+        SizedBox(width: kLeftPanelWidth, child: const LeftView()),
+        const VerticalDivider(width: 1, thickness: 1),
+        // Central area
+        Expanded(
+          child: Column(
+            children: [
+              const CanvasToolbar(),
+              const Divider(height: 1, thickness: 1),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          ref.read(selectedNodeIdProvider.notifier).state = null;
+                          FocusScope.of(context).unfocus();
+                        },
+                        child: const CanvasView(),
+                      ),
+                    ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      child: Material(
+                        elevation: 8.0,
+                        child: Container(
+                          width: isRightPanelVisible ? kRightPanelWidth : 0,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              left: BorderSide(
+                                color: Theme.of(context).dividerColor,
+                                width: 1,
                               ),
                             ),
                           ),
+                          child: ClipRect(
+                            child: const RightView(),
+                          ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
