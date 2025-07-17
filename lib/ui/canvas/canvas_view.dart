@@ -8,6 +8,12 @@ import '../../state/editor_state.dart';
 import '../../state/view_mode_state.dart';
 import 'widget_renderer.dart';
 
+// Define Intents for keyboard actions
+class PanIntent extends Intent {
+  const PanIntent({required this.isStarting});
+  final bool isStarting;
+}
+
 class CanvasView extends ConsumerStatefulWidget {
   const CanvasView({super.key});
 
@@ -23,7 +29,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
   @override
   void initState() {
     super.initState();
-    _focusNode.requestFocus();
+    // No need to request focus here initially. It will be requested on mouse hover.
 
     // Listen for changes to selectedNodeIdProvider
     ref.listenManual<String?>(selectedNodeIdProvider, (previous, next) {
@@ -125,74 +131,97 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     final isCtrlPressed = ref.watch(isCtrlPressedProvider);
     final activePageName = ref.watch(projectStateProvider.select((p) => p.activePage.name));
 
-    return Focus(
-      focusNode: _focusNode,
-      // The spacebar handling is now moved to the parent EditorScaffold.
-      // We only handle keys that are specific to the canvas interaction here.
-      onKeyEvent: (node, event) {
-        if (event.logicalKey == LogicalKeyboardKey.controlLeft || event.logicalKey == LogicalKeyboardKey.controlRight) {
-          if (event is KeyDownEvent) {
-            ref.read(isCtrlPressedProvider.notifier).state = true;
-          } else if (event is KeyUpEvent) {
-            ref.read(isCtrlPressedProvider.notifier).state = false;
-          }
-          return KeyEventResult.handled;
+    return MouseRegion(
+      onEnter: (_) {
+        if (!_focusNode.hasFocus) {
+          _focusNode.requestFocus();
         }
-
-        return KeyEventResult.ignored;
       },
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          InteractiveViewer.builder(
-            transformationController: _transformationController,
-            panEnabled: isPanMode,
-            scaleEnabled: isCtrlPressed,
-            scaleFactor: 800,
-            onInteractionEnd: (details) {
-              final newScale = _transformationController.value.getMaxScaleOnAxis();
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted && (newScale - ref.read(canvasScaleProvider)).abs() > 0.001) {
-                  ref.read(canvasScaleProvider.notifier).state = newScale;
-                }
-              });
-            },
-            boundaryMargin: const EdgeInsets.all(double.infinity),
-            minScale: 0.1,
-            maxScale: 4.0,
-            builder: (BuildContext context, viewport) {
-              return Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  WidgetRenderer(node: tree),
-                  Positioned(
-                    top: -32,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        activePageName,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white,
+      onExit: (_) {
+        if (_focusNode.hasFocus) {
+          _focusNode.unfocus();
+        }
+      },
+      child: Focus(
+        focusNode: _focusNode,
+        onKeyEvent: (node, event) {
+          final notifier = ref.read(canvasPointerModeProvider.notifier);
+
+          // Handle panning with the spacebar
+          if (event.logicalKey == LogicalKeyboardKey.space) {
+            if (event is KeyDownEvent) {
+              if (notifier.state != CanvasPointerMode.pan) {
+                notifier.state = CanvasPointerMode.pan;
+              }
+            } else if (event is KeyUpEvent) {
+              if (notifier.state == CanvasPointerMode.pan) {
+                notifier.state = CanvasPointerMode.select;
+              }
+            }
+            return KeyEventResult.handled;
+          }
+
+          // Handle Ctrl key for zooming
+          if (event.logicalKey == LogicalKeyboardKey.controlLeft || event.logicalKey == LogicalKeyboardKey.controlRight) {
+            ref.read(isCtrlPressedProvider.notifier).state = event is KeyDownEvent;
+            return KeyEventResult.handled;
+          }
+
+          return KeyEventResult.ignored;
+        },
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            InteractiveViewer.builder(
+              transformationController: _transformationController,
+              panEnabled: isPanMode,
+              scaleEnabled: isCtrlPressed,
+              scaleFactor: 800,
+              onInteractionEnd: (details) {
+                final newScale = _transformationController.value.getMaxScaleOnAxis();
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && (newScale - ref.read(canvasScaleProvider)).abs() > 0.001) {
+                    ref.read(canvasScaleProvider.notifier).state = newScale;
+                  }
+                });
+              },
+              boundaryMargin: const EdgeInsets.all(double.infinity),
+              minScale: 0.1,
+              maxScale: 4.0,
+              builder: (BuildContext context, viewport) {
+                return Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
+                    WidgetRenderer(node: tree),
+                    Positioned(
+                      top: -32,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          activePageName,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            },
-          ),
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: _buildFloatingControls(isPanMode, currentScale),
-          ),
-        ],
+                  ],
+                );
+              },
+            ),
+            Positioned(
+              bottom: 20,
+              right: 20,
+              child: _buildFloatingControls(isPanMode, currentScale),
+            ),
+          ],
+        ),
       ),
     );
   }

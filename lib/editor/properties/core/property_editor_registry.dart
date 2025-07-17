@@ -39,16 +39,22 @@ PropertyEditorBuilderWithUpdate kDefaultNumberInputEditor = (
 ) {
   return NumberInputField(
     label: field.label,
-    value:
-        (currentValue as num?)?.toString() ??
-        (field.defaultValue as num?)?.toString() ??
-        '',
-    onCommit: (String newValueString) {
-      onCommit(double.tryParse(newValueString));
+    value: currentValue as num? ?? field.defaultValue as num?,
+    onCommit: (num? val) {
+      if (val != null && val < 0) {
+        onCommit(0.0);
+      } else {
+        onCommit(val);
+      }
     },
-    onUpdate: (String newValueString) {
-      onUpdate(double.tryParse(newValueString));
+    onUpdate: (num? val) {
+      if (val != null && val < 0) {
+        onUpdate(0.0);
+      } else {
+        onUpdate(val);
+      }
     },
+    allowDecimal: true, // Default to allowing decimals
   );
 };
 
@@ -63,26 +69,22 @@ PropertyEditorBuilderWithUpdate kPositiveNumberInputEditor = (
 ) {
   return NumberInputField(
     label: field.label,
-    value:
-        (currentValue as num?)?.toString() ??
-        (field.defaultValue as num?)?.toString() ??
-        '0',
-    onCommit: (String newValueString) {
-      final num? val = double.tryParse(newValueString);
+    value: currentValue as num? ?? field.defaultValue as num?,
+    onCommit: (num? val) {
       if (val != null && val < 0) {
         onCommit(0.0);
       } else {
         onCommit(val);
       }
     },
-    onUpdate: (String newValueString) {
-      final num? val = double.tryParse(newValueString);
+    onUpdate: (num? val) {
       if (val != null && val < 0) {
         onUpdate(0.0);
       } else {
         onUpdate(val);
       }
     },
+    allowDecimal: true, // Default to allowing decimals
   );
 };
 
@@ -265,3 +267,29 @@ PropertyEditorBuilder kAlignmentPickerEditor = (
 };
 
 PropertyEditorBuilder kAlignmentDropdownEditor = kDefaultDropdownEditor;
+
+final Map<String, PropertyEditorBuilder> _propertyEditorRegistry = {
+  'color': kDefaultColorPickerEditor,
+  'dropdown': kDefaultDropdownEditor,
+  'switch': kDefaultSwitchEditor,
+  'alignmentPicker': kAlignmentPickerEditor,
+  'alignmentDropdown': kAlignmentDropdownEditor,
+};
+
+final Map<String, PropertyEditorBuilderWithUpdate>
+    _propertyEditorRegistryWithUpdate = {
+  'string': kDefaultTextInputEditor,
+  'number': kDefaultNumberInputEditor,
+  'positiveNumber': kPositiveNumberInputEditor,
+  'edgeInsets': kDefaultEdgeInsetsEditor,
+  'sliderNumber': kSliderNumberInputEditor,
+  'integerStepper': kIntegerStepperEditor,
+};
+
+PropertyEditorBuilder? getPropertyEditor(String editorType) {
+  return _propertyEditorRegistry[editorType];
+}
+
+PropertyEditorBuilderWithUpdate? getPropertyEditorWithUpdate(String editorType) {
+  return _propertyEditorRegistryWithUpdate[editorType];
+}

@@ -156,90 +156,67 @@ class EditorScaffold extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedNodeId = ref.watch(selectedNodeIdProvider);
     final isRightPanelVisible = selectedNodeId != null;
-    final focusNode = FocusNode();
 
     return GestureDetector(
       // When the user clicks on any non-interactive part of the scaffold,
-      // request focus for our global listener. This moves focus away from
-      // any text fields in the right panel.
-      onTap: () => focusNode.requestFocus(),
-      child: Focus(
-        focusNode: focusNode,
-        autofocus: true,
-        onKeyEvent: (node, event) {
-          // This is the global key event handler.
-          if (event.logicalKey == LogicalKeyboardKey.space) {
-            final notifier = ref.read(canvasPointerModeProvider.notifier);
-            if (event is KeyDownEvent) {
-              if (notifier.state != CanvasPointerMode.pan) {
-                notifier.state = CanvasPointerMode.pan;
-              }
-            } else if (event is KeyUpEvent) {
-              if (notifier.state == CanvasPointerMode.pan) {
-                notifier.state = CanvasPointerMode.select;
-              }
-            }
-            // By handling the event, we prevent it from being passed to
-            // any focused text fields, stopping them from typing a space.
-            return KeyEventResult.handled;
-          }
-          // For any other key, ignore it and let it be handled by other widgets.
-          return KeyEventResult.ignored;
-        },
-        child: Row(
-          children: [
-            // The left panel, which is part of the editor
-            SizedBox(width: kLeftPanelWidth, child: const LeftView()),
-            const VerticalDivider(width: 1, thickness: 1),
-            // Central area
-            Expanded(
-              child: Column(
-                children: [
-                  const CanvasToolbar(),
-                  const Divider(height: 1, thickness: 1),
-                  Expanded(
-                    // This GestureDetector now wraps the entire canvas area.
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque, // Ensures it catches taps on its empty space.
-                      onTap: () {
-                        // When the background area is tapped, clear the selection.
-                        ref.read(selectedNodeIdProvider.notifier).state = null;
-                      },
-                      child: Row(
-                        children: [
-                          const Expanded(
-                            child: CanvasView(),
-                          ),
-                          AnimatedSize(
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeInOut,
-                            child: Material(
-                              elevation: 8.0,
-                              child: Container(
-                                width: isRightPanelVisible ? kRightPanelWidth : 0,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    left: BorderSide(
-                                      color: Theme.of(context).dividerColor,
-                                      width: 1,
-                                    ),
+      // clear the selection. This also helps in removing focus from text fields.
+      onTap: () {
+        ref.read(selectedNodeIdProvider.notifier).state = null;
+        FocusScope.of(context).unfocus();
+      },
+      child: Row(
+        children: [
+          // The left panel, which is part of the editor
+          SizedBox(width: kLeftPanelWidth, child: const LeftView()),
+          const VerticalDivider(width: 1, thickness: 1),
+          // Central area
+          Expanded(
+            child: Column(
+              children: [
+                const CanvasToolbar(),
+                const Divider(height: 1, thickness: 1),
+                Expanded(
+                  // This GestureDetector now wraps the entire canvas area.
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque, // Ensures it catches taps on its empty space.
+                    onTap: () {
+                      // When the background area is tapped, clear the selection.
+                      ref.read(selectedNodeIdProvider.notifier).state = null;
+                    },
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: CanvasView(),
+                        ),
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          child: Material(
+                            elevation: 8.0,
+                            child: Container(
+                              width: isRightPanelVisible ? kRightPanelWidth : 0,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  left: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 1,
                                   ),
                                 ),
-                                child: ClipRect(
-                                  child: const RightView(),
-                                ),
+                              ),
+                              child: ClipRect(
+                                child: const RightView(),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
