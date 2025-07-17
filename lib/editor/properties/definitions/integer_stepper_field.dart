@@ -62,7 +62,12 @@ class _IntegerStepperFieldState extends State<IntegerStepperField> {
     final int? parsedValue = _textController.text.isEmpty ? null : int.tryParse(_textController.text);
     final validatedValue = _validateValue(parsedValue);
 
-    if (validatedValue == _lastCommittedValue) return;
+    // If the value hasn't changed, we might still need to update the text field
+    // to its canonical representation (e.g., user input "05" should be "5").
+    if (validatedValue == _lastCommittedValue) {
+      _updateTextField(validatedValue);
+      return;
+    }
 
     _lastCommittedValue = validatedValue;
     widget.onCommit(validatedValue);
@@ -123,16 +128,18 @@ class _IntegerStepperFieldState extends State<IntegerStepperField> {
     int currentValueForIncrement = _currentValue ?? (widget.minValue ?? 0) - widget.step;
     int newValue = currentValueForIncrement + widget.step;
     _updateValue(newValue);
+    _updateTextField(_currentValue);
     _commitChange();
   }
 
   void _decrement() {
     int currentValueForDecrement = _currentValue ?? (widget.minValue ?? widget.step);
-    if(widget.minValue != null && _currentValue == null){
+    if (widget.minValue != null && _currentValue == null) {
       currentValueForDecrement = widget.minValue! + widget.step;
     }
     int newValue = currentValueForDecrement - widget.step;
     _updateValue(newValue);
+    _updateTextField(_currentValue);
     _commitChange();
   }
 
