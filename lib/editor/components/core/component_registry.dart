@@ -2,6 +2,7 @@ import 'package:flutter_editor/editor/components/core/component_definition.dart'
 
 import '../definitions/align.dart';
 import '../definitions/aspect_ratio.dart';
+import '../definitions/backdrop_filter.dart';
 import '../definitions/card.dart';
 import '../definitions/center.dart';
 import '../definitions/checkbox.dart';
@@ -52,6 +53,7 @@ final Map<String, RegisteredComponent> registeredComponents = {
   dropdownButtonComponentDefinition.type: dropdownButtonComponentDefinition,
   sliderComponentDefinition.type: sliderComponentDefinition,
   radioComponentDefinition.type: radioComponentDefinition,
+  backdropFilterComponentDefinition.type: backdropFilterComponentDefinition,
 };
 
 

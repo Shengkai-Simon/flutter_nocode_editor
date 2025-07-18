@@ -3,6 +3,7 @@
 
 const String align = 'Align';
 const String aspectRatio = 'AspectRatio';
+const String backdropFilter = 'BackdropFilter';
 const String card = 'Card';
 const String center = 'Center';
 const String checkbox = 'Checkbox';

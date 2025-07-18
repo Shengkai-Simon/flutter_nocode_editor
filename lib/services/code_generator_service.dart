@@ -30,7 +30,7 @@ class CodeGeneratorService {
 
     // 2. Generate a main.dart file
     final initialPage = project.pages.firstWhere(
-            (p) => p.id == project.activePageId,
+            (p) => p.id == project.initialPageId, // FIX: Should use initialPageId not activePageId for main.dart
         orElse: () => project.pages.first
     );
     final initialPageClassName = toUpperCamelCase(initialPage.name);
@@ -65,7 +65,9 @@ class CodeGeneratorService {
   /// Generate unformatted Dart code for individual pages。
   String _generatePageCode(WidgetNode rootNode, String pageClassName) {
     final widgetCode = _generateWidgetCodeRecursive(rootNode);
+    // MODIFIED: Added dart:ui import for ImageFilter.
     final unformattedCode = """
+    import 'dart:ui';
     import 'package:flutter/material.dart';
 
    
@@ -89,6 +91,7 @@ class CodeGeneratorService {
   /// The code to generate the main.dart file.
   String _generateMainDartCode(String initialPageClassName,
       String initialPageFileName) {
+    // FIXED: Used the correct variable 'initialPageClassName' instead of the undefined 'pageClassName'.
     final unformattedCode = """
     import 'package:flutter/material.dart';
     import './$initialPageFileName';
@@ -153,6 +156,9 @@ class CodeGeneratorService {
         return _generatePaddingCode(node, rc);
       case 'Radio':
         return _generateRadioCode(node, rc);
+    // ADDED: Case for the new BackdropFilter component.
+      case 'BackdropFilter':
+        return _generateBackdropFilterCode(node, rc);
       default:
         return _generateGenericWidgetCode(node, rc);
     }
@@ -161,6 +167,24 @@ class CodeGeneratorService {
   // =======================================================================
   // Specialized Generators for Complex Widgets (No indentation logic needed)
   // =======================================================================
+
+  // ADDED: Generator for BackdropFilter
+  String _generateBackdropFilterCode(WidgetNode node, RegisteredComponent rc) {
+    final props = <String>[];
+    final sigmaX = _getFormattedProp(node, rc.propFields, 'blurSigmaX', useDefault: true) ?? '0.0';
+    final sigmaY = _getFormattedProp(node, rc.propFields, 'blurSigmaY', useDefault: true) ?? '0.0';
+
+    // The filter property requires ImageFilter from dart:ui
+    props.add("filter: ImageFilter.blur(sigmaX: $sigmaX, sigmaY: $sigmaY)");
+
+    _addChildrenToProps(node, rc, props);
+    // BackdropFilter's child must not be null in the final code.
+    if (node.children.isEmpty) {
+      props.add("child: const SizedBox.shrink()");
+    }
+
+    return "BackdropFilter(${props.join(', ')})";
+  }
 
   String _generateTextWidgetCode(WidgetNode node, RegisteredComponent rc) {
     final formattedText = _getFormattedProp(node, rc.propFields, 'text') ?? "''";
@@ -345,6 +369,18 @@ class CodeGeneratorService {
     return "${rc.type}(${propStrings.join(', ')})";
   }
 
+  // FIXED: Added the missing helper method.
+  List<String> _collectDirectProps(WidgetNode node, RegisteredComponent rc, List<String> propNames) {
+    final props = <String>[];
+    for (var propName in propNames) {
+      final formattedValue = _getFormattedProp(node, rc.propFields, propName);
+      if (formattedValue != null) {
+        props.add("$propName: $formattedValue");
+      }
+    }
+    return props;
+  }
+
   String? _generateTextStyleCode(WidgetNode node, List<PropField> allPropFields) {
     final stylePropsMap = <String, String>{};
     const stylePropNames = ['fontSize', 'fontWeight', 'fontStyle', 'textColor'];
@@ -444,17 +480,6 @@ class CodeGeneratorService {
       return "'$escaped'";
     }
     return propField.toCode?.call(propValue);
-  }
-
-  List<String> _collectDirectProps(WidgetNode node, RegisteredComponent rc, List<String> propNames) {
-    final props = <String>[];
-    for (var propName in propNames) {
-      final formattedValue = _getFormattedProp(node, rc.propFields, propName);
-      if (formattedValue != null) {
-        props.add("$propName: $formattedValue");
-      }
-    }
-    return props;
   }
 
   void _addChildrenToProps(WidgetNode node, RegisteredComponent rc, List<String> propStrings) {
