@@ -124,6 +124,8 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
   /// It does NOT record history itself.
   void loadProject(ProjectState newProjectState) {
     state = newProjectState;
+    // When a full project is loaded, reset the history to this new state as the starting point.
+    ref.read(historyManagerProvider.notifier).resetAndInitialize(newProjectState);
   }
 
   /// Updates a specific widget node within the active page.
@@ -408,6 +410,12 @@ class HistoryManager extends StateNotifier<HistoryInfoState> {
   int _historyIndex = -1;
 
   HistoryManager(this._ref) : super(const HistoryInfoState(canUndo: false, canRedo: false));
+
+  void resetAndInitialize(ProjectState initialState) {
+    _history.clear();
+    _historyIndex = -1;
+    recordState(initialState);
+  }
 
   void _updateState() {
     final canUndo = _historyIndex > 0;

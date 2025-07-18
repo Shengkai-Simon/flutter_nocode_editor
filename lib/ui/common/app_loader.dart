@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:js_interop';
 
-import '../../constants/app_constants.dart';
-import '../../editor/models/page_node.dart';
 import '../../main.dart';
 import '../../providers/communication_providers.dart';
 import '../../providers/project_providers.dart';
 import '../../services/project_api_service.dart';
 import '../../state/editor_state.dart';
-import '../../state/view_mode_state.dart';
 
 // Define the type required to interact with the browser's window.location API
 @JS('window')
@@ -68,27 +65,13 @@ class AppLoader extends ConsumerWidget {
           );
         }
       },
-      data: (projectNode) {
+      data: (projectState) {
         // Data successfully loaded, initialize the editor state.
         // We use a post-frame callback to ensure the state update doesn't
         // conflict with the current build cycle.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
-            final newInitialPage = PageNode(
-              id: uuid.v4(),
-              name: 'Main Page',
-              tree: projectNode,
-            );
-
-            final newProjectState = ProjectState(
-              pages: [newInitialPage],
-              activePageId: newInitialPage.id,
-              initialPageId: newInitialPage.id,
-              view: MainView.overview,
-            );
-
-            ref.read(projectStateProvider.notifier).loadProject(newProjectState);
-
+            ref.read(projectStateProvider.notifier).loadProject(projectState);
             communicationService.sendFlutterReady();
           }
         });
