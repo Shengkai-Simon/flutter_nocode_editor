@@ -206,87 +206,89 @@ class ParsingUtil {
   }
 
   static EdgeInsetsGeometry parseEdgeInsets(String? value) {
-    if (value == null || value.isEmpty) return EdgeInsets.zero;
-    String normalizedValue = value.toLowerCase().replaceAll(' ', '');
+    if (value == null || value.trim().isEmpty) return EdgeInsets.zero;
+    String v = value.trim().toLowerCase();
 
     try {
-      final RegExp singleSideRegExp = RegExp(r'^(l|t|r|b):(-?[\d.]+)$');
-      if (singleSideRegExp.hasMatch(normalizedValue)) {
-        final match = singleSideRegExp.firstMatch(normalizedValue)!;
-        final side = match.group(1)!;
-        final valStr = match.group(2)!;
-        final val = double.tryParse(valStr);
-        if (val == null) {
-          IssueReporterService().reportWarning('Invalid number for EdgeInsets $side: "$valStr". Using 0.', source: "ParsingUtil.EdgeInsets");
-          return EdgeInsets.zero;
+      // Case 1: A single number (e.g., "16") -> EdgeInsets.all(16)
+      if (!v.contains(',') && !v.contains(':')) {
+        final double? asDouble = double.tryParse(v);
+        if (asDouble != null) {
+          return EdgeInsets.all(asDouble);
         }
-        switch (side) {
-          case 'l': return EdgeInsets.only(left: val);
-          case 't': return EdgeInsets.only(top: val);
-          case 'r': return EdgeInsets.only(right: val);
-          case 'b': return EdgeInsets.only(bottom: val);
-        }
-      }
-      if (normalizedValue.startsWith('all:')) {
-        final valStr = normalizedValue.substring(4);
-        final doubleVal = double.tryParse(valStr);
-        if (doubleVal == null) IssueReporterService().reportWarning('Invalid number for EdgeInsets.all: "$valStr". Using 0.', source: "ParsingUtil.EdgeInsets");
-        return EdgeInsets.all(doubleVal ?? 0);
-      } else if (normalizedValue.startsWith('symmetric:')) {
-        normalizedValue = normalizedValue.substring(10);
-        double vertical = 0;
-        double horizontal = 0;
-        final parts = normalizedValue.split(',');
-        for (var part in parts) {
-          if (part.startsWith('v')) {
-            final val = double.tryParse(part.substring(1));
-            if (val == null) IssueReporterService().reportWarning('Invalid number for symmetric vertical padding: "${part.substring(1)}". Using 0.');
-            vertical = val ?? 0;
-          } else if (part.startsWith('h')) {
-            final val = double.tryParse(part.substring(1));
-            if (val == null) IssueReporterService().reportWarning('Invalid number for symmetric horizontal padding: "${part.substring(1)}". Using 0.');
-            horizontal = val ?? 0;
-          }
-        }
-        return EdgeInsets.symmetric(vertical: vertical, horizontal: horizontal);
-      } else if (normalizedValue.startsWith('only:')) {
-        normalizedValue = normalizedValue.substring(5);
-        final RegExp lReg = RegExp(r'l(-?[\d.]+)');
-        final RegExp tReg = RegExp(r't(-?[\d.]+)');
-        final RegExp rReg = RegExp(r'r(-?[\d.]+)');
-        final RegExp bReg = RegExp(r'b(-?[\d.]+)');
-        double parseSide(RegExp reg, String input, String sideName) {
-          final match = reg.firstMatch(input);
-          if (match == null) return 0;
-          final valStr = match.group(1);
-          final val = double.tryParse(valStr ?? '0');
-          if (val == null) IssueReporterService().reportWarning('Invalid number for EdgeInsets.only $sideName: "$valStr". Using 0.');
-          return val ?? 0;
-        }
-        double left = parseSide(lReg, normalizedValue, 'left');
-        double top = parseSide(tReg, normalizedValue, 'top');
-        double right = parseSide(rReg, normalizedValue, 'right');
-        double bottom = parseSide(bReg, normalizedValue, 'bottom');
-        return EdgeInsets.only(left: left, top: top, right: right, bottom: bottom);
       }
 
-      final parts = normalizedValue.split(',');
-      if (parts.length == 4) {
-        return EdgeInsets.fromLTRB(
-            double.tryParse(parts[0]) ?? 0, double.tryParse(parts[1]) ?? 0,
-            double.tryParse(parts[2]) ?? 0, double.tryParse(parts[3]) ?? 0
-        );
+      // Case 2: Four numbers (e.g., "8,16,8,16") -> EdgeInsets.fromLTRB(8, 16, 8, 16)
+      final ltrbParts = v.split(',');
+      if (ltrbParts.length == 4 && !v.contains(':')) {
+        final l = double.tryParse(ltrbParts[0].trim());
+        final t = double.tryParse(ltrbParts[1].trim());
+        final r = double.tryParse(ltrbParts[2].trim());
+        final b = double.tryParse(ltrbParts[3].trim());
+        if (l != null && t != null && r != null && b != null) {
+          return EdgeInsets.fromLTRB(l, t, r, b);
+        }
       }
-      if (parts.length == 1 && double.tryParse(parts[0]) != null) {
-        return EdgeInsets.all(double.parse(parts[0]));
+
+      // Case 3: Flexible key-value/short-hand parsing (e.g., "all:16", "h:10,v:5", "only:L10,R5", "symmetric:H20")
+      Map<String, double> valueMap = {};
+      
+      // Normalize string by replacing commas, and some prefixes for easier parsing
+      v = v.replaceAll(',', ' ').replaceAll('symmetric:', '').replaceAll('only:', '');
+
+      // Regex to find all pairs like "key:value" or "key_followed_by_value" e.g., "l16", "h:20"
+      final RegExp pairRegex = RegExp(r'([a-z]+)\s*:?\s*(-?[\d.]+)');
+      final matches = pairRegex.allMatches(v);
+
+      for (final match in matches) {
+        final key = match.group(1);
+        final valStr = match.group(2);
+        if (key != null && valStr != null) {
+          final value = double.tryParse(valStr);
+          if (value != null) {
+            valueMap[key] = value;
+          }
+        }
       }
+
+      if (valueMap.isEmpty) {
+        throw FormatException("No valid key-value pairs found.");
+      }
+      
+      if (valueMap.containsKey('all')) {
+        if (valueMap.length > 1) {
+          IssueReporterService().reportWarning(
+              'EdgeInsets string "$value" has "all" property mixed with others. Using "all" and ignoring others.',
+              source: "ParsingUtil.EdgeInsets");
+        }
+        return EdgeInsets.all(valueMap['all']!);
+      }
+
+      // Check for symmetric properties first
+      double? vertical = valueMap['v'] ?? valueMap['vertical'];
+      double? horizontal = valueMap['h'] ?? valueMap['horizontal'];
+
+      if (vertical != null || horizontal != null) {
+        if (valueMap.keys.any((k) => !['v', 'vertical', 'h', 'horizontal'].contains(k))) {
+          IssueReporterService().reportWarning(
+              'Mixed symmetric (v/h) and specific side padding in "$value". Symmetric properties will be used if present.',
+              source: "ParsingUtil.EdgeInsets");
+        }
+        return EdgeInsets.symmetric(vertical: vertical ?? 0, horizontal: horizontal ?? 0);
+      }
+
+      // Fallback to only/individual sides
+      return EdgeInsets.only(
+        top: valueMap['t'] ?? valueMap['top'] ?? 0,
+        bottom: valueMap['b'] ?? valueMap['bottom'] ?? 0,
+        left: valueMap['l'] ?? valueMap['left'] ?? 0,
+        right: valueMap['r'] ?? valueMap['right'] ?? 0,
+      );
 
     } catch (e) {
       IssueReporterService().reportWarning('Error parsing EdgeInsets string "$value": $e. Falling back to EdgeInsets.zero.', source: "ParsingUtil.EdgeInsets");
       return EdgeInsets.zero;
     }
-    IssueReporterService().reportWarning('Could not parse EdgeInsets string "$value" into any known format. Falling back to EdgeInsets.zero.', source: "ParsingUtil.EdgeInsets");
-    return EdgeInsets.zero;
   }
 
 

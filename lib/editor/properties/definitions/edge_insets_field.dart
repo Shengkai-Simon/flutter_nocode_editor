@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../utils/parsing_util.dart';
+
 class EdgeInsetsField extends StatefulWidget {
   final String label;
   final String value;
@@ -53,20 +55,36 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
     _lastCommittedValue = widget.value;
     _parseValueAndSetControllers(widget.value);
 
-    // Add listeners to commit changes when focus is lost
-    _leftFocus.addListener(() => _handleFocusChange(_leftFocus));
-    _topFocus.addListener(() => _handleFocusChange(_topFocus));
-    _rightFocus.addListener(() => _handleFocusChange(_rightFocus));
-    _bottomFocus.addListener(() => _handleFocusChange(_bottomFocus));
-    _allFocus.addListener(() => _handleFocusChange(_allFocus));
+    // Add listeners for focus and text changes
+    void setupControllerAndFocus({
+      required TextEditingController controller,
+      required FocusNode focusNode,
+    }) {
+      controller.addListener(_onIndividualFieldChanged);
+      focusNode.addListener(() {
+        if (!focusNode.hasFocus) {
+          _onFocusLost();
+        }
+      });
+    }
+    setupControllerAndFocus(controller: _leftController, focusNode: _leftFocus);
+    setupControllerAndFocus(controller: _topController, focusNode: _topFocus);
+    setupControllerAndFocus(controller: _rightController, focusNode: _rightFocus);
+    setupControllerAndFocus(controller: _bottomController, focusNode: _bottomFocus);
+
+    _allController.addListener(_onAllFieldChanged);
+    _allFocus.addListener(() {
+      if (!_allFocus.hasFocus) {
+        _onFocusLost();
+      }
+    });
   }
 
   @override
-  void didUpdateWidget(covariant EdgeInsetsField oldWidget) {
+  void didUpdateWidget(EdgeInsetsField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
-      // When the parent widget rebuilds (e.g., due to undo/redo or live updates),
-      // update the controllers without triggering a new history record.
+    if (widget.value != _lastCommittedValue) {
+      _lastCommittedValue = widget.value;
       _parseValueAndSetControllers(widget.value);
     }
   }
@@ -87,135 +105,117 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
     super.dispose();
   }
 
-  void _handleFocusChange(FocusNode focusNode) {
-    if (!focusNode.hasFocus) {
-      _commitChange();
-    }
-  }
-
-  String _getCurrentValueAsString() {
-    final lVal = double.tryParse(_leftController.text) ?? 0;
-    final tVal = double.tryParse(_topController.text) ?? 0;
-    final rVal = double.tryParse(_rightController.text) ?? 0;
-    final bVal = double.tryParse(_bottomController.text) ?? 0;
-
-    final bool areAllEqual = (lVal == tVal && lVal == rVal && lVal == bVal);
-
-    if (areAllEqual) {
-      return 'all:${_formatDouble(lVal)}';
-    } else {
-      return 'only:L${_formatDouble(lVal)}T${_formatDouble(tVal)}R${_formatDouble(rVal)}B${_formatDouble(bVal)}';
-    }
-  }
-
-  void _handleUpdate() {
-    if (_isProgrammaticUpdate) return;
-    widget.onUpdate?.call(_getCurrentValueAsString());
-  }
-
-  /// Commits the current state of the text fields to the parent widget,
-  /// which in turn records a single history entry.
-  void _commitChange() {
-    if (_isProgrammaticUpdate || !mounted) return;
-
-    final newValue = _getCurrentValueAsString();
-
-    if (newValue == _lastCommittedValue) return;
-
-    // Only call onCommit when the final value is submitted.
-    _lastCommittedValue = newValue;
-    widget.onCommit(newValue);
-  }
-
-  /// Updates the internal state of the L/T/R/B fields based on the "All" field.
-  /// This does NOT record history.
-  void _syncIndividualFieldsFromAll(String allText) {
-    if (_isProgrammaticUpdate) return;
-    if (allText == '--' || _validateNumericInput(allText, isAllField: true) != null) return;
-
-    final double valDouble = (allText.isEmpty) ? 0 : double.tryParse(allText) ?? 0;
-    final String valueToSet = _formatDouble(valDouble);
-
+  void _parseValueAndSetControllers(String value) {
     _isProgrammaticUpdate = true;
-    _updateControllerTextIfNeeded(_leftController, valueToSet);
-    _updateControllerTextIfNeeded(_topController, valueToSet);
-    _updateControllerTextIfNeeded(_rightController, valueToSet);
-    _updateControllerTextIfNeeded(_bottomController, valueToSet);
-    _isProgrammaticUpdate = false;
+    
+    // *** REUSE a central parser ***
+    final EdgeInsetsGeometry geometry = ParsingUtil.parseEdgeInsets(value);
 
-    _handleUpdate();
-  }
+    if (geometry is EdgeInsets) {
+      final String left = _formatDouble(geometry.left);
+      final String top = _formatDouble(geometry.top);
+      final String right = _formatDouble(geometry.right);
+      final String bottom = _formatDouble(geometry.bottom);
 
-  /// Updates the internal state of the "All" field based on the L/T/R/B fields.
-  /// This does NOT record history.
-  void _syncAllFieldFromIndividuals() {
-    if (_isProgrammaticUpdate) return;
-
-    final String lText = _leftController.text;
-    final String tText = _topController.text;
-    final String rText = _rightController.text;
-    final String bText = _bottomController.text;
-
-    if (_validateNumericInput(lText) != null ||
-        _validateNumericInput(tText) != null ||
-        _validateNumericInput(rText) != null ||
-        _validateNumericInput(bText) != null) {
-      _isProgrammaticUpdate = true;
-      _updateControllerTextIfNeeded(_allController, '--');
-      _isProgrammaticUpdate = false;
-      _handleUpdate();
-      return;
-    }
-
-    final double lVal = double.tryParse(lText) ?? 0;
-    final double tVal = double.tryParse(tText) ?? 0;
-    final double rVal = double.tryParse(rText) ?? 0;
-    final double bVal = double.tryParse(bText) ?? 0;
-
-    _isProgrammaticUpdate = true;
-    if (lVal == tVal && lVal == rVal && lVal == bVal) {
-      _updateControllerTextIfNeeded(_allController, _formatDouble(lVal));
-    } else {
-      _updateControllerTextIfNeeded(_allController, '--');
-    }
-    _isProgrammaticUpdate = false;
-    _handleUpdate();
-  }
-
-  // --- Helper Methods ---
-
-  void _parseValueAndSetControllers(String edgeInsetsStr) {
-    _isProgrammaticUpdate = true;
-    final normalized = edgeInsetsStr.toLowerCase().replaceAll(' ', '');
-
-    if (normalized.startsWith('all:')) {
-      final valStr = normalized.substring(4);
-      final valDouble = double.tryParse(valStr) ?? 0;
-      final formattedVal = _formatDouble(valDouble);
-      _updateControllerTextIfNeeded(_allController, formattedVal);
-      _updateControllerTextIfNeeded(_leftController, formattedVal);
-      _updateControllerTextIfNeeded(_topController, formattedVal);
-      _updateControllerTextIfNeeded(_rightController, formattedVal);
-      _updateControllerTextIfNeeded(_bottomController, formattedVal);
-    } else {
-      String toParse = normalized.startsWith('only:') ? normalized.substring(5) : normalized;
-      final l = double.tryParse(RegExp(r'l(-?[\d.]+)').firstMatch(toParse)?.group(1) ?? '0') ?? 0;
-      final t = double.tryParse(RegExp(r't(-?[\d.]+)').firstMatch(toParse)?.group(1) ?? '0') ?? 0;
-      final r = double.tryParse(RegExp(r'r(-?[\d.]+)').firstMatch(toParse)?.group(1) ?? '0') ?? 0;
-      final b = double.tryParse(RegExp(r'b(-?[\d.]+)').firstMatch(toParse)?.group(1) ?? '0') ?? 0;
-
-      _updateControllerTextIfNeeded(_leftController, _formatDouble(l));
-      _updateControllerTextIfNeeded(_topController, _formatDouble(t));
-      _updateControllerTextIfNeeded(_rightController, _formatDouble(r));
-      _updateControllerTextIfNeeded(_bottomController, _formatDouble(b));
-
-      if (l == t && l == r && l == b) {
-        _updateControllerTextIfNeeded(_allController, _formatDouble(l));
+      _updateControllerTextIfNeeded(_leftController, left);
+      _updateControllerTextIfNeeded(_topController, top);
+      _updateControllerTextIfNeeded(_rightController, right);
+      _updateControllerTextIfNeeded(_bottomController, bottom);
+      
+      if (geometry.left == geometry.top && geometry.left == geometry.right && geometry.left == geometry.bottom) {
+           _updateControllerTextIfNeeded(_allController, left);
       } else {
-        _updateControllerTextIfNeeded(_allController, '--');
+           _updateControllerTextIfNeeded(_allController, '--');
       }
+    } else {
+      // Fallback for unknown geometry types or parsing errors.
+      _updateControllerTextIfNeeded(_allController, '--');
+      _updateControllerTextIfNeeded(_leftController, '');
+      _updateControllerTextIfNeeded(_topController, '');
+      _updateControllerTextIfNeeded(_rightController, '');
+      _updateControllerTextIfNeeded(_bottomController, '');
+    }
+    
+    _isProgrammaticUpdate = false;
+  }
+
+  void _onAllFieldChanged() {
+    if (_isProgrammaticUpdate) return;
+    if (_allController.text == '--') return;
+    
+    _isProgrammaticUpdate = true;
+    final allValue = _allController.text;
+    _updateControllerTextIfNeeded(_leftController, allValue);
+    _updateControllerTextIfNeeded(_topController, allValue);
+    _updateControllerTextIfNeeded(_rightController, allValue);
+    _updateControllerTextIfNeeded(_bottomController, allValue);
+    _isProgrammaticUpdate = false;
+    _updateParentWidget();
+  }
+
+  void _onIndividualFieldChanged() {
+    if (_isProgrammaticUpdate) return;
+    
+    _isProgrammaticUpdate = true;
+    final left = _leftController.text;
+    final top = _topController.text;
+    final right = _rightController.text;
+    final bottom = _bottomController.text;
+
+    if (left == top && left == right && left == bottom && left.isNotEmpty) {
+      _updateControllerTextIfNeeded(_allController, left);
+    } else {
+      _updateControllerTextIfNeeded(_allController, '--');
     }
     _isProgrammaticUpdate = false;
+
+    _updateParentWidget();
+  }
+
+  void _updateParentWidget() {
+    final String newValue = _buildCurrentStringValue();
+    
+    if (widget.onUpdate != null) {
+      widget.onUpdate!(newValue);
+    }
+    _lastCommittedValue = newValue;
+  }
+  
+  void _onFocusLost() {
+    final finalValue = _buildCurrentStringValue();
+    if(finalValue != widget.value) {
+      widget.onCommit(finalValue);
+    }
+  }
+
+  String _buildCurrentStringValue() {
+    final left = _leftController.text;
+    final top = _topController.text;
+    final right = _rightController.text;
+    final bottom = _bottomController.text;
+    final all = _allController.text;
+
+    if (all.isNotEmpty && all != '--') {
+      final allParsed = double.tryParse(all) ?? 0;
+      return 'all:${_formatDouble(allParsed)}';
+    } 
+    
+    List<String> parts = [];
+    final lNum = double.tryParse(left);
+    final tNum = double.tryParse(top);
+    final rNum = double.tryParse(right);
+    final bNum = double.tryParse(bottom);
+
+    if(lNum != null && lNum != 0) parts.add('L${_formatDouble(lNum)}');
+    if(tNum != null && tNum != 0) parts.add('T${_formatDouble(tNum)}');
+    if(rNum != null && rNum != 0) parts.add('R${_formatDouble(rNum)}');
+    if(bNum != null && bNum != 0) parts.add('B${_formatDouble(bNum)}');
+      
+    if (parts.isEmpty) {
+      return 'all:0';
+    } else {
+      return 'only:${parts.join(',')}';
+    }
   }
 
   void _updateControllerTextIfNeeded(TextEditingController controller, String newText) {
@@ -238,15 +238,14 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
 
   // --- Widget Build ---
 
-  Widget _buildTextField(String label, TextEditingController controller, FocusNode focusNode, Function(String) onChanged) {
+  Widget _buildTextField(String label, TextEditingController controller, FocusNode focusNode) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4.0),
         child: TextFormField(
           controller: controller,
           focusNode: focusNode,
-          onChanged: onChanged,
-          onFieldSubmitted: (_) => _commitChange(),
+          onChanged: (_) => _onIndividualFieldChanged(),
           decoration: InputDecoration(
             labelText: label,
             isDense: true,
@@ -288,8 +287,7 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
                   child: TextFormField(
                     controller: _allController,
                     focusNode: _allFocus,
-                    onChanged: _syncIndividualFieldsFromAll,
-                    onFieldSubmitted: (_) => _commitChange(),
+                    onChanged: (_) => _onAllFieldChanged(),
                     decoration: InputDecoration(
                       isDense: true,
                       border: const OutlineInputBorder(),
@@ -314,10 +312,10 @@ class _EdgeInsetsFieldState extends State<EdgeInsetsField> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildTextField("L", _leftController, _leftFocus, (_) => _syncAllFieldFromIndividuals()),
-                _buildTextField("T", _topController, _topFocus, (_) => _syncAllFieldFromIndividuals()),
-                _buildTextField("R", _rightController, _rightFocus, (_) => _syncAllFieldFromIndividuals()),
-                _buildTextField("B", _bottomController, _bottomFocus, (_) => _syncAllFieldFromIndividuals()),
+                _buildTextField("L", _leftController, _leftFocus),
+                _buildTextField("T", _topController, _topFocus),
+                _buildTextField("R", _rightController, _rightFocus),
+                _buildTextField("B", _bottomController, _bottomFocus),
               ],
             ),
           ],
