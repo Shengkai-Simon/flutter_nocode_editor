@@ -37,11 +37,16 @@ class DndValidationService {
 
     // Rule 2: Check the dragged component's parent requirements.
     // Does the dragged component require a specific type of parent?
-    if (draggedRc.requiredParentTypes != null && draggedRc.requiredParentTypes!.isNotEmpty) {
+    if (draggedRc.allowedParentTypes != null && draggedRc.allowedParentTypes!.isNotEmpty) {
       // If so, is the target node's type in the allowed list?
-      if (!draggedRc.requiredParentTypes!.contains(targetNode.type)) {
+      if (!draggedRc.allowedParentTypes!.contains(targetNode.type)) {
         return false;
       }
+    }
+
+    // Rule 3: Check for disallowed parent types.
+    if (draggedRc.disallowedParentTypes != null && draggedRc.disallowedParentTypes!.contains(targetNode.type)) {
+      return false;
     }
 
     // If it's a drag from the tree (reordering), we would also check for self-nesting here.

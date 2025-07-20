@@ -39,7 +39,8 @@ class RegisteredComponent {
   final Map<String, dynamic> defaultProps;
   final ChildAcceptancePolicy childPolicy;
   final ComponentCategory category;
-  final List<String>? requiredParentTypes;
+  final List<String>? allowedParentTypes;
+  final List<String>? disallowedParentTypes;
 
   final Widget Function(WidgetNode node, WidgetRef ref, Widget Function(WidgetNode childNode) renderChild) builder;
 
@@ -52,6 +53,7 @@ class RegisteredComponent {
     required this.builder,
     required this.childPolicy,
     required this.category,
-    this.requiredParentTypes,
+    this.allowedParentTypes,
+    this.disallowedParentTypes,
   });
 }

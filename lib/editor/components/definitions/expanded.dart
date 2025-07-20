@@ -28,7 +28,7 @@ final RegisteredComponent expandedComponentDefinition = RegisteredComponent(
     ),
   ],
   childPolicy: ChildAcceptancePolicy.single,
-  requiredParentTypes: [ct.row, ct.column],
+  allowedParentTypes: [ct.row, ct.column],
   builder: (
       WidgetNode node,
       WidgetRef ref,

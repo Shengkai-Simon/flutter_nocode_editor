@@ -71,6 +71,7 @@ final RegisteredComponent dividerComponentDefinition = RegisteredComponent(
     ),
   ],
   childPolicy: ChildAcceptancePolicy.none,
+  disallowedParentTypes: [ct.row],
   builder: (
       WidgetNode node,
       WidgetRef ref,

@@ -122,8 +122,12 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
   /// Replaces the entire current project state with a new one.
   /// This is used when loading a project from a file or restoring history.
   /// It does NOT record history itself.
-  void loadProject(ProjectState newProjectState) {
+  void _updateStateWithoutRecording(ProjectState newProjectState) {
     state = newProjectState;
+  }
+
+  void loadProject(ProjectState newProjectState) {
+    _updateStateWithoutRecording(newProjectState);
     // When a full project is loaded, reset the history to this new state as the starting point.
     ref.read(historyManagerProvider.notifier).resetAndInitialize(newProjectState);
   }
@@ -447,7 +451,7 @@ class HistoryManager extends StateNotifier<HistoryInfoState> {
     final selectedIdBeforeRestore = _ref.read(selectedNodeIdProvider);
 
     // Load the new state. This will update projectStateProvider and trigger UI rebuilds.
-    _ref.read(projectStateProvider.notifier).loadProject(historicState);
+    _ref.read(projectStateProvider.notifier)._updateStateWithoutRecording(historicState);
 
     // After loading, check if the previously selected node still exists.
     if (selectedIdBeforeRestore != null) {

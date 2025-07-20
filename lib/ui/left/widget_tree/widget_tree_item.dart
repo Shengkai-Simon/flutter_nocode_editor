@@ -61,10 +61,18 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
   }
 
   bool _canAcceptAsChild(WidgetNode draggedNodeData) {
-    // Verify that the dragged component accepts the current node as its parent
     final draggedRc = registeredComponents[draggedNodeData.type];
-    if (draggedRc?.requiredParentTypes != null &&
-        !draggedRc!.requiredParentTypes!.contains(widget.node.type)) {
+    if (draggedRc == null) return false;
+
+    // Rule: Check allowed parents
+    if (draggedRc.allowedParentTypes != null &&
+        !draggedRc.allowedParentTypes!.contains(widget.node.type)) {
+      return false;
+    }
+
+    // Rule: Check disallowed parents
+    if (draggedRc.disallowedParentTypes != null &&
+        draggedRc.disallowedParentTypes!.contains(widget.node.type)) {
       return false;
     }
 
@@ -84,8 +92,17 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
 
     // Verify that the dragged component accepts a future parent
     final draggedRc = registeredComponents[draggedNodeData.type];
-    if (draggedRc?.requiredParentTypes != null &&
-        !draggedRc!.requiredParentTypes!.contains(parentOfCurrentNode.type)) {
+    if (draggedRc == null) return false;
+
+    // Rule: Check allowed parents
+    if (draggedRc.allowedParentTypes != null &&
+        !draggedRc.allowedParentTypes!.contains(parentOfCurrentNode.type)) {
+      return false;
+    }
+
+    // Rule: Check disallowed parents
+    if (draggedRc.disallowedParentTypes != null &&
+        draggedRc.disallowedParentTypes!.contains(parentOfCurrentNode.type)) {
       return false;
     }
 
