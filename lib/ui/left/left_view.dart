@@ -1,0 +1,147 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../editor/components/core/component_registry.dart';
+import '../../editor/components/core/component_definition.dart';
+import '../../state/editor_state.dart';
+import 'palette_component_item.dart';
+import 'widget_tree/widget_tree_view.dart';
+
+class LeftView extends ConsumerWidget {
+  const LeftView({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(leftPanelModeProvider);
+    final theme = Theme.of(context);
+
+    String title;
+    Widget content;
+
+    switch (mode) {
+      case LeftPanelMode.addWidgets:
+        title = 'Add Components';
+        content = _buildAddComponentSection(context, ref);
+        break;
+      case LeftPanelMode.widgetTree:
+        title = 'Widget Tree';
+        content = const WidgetTreeView();
+        break;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 48,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                title,
+                style: theme.textTheme.titleMedium,
+              ),
+            ),
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(child: content),
+      ],
+    );
+  }
+
+  String _getCategoryDisplayName(ComponentCategory category) {
+    switch (category) {
+      case ComponentCategory.multiChildLayout: return 'Multi-Subcomponent';
+      case ComponentCategory.singleChildLayout: return 'Single Subcomponent';
+      case ComponentCategory.flexChild: return 'Flex Subassembly';
+      case ComponentCategory.content: return 'Content display';
+      case ComponentCategory.input: return 'Input & Actions';
+    }
+  }
+
+  Widget _buildAddComponentSection(BuildContext context, WidgetRef ref) {
+    final allComponents = registeredComponents.values.toList();
+    final theme = Theme.of(context);
+
+    final Map<ComponentCategory, List<RegisteredComponent>> categorizedComponents = {};
+    for (var component in allComponents) {
+      (categorizedComponents[component.category] ??= []).add(component);
+    }
+
+    // Defines the display order of component categories in the panel.
+    final List<ComponentCategory> categoryOrder = [
+      ComponentCategory.multiChildLayout,
+      ComponentCategory.singleChildLayout,
+      ComponentCategory.flexChild,
+      ComponentCategory.content,
+      ComponentCategory.input,
+    ];
+
+    List<Widget> sectionWidgets = [];
+    for (var category in categoryOrder) {
+      final componentsInCategory = categorizedComponents[category];
+      if (componentsInCategory != null && componentsInCategory.isNotEmpty) {
+        sectionWidgets.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0, left: 12.0, right: 12.0, bottom: 8.0),
+            child: Text(
+              _getCategoryDisplayName(category),
+              style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary),
+            ),
+          ),
+        );
+        sectionWidgets.add(
+          GridView.count(
+            crossAxisCount: 3,
+            childAspectRatio: 1.0,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: componentsInCategory.map((rc) {
+              return Draggable<String>(
+                data: rc.type,
+                // Set the interaction mode to dragging when drag starts.
+                onDragStarted: () {
+                  ref.read(interactionModeProvider.notifier).state = InteractionMode.dragging;
+                },
+                // Reset the interaction mode when drag ends.
+                onDragEnd: (_) {
+                  ref.read(interactionModeProvider.notifier).state = InteractionMode.normal;
+                },
+                feedback: Material(
+                  elevation: 4.0,
+                  color: Colors.transparent,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(rc.icon ?? Icons.extension, size: 20, color: Theme.of(context).colorScheme.onSecondaryContainer),
+                        const SizedBox(width: 8),
+                        Text(rc.displayName, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSecondaryContainer)),
+                      ],
+                    ),
+                  ),
+                ),
+                childWhenDragging: Opacity(opacity: 0.4, child: PaletteComponentItem(rc: rc, theme: theme)),
+                child: PaletteComponentItem(rc: rc, theme: theme),
+              );
+            }).toList(),
+          ),
+        );
+      }
+    }
+    return ListView(
+      padding: const EdgeInsets.only(top: 8, bottom: 12.0),
+      children: sectionWidgets,
+    );
+  }
+}

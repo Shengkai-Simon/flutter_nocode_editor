@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="flutter_editor">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Flutter Visual Editor</title>
+  <link rel="manifest" href="manifest.json">
+
+  <base href="$FLUTTER_BASE_HREF">
+
+  <!-- style -->
+  <style>
+    body {
+      background-color: #F5F5F5;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    }
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+      top: 0;
+      left: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border-left-color: #4A148C;
+      animation: spin 1s ease-in-out infinite;
+    }
+    .progress-bar-container {
+      width: 200px;
+      height: 8px;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background-color: #4A148C;
+      transition: width 0.2s linear;
+    }
+    .progress-text {
+      margin-top: 12px;
+      color: #616161;
+      font-size: 18px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+
+  <script src="flutter.js" defer></script>
+</head>
+<body>
+<!-- HTML：Add a progress bar and percentage text element -->
+<div id="loading_indicator" class="loading-container">
+  <div class="spinner"></div>
+  <div class="progress-bar-container">
+    <div id="progress_bar" class="progress-bar"></div>
+  </div>
+  <p id="progress_text" class="progress-text">Resources are being prepared...</p>
+</div>
+
+<!-- JavaScript: Implement progress updates and "pseudo-progress" logic -->
+<script>
+  window.addEventListener('load', function(ev) {
+    const loadingIndicator = document.getElementById("loading_indicator");
+    const progressBar = document.getElementById("progress_bar");
+    const progressText = document.getElementById("progress_text");
+
+    // Define the weight of the download phase in the total progress (e.g., 70%)
+    const downloadWeight = 0.7;
+    let currentProgress = 0;
+    let initializationInterval;
+
+    _flutter.loader.loadEntrypoint({
+      onProgress: function(event) {
+        if (event.total) {
+          // Calculate and update the download progress
+          const downloadProgress = event.loaded / event.total;
+          currentProgress = downloadProgress * downloadWeight;
+          const percentage = Math.floor(currentProgress * 100);
+
+          progressBar.style.width = percentage + "%";
+          progressText.innerText = "Downloading resources..." + percentage + "%";
+        }
+      },
+      onEntrypointLoaded: function(engineInitializer) {
+        // The download is complete and the progress is at least 70%
+        progressBar.style.width = (downloadWeight * 100) + "%";
+
+        // Start simulating the pseudo-progress of Engine Initialization
+        progressText.innerText = "Initializing engine...";
+        let simulatedProgress = downloadWeight;
+
+        initializationInterval = setInterval(function() {
+          // Slowly increases progress, but less than 100%
+          if (simulatedProgress < 0.95) {
+            simulatedProgress += 0.01;
+            progressBar.style.width = (simulatedProgress * 100) + "%";
+          }
+        }, 100);
+
+        engineInitializer.initializeEngine().then(function(appRunner) {
+          // Flutter is ready, complete the progress bar and start fading out
+          clearInterval(initializationInterval);
+          progressBar.style.width = "100%";
+          progressText.innerText = "The app is ready!";
+
+          setTimeout(function() {
+            if (loadingIndicator) {
+              loadingIndicator.style.opacity = '0';
+              // Remove DOM elements after the fade-out animation ends
+              setTimeout(function() { loadingIndicator.remove(); }, 500);
+            }
+          }, 300); // Hold for a moment after 100% completion, then fade out
+
+          // Launch the Flutter app
+          appRunner.runApp();
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>
