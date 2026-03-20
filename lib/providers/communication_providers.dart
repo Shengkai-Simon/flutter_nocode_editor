@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_constants.dart';
 import '../editor/components/core/widget_node.dart';
 import '../services/iframe_communication_service.dart';
 import '../services/issue_reporter_service.dart';
 import '../state/editor_state.dart';
+
 
 /// Provider that creates and manages the singleton instance of IframeCommunicationService.
 final iframeCommunicationServiceProvider = Provider<IframeCommunicationService>((ref) {
@@ -79,6 +83,28 @@ final iframeMessageCoordinatorProvider = Provider<void>((ref) {
   });
 
   ref.onDispose(() => sub.cancel());
+});
+
+/// Notifies React of project state changes via postMessage.
+/// Flutter's only job: debounce rapid changes, then send the latest state.
+/// React is responsible for all HTTP saves (it owns the auth session).
+final autoSaveCoordinatorProvider = Provider<void>((ref) {
+  bool skipFirst = true;
+  Timer? debounceTimer;
+
+  ref.listen<ProjectState>(projectStateProvider, (_, next) {
+    if (skipFirst) {
+      skipFirst = false;
+      return;
+    }
+    debounceTimer?.cancel();
+    debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      final json = jsonEncode({'version': 1, 'project': next.toJson()});
+      ref.read(iframeCommunicationServiceProvider).sendProjectUpdate(json);
+    });
+  });
+
+  ref.onDispose(() => debounceTimer?.cancel());
 });
 
 // 1. A new helper function has been added for deep conversion Map
