@@ -9,14 +9,6 @@ import '../../../editor/components/core/widget_node_utils.dart';
 import '../../../state/editor_state.dart';
 import 'tree_line_painter.dart';
 
-// Define the drag intent
-enum _DropIntent {
-  none,
-  insertBefore,  // Insert as a brother
-  addAsChild,    // As a child node
-  insertAfter,   // Insert as a brother
-}
-
 class WidgetTreeItem extends ConsumerStatefulWidget {
   final WidgetNode node;
   final int depth;
@@ -38,7 +30,7 @@ class WidgetTreeItem extends ConsumerStatefulWidget {
 }
 
 class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
-  _DropIntent _dropIntent = _DropIntent.none;
+  bool _isDragOver = false;
   bool _isValidIntent = false;
 
   static const double _treeItemHeight = 40.0;
@@ -50,17 +42,24 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
   }
 
   void _resetDragState() {
-    if (_dropIntent != _DropIntent.none || _isValidIntent) {
+    if (_isDragOver || _isValidIntent) {
       if(mounted){
         setState(() {
-          _dropIntent = _DropIntent.none;
+          _isDragOver = false;
           _isValidIntent = false;
         });
       }
     }
   }
 
-  bool _canAcceptAsChild(WidgetNode draggedNodeData) {
+  bool _canAcceptAsChild(String draggedNodeId) {
+    if (isAncestor(widget.overallRootNode, draggedNodeId, widget.node.id) || draggedNodeId == widget.node.id) {
+      return false;
+    }
+
+    final WidgetNode? draggedNodeData = findNodeById(widget.overallRootNode, draggedNodeId);
+    if (draggedNodeData == null) return false;
+
     final draggedRc = registeredComponents[draggedNodeData.type];
     if (draggedRc == null) return false;
 
@@ -84,46 +83,6 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
       return widget.node.children.length == 1 && widget.node.children.first.id == draggedNodeData.id;
     }
     return true;
-  }
-
-  bool _canAcceptAsSibling(WidgetNode draggedNodeData) {
-    final parentOfCurrentNode = findParentNode(widget.overallRootNode, widget.node.id);
-    if (parentOfCurrentNode == null) return false;
-
-    // Verify that the dragged component accepts a future parent
-    final draggedRc = registeredComponents[draggedNodeData.type];
-    if (draggedRc == null) return false;
-
-    // Rule: Check allowed parents
-    if (draggedRc.allowedParentTypes != null &&
-        !draggedRc.allowedParentTypes!.contains(parentOfCurrentNode.type)) {
-      return false;
-    }
-
-    // Rule: Check disallowed parents
-    if (draggedRc.disallowedParentTypes != null &&
-        draggedRc.disallowedParentTypes!.contains(parentOfCurrentNode.type)) {
-      return false;
-    }
-
-    // Verify that the future parent accepts the new child
-    final parentRc = registeredComponents[parentOfCurrentNode.type];
-    if (parentRc == null) return false;
-    if (parentRc.childPolicy == ChildAcceptancePolicy.none) return false;
-    if (parentRc.childPolicy == ChildAcceptancePolicy.single) {
-      return parentOfCurrentNode.children.isEmpty || (parentOfCurrentNode.children.length == 1 && parentOfCurrentNode.children.first.id == draggedNodeData.id);
-    }
-    return true;
-  }
-
-  _DropIntent _getIntentFromOffset(Offset localPosition, Size size) {
-    if (localPosition.dy < size.height * 0.25) {
-      return _DropIntent.insertBefore;
-    } else if (localPosition.dy > size.height * 0.75) {
-      return _DropIntent.insertAfter;
-    } else {
-      return _DropIntent.addAsChild;
-    }
   }
 
   Widget _buildItemContentRow(BuildContext context,
@@ -184,15 +143,16 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
       RegisteredComponent? rc,
       IconData iconData,
       String displayName,
+      bool isDraggingActive,
       ) {
     final selectedNodeNotifier = ref.read(selectedNodeIdProvider.notifier);
     Widget tappableItem = Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
+        onTap: isDraggingActive ? null : () {
           selectedNodeNotifier.state = widget.node.id;
           ref.read(hoveredNodeIdProvider.notifier).state = null;
-          _resetDragState();
+          // No need to call _resetDragState, as it's for drop-target states.
         },
         child: Container(
           height: _treeItemHeight,
@@ -243,6 +203,9 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
 
   @override
   Widget build(BuildContext context) {
+    final interactionMode = ref.watch(interactionModeProvider);
+    final bool isDraggingActive = interactionMode == InteractionMode.dragging;
+
     final String? selectedNodeId = ref.watch(selectedNodeIdProvider);
     final String? currentHoveredIdByCanvas = ref.watch(hoveredNodeIdProvider);
     final String? currentlyDraggedNodeId = ref.watch(currentlyDraggedNodeIdProvider);
@@ -252,7 +215,7 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
     final IconData iconData = rc?.icon ?? Icons.device_unknown;
 
     final bool isActuallySelected = widget.node.id == selectedNodeId;
-    final bool isTreeItemDirectlyHovered = currentHoveredIdByCanvas == widget.node.id && !isActuallySelected && _dropIntent == _DropIntent.none;
+    final bool isTreeItemDirectlyHovered = !isDraggingActive && currentHoveredIdByCanvas == widget.node.id;
 
     final Color itemIconColor = isActuallySelected ? Theme.of(context).colorScheme.primary : (isTreeItemDirectlyHovered ? kRendererHoverBorderColor : Theme.of(context).iconTheme.color?.withOpacity(0.7) ?? Colors.grey);
     final Color itemTextColor = isActuallySelected ? Theme.of(context).colorScheme.primary : (isTreeItemDirectlyHovered ? kRendererHoverBorderColor : Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black);
@@ -267,113 +230,34 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
     final double treeLinesPainterAreaWidth = widget.depth * TreeLinePainter.indentWidth;
 
     final Widget itemContent = _buildItemContentRow(context, ref, iconData, displayName, itemIconColor, itemTextColor, itemFontWeight, hasChildren, isEffectivelyExpanded);
-    final Widget tappableAndDraggableItem = _buildTappableAndDraggableItem(context, ref, itemContent, rc, iconData, displayName);
+    final Widget tappableAndDraggableItem = _buildTappableAndDraggableItem(context, ref, itemContent, rc, iconData, displayName, isDraggingActive);
 
     return DragTarget<String>(
       onMove: (details) {
-        if (!mounted) return;
-        final draggedNodeId = details.data;
-        if (draggedNodeId == widget.node.id || isAncestor(widget.overallRootNode, draggedNodeId, widget.node.id)) {
-          _resetDragState();
-          return;
-        }
-
-        final WidgetNode? draggedNodeInstance = findNodeById(widget.overallRootNode, draggedNodeId);
-        if (draggedNodeInstance == null) {
-          _resetDragState();
-          return;
-        }
-
-        final renderBox = context.findRenderObject() as RenderBox;
-        final newIntent = _getIntentFromOffset(renderBox.globalToLocal(details.offset), renderBox.size);
-
-        bool isIntentValid;
-        switch (newIntent) {
-          case _DropIntent.addAsChild:
-            isIntentValid = _canAcceptAsChild(draggedNodeInstance);
-            break;
-          case _DropIntent.insertBefore:
-          case _DropIntent.insertAfter:
-            isIntentValid = _canAcceptAsSibling(draggedNodeInstance);
-            break;
-          case _DropIntent.none:
-            isIntentValid = false;
-            break;
-        }
-
-        if (newIntent != _dropIntent || isIntentValid != _isValidIntent) {
+        if (!mounted || !isDraggingActive) return;
+        final canAccept = _canAcceptAsChild(details.data);
+        if (canAccept != _isValidIntent || !_isDragOver) {
           setState(() {
-            _dropIntent = newIntent;
-            _isValidIntent = isIntentValid;
+            _isDragOver = true;
+            _isValidIntent = canAccept;
           });
         }
       },
       onWillAcceptWithDetails: (details) {
-        // This callback is the authoritative gatekeeper.
-        // It performs its own validation, ignoring the widget's state,
-        // to avoid any race conditions with setState.
-        final draggedNodeId = details.data;
-        if (draggedNodeId == widget.node.id || isAncestor(widget.overallRootNode, draggedNodeId, widget.node.id)) {
-          return false;
+        if (!isDraggingActive) return false;
+        final isValid = _canAcceptAsChild(details.data);
+        if (!isValid && _isValidIntent) {
+          // If it was valid, but now it's not, reset state
+          Future.microtask(_resetDragState);
         }
-
-        final WidgetNode? draggedNodeInstance = findNodeById(widget.overallRootNode, draggedNodeId);
-        if (draggedNodeInstance == null) {
-          return false;
-        }
-
-        final renderBox = context.findRenderObject() as RenderBox;
-        final intent = _getIntentFromOffset(renderBox.globalToLocal(details.offset), renderBox.size);
-
-        switch (intent) {
-          case _DropIntent.addAsChild:
-            return _canAcceptAsChild(draggedNodeInstance);
-          case _DropIntent.insertBefore:
-          case _DropIntent.insertAfter:
-            return _canAcceptAsSibling(draggedNodeInstance);
-          case _DropIntent.none:
-          default:
-            return false;
-        }
+        return isValid;
       },
-      onAcceptWithDetails: (details) {
-        final String draggedNodeId = details.data;
-        final WidgetNode? nodeToMoveOriginal = findNodeById(widget.overallRootNode, draggedNodeId);
-        if (nodeToMoveOriginal == null) {
-          _resetDragState();
-          return;
-        }
-
-        final WidgetNode nodeToMove = deepCopyNode(nodeToMoveOriginal);
-        WidgetNode currentTree = ref.read(activeCanvasTreeProvider);
-        WidgetNode treeAfterRemoval = removeNodeById(currentTree, draggedNodeId);
-        WidgetNode? finalTree;
-        bool actionTaken = false;
-
-        // The final action is based on the state set by the last onMove event.
-        switch (_dropIntent) {
-          case _DropIntent.addAsChild:
-          // When re-parenting from the tree, insert at the start.
-            finalTree = addNodeAsChildRecursive(treeAfterRemoval, widget.node.id, nodeToMove, insertAtStart: true);
-            actionTaken = true;
-            break;
-          case _DropIntent.insertBefore:
-            finalTree = insertNodeAsSiblingRecursive(treeAfterRemoval, widget.node.id, nodeToMove, after: false);
-            actionTaken = true;
-            break;
-          case _DropIntent.insertAfter:
-            finalTree = insertNodeAsSiblingRecursive(treeAfterRemoval, widget.node.id, nodeToMove, after: true);
-            actionTaken = true;
-            break;
-          case _DropIntent.none:
-            break;
-        }
-
-        if (actionTaken && finalTree != null) {
-          ref.read(projectStateProvider.notifier).updateActivePageTree(finalTree);
-          ref.read(selectedNodeIdProvider.notifier).state = nodeToMove.id;
-          ref.read(hoveredNodeIdProvider.notifier).state = null;
-        }
+      onAccept: (draggedNodeId) {
+        ref.read(projectStateProvider.notifier).moveNode(
+          draggedNodeId: draggedNodeId,
+          newParentId: widget.node.id,
+          newIndex: 0, // When adding as a child, it's added to the end. The notifier handles the exact index.
+        );
         _resetDragState();
       },
       onLeave: (data) {
@@ -383,36 +267,19 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
 
         Color? bgColor;
         Border? border;
-        Widget? overlayLine;
 
-        final bool isDraggingOver = candidateData.isNotEmpty || rejectedDataList.isNotEmpty;
-
-        if (isDraggingOver) {
+        if (isDraggingActive && _isDragOver) {
           if (_isValidIntent) {
-            // Valid drop state
-            switch (_dropIntent) {
-              case _DropIntent.insertBefore:
-                overlayLine = Align(alignment: Alignment.topCenter, child: Container(height: 2.5, color: Colors.greenAccent.shade400));
-                break;
-              case _DropIntent.insertAfter:
-                overlayLine = Align(alignment: Alignment.bottomCenter, child: Container(height: 2.5, color: Colors.greenAccent.shade400));
-                break;
-              case _DropIntent.addAsChild:
                 bgColor = Colors.green.withOpacity(0.1);
                 border = Border.all(color: Colors.greenAccent.shade400, width: 1.5);
-                break;
-              case _DropIntent.none:
-                break;
-            }
           } else {
-            // Invalid drop state
-            border = Border.all(color: Colors.redAccent.shade400, width: 1.5);
             bgColor = Colors.red.withOpacity(0.08);
+            border = Border.all(color: Colors.redAccent.shade400, width: 1.5);
           }
         }
 
         // Apply default selection/hover styles if not dragging
-        if (!isDraggingOver) {
+        if (!isDraggingActive) {
           if (isActuallySelected) {
             bgColor = Theme.of(context).colorScheme.primary.withOpacity(0.12);
           } else if (isTreeItemDirectlyHovered) {
@@ -421,13 +288,12 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
         }
 
         return MouseRegion(
-          onEnter: (_) { if (_dropIntent == _DropIntent.none) ref.read(hoveredNodeIdProvider.notifier).state = widget.node.id; },
-          onExit: (_) { if (ref.read(hoveredNodeIdProvider) == widget.node.id) ref.read(hoveredNodeIdProvider.notifier).state = null; },
+          onEnter: isDraggingActive ? null : (_) { ref.read(hoveredNodeIdProvider.notifier).state = widget.node.id; },
+          onExit: isDraggingActive ? null : (_) { if (ref.read(hoveredNodeIdProvider) == widget.node.id) ref.read(hoveredNodeIdProvider.notifier).state = null; },
           cursor: SystemMouseCursors.click,
           child: SizedBox(
-            height: _treeItemHeight + 3,
+            height: _treeItemHeight, // Use exact height
             child: Stack(
-              clipBehavior: Clip.none,
               children: [
                 Positioned.fill(
                   child: Row(
@@ -460,7 +326,6 @@ class _WidgetTreeItemState extends ConsumerState<WidgetTreeItem> {
                     ],
                   ),
                 ),
-                if (overlayLine != null) Positioned.fill(left: treeLinesPainterAreaWidth, child: overlayLine),
               ],
             ),
           ),

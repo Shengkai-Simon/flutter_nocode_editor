@@ -183,6 +183,25 @@ WidgetNode insertNodeAsSiblingRecursive(WidgetNode root, String targetSiblingId,
 }
 
 
+/// Adds a node to a specific parent at a given index.
+WidgetNode? addNodeToParentAtIndex(WidgetNode root, String parentId, WidgetNode nodeToAdd, int index) {
+  final parentNode = findNodeById(root, parentId);
+  if (parentNode == null) {
+    return root; // Parent not found, return original tree
+  }
+
+  List<WidgetNode> newChildren = List.from(parentNode.children);
+  if (index < 0 || index > newChildren.length) {
+    newChildren.add(nodeToAdd);
+  } else {
+    newChildren.insert(index, nodeToAdd);
+  }
+
+  final updatedParent = parentNode.copyWith(children: newChildren);
+  return replaceNodeInTree(root, updatedParent);
+}
+
+
 /// Checks if a node (potentialAncestorId) is an ancestor of another node (nodeId).
 bool isAncestor(WidgetNode? root, String potentialAncestorId, String nodeId) {
   if (root == null) return false;

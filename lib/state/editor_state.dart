@@ -251,6 +251,56 @@ class ProjectNotifier extends StateNotifier<ProjectState> {
     ref.read(historyManagerProvider.notifier).recordState(state);
   }
 
+  /// Moves a widget node to a new parent at a specific index.
+  void moveNode({
+    required String draggedNodeId,
+    required String newParentId,
+    required int newIndex,
+  }) {
+    final activePage = state.activePage;
+    final WidgetNode? nodeToMoveOriginal = findNodeById(activePage.tree, draggedNodeId);
+
+    if (nodeToMoveOriginal == null) {
+      IssueReporterService().reportError("Drag-and-drop failed: Could not find the node to move.");
+      return;
+    }
+
+    final originalParent = findParentNode(activePage.tree, draggedNodeId);
+    if (originalParent == null) {
+      IssueReporterService().reportError("Drag-and-drop failed: Could not find the original parent of the node.");
+      return;
+    }
+
+    int adjustedIndex = newIndex;
+    // If moving within the same parent to a later position, the index needs adjustment
+    // because the item is first removed, shifting subsequent indices down by one.
+    if (originalParent.id == newParentId) {
+      final originalIndex = originalParent.children.indexWhere((c) => c.id == draggedNodeId);
+      if (originalIndex != -1 && originalIndex < newIndex) {
+        adjustedIndex--;
+      }
+    }
+    
+    final WidgetNode nodeToMove = deepCopyNode(nodeToMoveOriginal);
+    
+    // 1. Remove the node from its original position.
+    final treeAfterRemoval = removeNodeById(activePage.tree, draggedNodeId);
+
+    // 2. Add the node to its new parent at the specified index.
+    final finalTree = addNodeToParentAtIndex(treeAfterRemoval, newParentId, nodeToMove, adjustedIndex);
+
+    if (finalTree != null) {
+      updateActivePageTree(finalTree);
+      // After moving, select the moved node to provide clear feedback.
+      ref.read(selectedNodeIdProvider.notifier).state = nodeToMove.id;
+      ref.read(hoveredNodeIdProvider.notifier).state = null;
+    } else {
+      IssueReporterService().reportError("Drag-and-drop failed: Could not place the node in its new parent.");
+      // If the move fails, we should ideally revert to the original state,
+      // but since updateActivePageTree wasn't called, the state is still unchanged.
+    }
+  }
+
   /// Set up the project's splash page.
   void setInitialPage(String pageId) {
     if (state.pages.any((p) => p.id == pageId)) {
