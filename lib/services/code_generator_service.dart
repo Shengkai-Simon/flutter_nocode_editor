@@ -15,6 +15,11 @@ class CodeGeneratorService {
 
   CodeGeneratorService(this._registeredComponents);
 
+  String _sanitizeNameForIdentifier(String name) {
+    // Remove characters that are not alphanumeric, underscore, or whitespace.
+    return name.replaceAll(RegExp(r'[^\w\s]'), '');
+  }
+
   /// Generate all Dart files for the entire project.
   /// Returns a map where key is the file name and value is the file content.
   Map<String, String> generateProjectCode(ProjectState project) {
@@ -22,8 +27,9 @@ class CodeGeneratorService {
 
     // 1. Generate a separate file for each page
     for (final page in project.pages) {
-      final pageClassName = toUpperCamelCase(page.name);
-      final pageFileName = '${toSnakeCase(page.name)}.dart';
+      final safePageName = _sanitizeNameForIdentifier(page.name);
+      final pageClassName = toUpperCamelCase(safePageName);
+      final pageFileName = '${toSnakeCase(safePageName)}.dart';
       final pageCode = _generatePageCode(page.tree, pageClassName);
       generatedFiles[pageFileName] = pageCode;
     }
@@ -33,8 +39,9 @@ class CodeGeneratorService {
             (p) => p.id == project.initialPageId, // FIX: Should use initialPageId not activePageId for main.dart
         orElse: () => project.pages.first
     );
-    final initialPageClassName = toUpperCamelCase(initialPage.name);
-    final initialPageFileName = toSnakeCase(initialPage.name);
+    final safeInitialPageName = _sanitizeNameForIdentifier(initialPage.name);
+    final initialPageClassName = toUpperCamelCase(safeInitialPageName);
+    final initialPageFileName = toSnakeCase(safeInitialPageName);
 
     final mainCode = _generateMainDartCode(
         initialPageClassName, initialPageFileName);
@@ -45,7 +52,8 @@ class CodeGeneratorService {
 
   /// Generate Dart code strings for individual pages。
   String generateSinglePageFile(PageNode page) {
-    final pageClassName = toUpperCamelCase(page.name);
+    final safePageName = _sanitizeNameForIdentifier(page.name);
+    final pageClassName = toUpperCamelCase(safePageName);
     // We simply reuse existing proprietary methods
     return _generatePageCode(page.tree, pageClassName);
   }
