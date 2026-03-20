@@ -40,6 +40,8 @@ class AppLoader extends ConsumerWidget {
 
     // As soon as the provider is listened to, it will be activated and start processing messages
     ref.watch(iframeMessageCoordinatorProvider);
+    // Activate auto-save: debounces state changes and sends to React shell for persistence
+    ref.watch(autoSaveCoordinatorProvider);
 
     final communicationService = ref.watch(iframeCommunicationServiceProvider);
     // Directly read the project ID from the browser's URL at startup.
