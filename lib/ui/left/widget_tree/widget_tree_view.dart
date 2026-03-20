@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_editor/ui/left/widget_tree/gap_drop_target.dart';
 import 'package:flutter_editor/ui/left/widget_tree/widget_tree_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,72 +12,94 @@ class WidgetTreeView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final WidgetNode rootCanvasNode = ref.watch(activeCanvasTreeProvider);
-    final Set<String> expandedIds = ref.watch(expandedNodeIdsProvider);
-    // Listen for the temporary collapse state
-    final Set<String> temporarilyCollapsedIds = ref.watch(temporarilyCollapsedNodeIdsProvider);
-    final String? currentlyDraggedNodeId = ref.watch(currentlyDraggedNodeIdProvider);
+    final interactionMode = ref.watch(interactionModeProvider);
+    final bool isDragging = interactionMode == InteractionMode.dragging;
 
-    List<Widget> buildTreeWidgetsRecursive(
-        WidgetNode node,
-        int depth,
-        WidgetNode overallRoot,
-        List<bool> ancestorIsLastList,
-        bool isThisNodeTheLastChild,
-        ) {
+    // This is the main recursive function to build the tree
+    List<Widget> buildTreeNodes(
+      WidgetNode parentNode,
+      int depth,
+      WidgetNode overallRoot,
+      List<bool> ancestorIsLastList,
+    ) {
+      final Set<String> expandedIds = ref.watch(expandedNodeIdsProvider);
+      final String? currentlyDraggedNodeId = ref.watch(currentlyDraggedNodeIdProvider);
+      
       List<Widget> widgets = [];
-      widgets.add(
-        WidgetTreeItem(
-          key: ValueKey(node.id),
-          node: node,
-          depth: depth,
+
+      // If dragging, add a drop target at the start of the children list
+      if (isDragging) {
+        widgets.add(GapDropTarget(
+          parentNode: parentNode,
+          targetIndex: 0,
           overallRootNode: overallRoot,
-          isLastChild: isThisNodeTheLastChild,
+          depth: depth,
+          isLastInSiblings: parentNode.children.isEmpty,
           ancestorIsLastList: ancestorIsLastList,
-        ),
-      );
+        ));
+      }
 
-      // Depending on the global expansion state and the temporary collapse state, the child node is rendered or not
-      final bool isGloballyExpanded = expandedIds.contains(node.id);
-      final bool isTemporarilyCollapsed = temporarilyCollapsedIds.contains(node.id);
-      final bool isBeingDragged = node.id == currentlyDraggedNodeId;
+      for (int i = 0; i < parentNode.children.length; i++) {
+        final child = parentNode.children[i];
+        final bool isLast = i == parentNode.children.length - 1;
 
-      if (node.children.isNotEmpty && isGloballyExpanded && !isTemporarilyCollapsed && !isBeingDragged) {
-        for (int i = 0; i < node.children.length; i++) {
-          final child = node.children[i];
-          final bool isChildLastInSiblings = i == node.children.length - 1;
-          List<bool> nextAncestorIsLastList = List.from(ancestorIsLastList);
-          nextAncestorIsLastList.add(isThisNodeTheLastChild);
-          widgets.addAll(buildTreeWidgetsRecursive(
-            child,
-            depth + 1,
-            overallRoot,
-            nextAncestorIsLastList,
-            isChildLastInSiblings,
+        widgets.add(
+          WidgetTreeItem(
+            key: ValueKey(child.id),
+            node: child,
+            depth: depth,
+            overallRootNode: overallRoot,
+            isLastChild: isLast,
+            ancestorIsLastList: ancestorIsLastList,
+          ),
+        );
+
+        final bool isExpanded = expandedIds.contains(child.id);
+        final bool isBeingDragged = currentlyDraggedNodeId == child.id;
+
+        if (isExpanded && !isBeingDragged) {
+          // If the child is expanded, recursively build its subtree
+          List<bool> nextAncestorIsLastList = List.from(ancestorIsLastList)..add(isLast);
+          widgets.addAll(buildTreeNodes(child, depth + 1, overallRoot, nextAncestorIsLastList));
+        }
+
+        // Always add a gap target after each item if dragging
+        if (isDragging) {
+          widgets.add(GapDropTarget(
+            parentNode: parentNode,
+            targetIndex: i + 1,
+            overallRootNode: overallRoot,
+            depth: depth,
+            isLastInSiblings: isLast,
+            ancestorIsLastList: ancestorIsLastList,
           ));
         }
       }
       return widgets;
     }
 
-    List<Widget> topLevelTreeItems = [];
-    for (int i = 0; i < rootCanvasNode.children.length; i++) {
-      final topLevelChild = rootCanvasNode.children[i];
-      final bool isThisTopLevelChildLast = i == rootCanvasNode.children.length - 1;
-      topLevelTreeItems.addAll(buildTreeWidgetsRecursive(
-        topLevelChild,
-        0,
-        rootCanvasNode,
-        [],
-        isThisTopLevelChildLast,
-      ));
-    }
+    List<Widget> topLevelWidgets = buildTreeNodes(rootCanvasNode, 0, rootCanvasNode, []);
 
-    if (topLevelTreeItems.isEmpty) {
-      return const Center(child: Text("Please add widgets to the canvas."));
+    if (rootCanvasNode.children.isEmpty) {
+      if (isDragging) {
+        // If the canvas is empty, still show a drop target
+        return ListView(children: [
+          GapDropTarget(
+            parentNode: rootCanvasNode,
+            targetIndex: 0,
+            overallRootNode: rootCanvasNode,
+            depth: 0,
+            isLastInSiblings: true,
+            ancestorIsLastList: const [],
+          ),
+        ]);
+      } else {
+        return const Center(child: Text("Please add widgets to the canvas."));
+      }
     } else {
       return ListView(
         padding: const EdgeInsets.all(8.0),
-        children: topLevelTreeItems,
+        children: topLevelWidgets,
       );
     }
   }

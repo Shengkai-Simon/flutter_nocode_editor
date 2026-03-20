@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_editor/constants/app_constants.dart';
 import 'package:http/http.dart' as http;
 
@@ -21,6 +22,17 @@ class ProjectApiService {
   final String _baseUrl = 'http://localhost/api';
 
   Future<ProjectState> fetchProject(String projectId) async {
+    // New: If in debug mode, bypass the API call and return a default project.
+    if (kDebugMode) {
+      print('[Debug Mode] Bypassing API call and creating a default project.');
+      final defaultPage = PageNode(id: uuid.v4(), name: 'Main Page', tree: createDefaultCanvasTree());
+      return ProjectState(
+        pages: [defaultPage],
+        activePageId: defaultPage.id,
+        initialPageId: defaultPage.id,
+        view: MainView.overview,
+      );
+    }
     final uri = Uri.parse('$_baseUrl/projects/$projectId');
 
     print('[API Request] ==> GET $uri');
